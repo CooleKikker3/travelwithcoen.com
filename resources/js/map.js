@@ -10,10 +10,11 @@ const styles = {
 // Rough view of the whole direction (Netherlands → Vietnam) for maps without data.
 const fallbackView = { center: [40, 60], zoom: 3 };
 
-// Satellite imagery without labels, for all maps. Check the terms before going live.
+// NASA Blue Marble satellite imagery (public domain: no credit needed), no place names.
+// Native detail up to zoom 8 (~500 m/pixel); closer zoom levels are upscaled.
 const satellite = {
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics',
+    url: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_NextGeneration/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg',
+    options: { maxZoom: 18, maxNativeZoom: 8 },
 };
 
 const area = (bounds) => (bounds.getNorth() - bounds.getSouth()) * (bounds.getEast() - bounds.getWest());
@@ -24,6 +25,7 @@ function initMap(figure) {
 
     const map = L.map(figure.querySelector('[data-map-canvas]'), {
         scrollWheelZoom: false,
+        attributionControl: false, // Leaflet and NASA imagery need no credit on the map
         zoomSnap: 0.25, // lets a country fill its map instead of jumping a whole zoom level
         zoomControl: interactive,
         dragging: interactive,
@@ -33,13 +35,11 @@ function initMap(figure) {
         keyboard: interactive,
     });
 
-    // Leaflet itself needs no credit; the imagery credit (Esri) is required, so it stays, small.
-    map.attributionControl.setPrefix(false);
 
     const borderData = figure.querySelector('script[data-border]');
 
     if (!borderData) {
-        L.tileLayer(satellite.url, { maxZoom: 18, attribution: satellite.attribution }).addTo(map);
+        L.tileLayer(satellite.url, satellite.options).addTo(map);
     }
 
     const layer = L.geoJSON(data, {
@@ -65,8 +65,8 @@ function initMap(figure) {
 
         // Two copies of the imagery: the blurred one fills the map, the sharp one is clipped to the country.
         map.createPane('countryPane').style.zIndex = 250;
-        L.tileLayer(satellite.url, { maxZoom: 18, attribution: satellite.attribution, className: 'map-surroundings' }).addTo(map);
-        L.tileLayer(satellite.url, { maxZoom: 18, pane: 'countryPane' }).addTo(map);
+        L.tileLayer(satellite.url, { ...satellite.options, className: 'map-surroundings' }).addTo(map);
+        L.tileLayer(satellite.url, { ...satellite.options, pane: 'countryPane' }).addTo(map);
 
         L.polygon(polygons, { color: '#ffffff', weight: 1.5, opacity: 0.8, fill: false, interactive: false }).addTo(map);
         layer.bringToFront();
