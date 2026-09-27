@@ -30,5 +30,5 @@ Website + CMS for Coen's walk from the Netherlands to Hanoi. Full requirements: 
 - Open: Garmin integration (after research), deployment + backups + map tile provider, 2FA, design polish (postponed by Coen).
 
 ## Open notes (for next session)
-- Maps: NASA Blue Marble (no credit). Interactive maps switch to Esri imagery + place names beyond zoom 8 and faded road/street names from zoom 14 (`sharpWhenZoomed()` in map.js), credit shown only then — not yet visually checked. Check the Esri terms before going live.
+- Maps: NASA Blue Marble (no credit). Interactive maps switch to Esri imagery + CARTO label-only place names (no borders) beyond zoom 8 and faded road/street names from zoom 14 (`sharpWhenZoomed()` in map.js), credit shown only then — not yet visually checked. Check the Esri and CARTO terms before going live (CARTO free basemaps are for non-commercial/limited use).
 - Country widget still blurs the surroundings (`.map-surroundings` in app.css).
