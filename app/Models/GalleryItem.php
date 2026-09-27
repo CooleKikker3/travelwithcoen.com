@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Storage;
  *  - kind "image" / "video": uploaded files (source "upload"), or images from an article's text (source "article")
  *  - kind "youtube": synced from the YouTube channel (source "youtube", see YouTubeSync)
  */
-#[Fillable(['path', 'width', 'height', 'youtube_id', 'kind', 'source', 'caption', 'taken_at', 'country_id', 'article_id', 'journey_day_id', 'journey_event_id', 'is_public'])]
+#[Fillable(['path', 'width', 'height', 'youtube_id', 'youtube_channel_id', 'kind', 'source', 'caption', 'taken_at', 'country_id', 'article_id', 'journey_day_id', 'journey_event_id', 'is_public'])]
 class GalleryItem extends Model
 {
     use HasTranslations;

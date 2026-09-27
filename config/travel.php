@@ -17,7 +17,4 @@ return [
     // YouTube channel whose videos are added to the gallery (URL, @handle or channel id).
     'youtube_channel' => env('YOUTUBE_CHANNEL'),
 
-    // YouTube sync: an API key is optional; without it only the ~15 newest videos (RSS) are synced.
-    'youtube_api_key' => env('YOUTUBE_API_KEY'),
-
 ];

@@ -104,8 +104,12 @@ class GalleryAndPlanningTest extends TestCase
                 XML),
         ]);
 
+        // A video from a previously configured channel is cleaned up.
+        GalleryItem::create(['kind' => 'youtube', 'source' => 'youtube', 'youtube_id' => 'oldchannel1', 'youtube_channel_id' => 'UColdoldoldoldoldoldold1', 'taken_at' => now()]);
+
         $this->assertSame(1, app(YouTubeSync::class)->sync());
-        $this->assertSame(1, app(YouTubeSync::class)->sync()); // idempotent
+        $this->assertSame(0, app(YouTubeSync::class)->sync()); // already known: nothing added
+        $this->assertDatabaseMissing('gallery_items', ['youtube_id' => 'oldchannel1']);
 
         $video = GalleryItem::sole();
         $this->assertTrue($video->isYoutube());

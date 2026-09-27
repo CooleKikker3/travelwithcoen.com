@@ -66,7 +66,7 @@ class GalleryItemsTable
                     ->visible(fn () => filled(config('travel.youtube_channel')))
                     ->action(function () {
                         try {
-                            Notification::make()->success()->title(app(YouTubeSync::class)->sync().' YouTube videos synced')->send();
+                            Notification::make()->success()->title(app(YouTubeSync::class)->sync().' new YouTube videos added')->send();
                         } catch (Throwable $e) {
                             Notification::make()->danger()->title('YouTube sync failed')->body($e->getMessage())->send();
                         }

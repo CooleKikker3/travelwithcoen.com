@@ -10,16 +10,20 @@ use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
- * Adds the videos of the YouTube channel in .env (YOUTUBE_CHANNEL) to the gallery.
- * Without an API key the public RSS feed is used (newest ~15 videos, enough when syncing
- * hourly); with YOUTUBE_API_KEY the complete upload history is fetched.
- * Existing items keep their CMS settings (visibility, country, article, Dutch caption).
+ * Adds new videos of the YouTube channel in .env (YOUTUBE_CHANNEL) to the gallery.
+ * Reads the channel's public RSS feed (no API key needed), looks at the newest videos only
+ * and adds the ones that are not in the database yet. Existing items are left untouched,
+ * so changes made in the CMS (visibility, country, article, captions) are kept.
+ * Items from a previously configured channel are removed.
  */
 class YouTubeSync
 {
+    public const NEWEST = 10;
+
     // Skips the EU cookie consent page when resolving a channel handle.
     private const HEADERS = ['Cookie' => 'SOCS=CAI; CONSENT=YES+1', 'Accept-Language' => 'en'];
 
+    /** @return int number of videos added */
     public function sync(): int
     {
         $channel = trim((string) config('travel.youtube_channel'));
@@ -29,18 +33,34 @@ class YouTubeSync
         }
 
         $channelId = $this->channelId($channel);
-        $videos = config('travel.youtube_api_key') ? $this->fromApi($channelId) : $this->fromRss($channelId);
 
-        foreach ($videos as $v) {
-            $item = GalleryItem::firstOrNew(['youtube_id' => $v['id']]);
-            $item->fill(['kind' => 'youtube', 'source' => 'youtube', 'taken_at' => $v['published']]);
-            // The YouTube title is the (English) caption; a Dutch caption can be added in the CMS.
-            $item->caption = array_merge($item->caption ?? [], ['en' => Str::limit($v['title'], 300)]);
-            $item->is_public ??= true;
-            $item->save();
+        GalleryItem::where('kind', 'youtube')
+            ->where(fn ($q) => $q->whereNull('youtube_channel_id')->orWhere('youtube_channel_id', '!=', $channelId))
+            ->delete();
+
+        $newest = array_slice($this->fromRss($channelId), 0, self::NEWEST);
+        $known = GalleryItem::whereIn('youtube_id', array_column($newest, 'id'))->pluck('youtube_id')->all();
+        $added = 0;
+
+        foreach ($newest as $video) {
+            if (in_array($video['id'], $known, true)) {
+                continue;
+            }
+
+            GalleryItem::create([
+                'kind' => 'youtube',
+                'source' => 'youtube',
+                'youtube_id' => $video['id'],
+                'youtube_channel_id' => $channelId,
+                // The YouTube title is the (English) caption; a Dutch caption can be added in the CMS.
+                'caption' => ['en' => Str::limit($video['title'], 300)],
+                'taken_at' => $video['published'],
+                'is_public' => true,
+            ]);
+            $added++;
         }
 
-        return count($videos);
+        return $added;
     }
 
     /** Accepts a channel id (UC…), a handle (@name) or a channel URL. */
@@ -52,20 +72,21 @@ class YouTubeSync
 
         $handle = '@'.ltrim(Str::afterLast(rtrim($channel, '/'), '/'), '@');
 
-        return Cache::rememberForever("youtube_channel_id:{$handle}", function () use ($handle) {
-            if ($key = config('travel.youtube_api_key')) {
-                $id = Http::get('https://www.googleapis.com/youtube/v3/channels', ['part' => 'id', 'forHandle' => $handle, 'key' => $key])
-                    ->throw()->json('items.0.id');
-            } else {
-                $html = Http::withHeaders(self::HEADERS)->get("https://www.youtube.com/{$handle}")->throw()->body();
-                $id = preg_match('~"(?:externalId|channelId)":"(UC[\w-]{22})"~', $html, $m) ? $m[1] : null;
+        return Cache::rememberForever("youtube_channel:{$handle}", function () use ($handle) {
+            $html = Http::withHeaders(self::HEADERS)->get("https://www.youtube.com/{$handle}")->throw()->body();
+
+            // Only the channel's own id: the canonical link, else "externalId". The page also mentions
+            // other channels ("channelId"), so those must not be used.
+            if (preg_match('~<link rel="canonical" href="https://www\.youtube\.com/channel/(UC[\w-]{22})"~', $html, $m)
+                || preg_match('~"externalId":"(UC[\w-]{22})"~', $html, $m)) {
+                return $m[1];
             }
 
-            return $id ?? throw new RuntimeException("YouTube channel {$handle} not found.");
+            throw new RuntimeException("YouTube channel {$handle} not found.");
         });
     }
 
-    /** @return array<int, array{id: string, title: string, published: Carbon}> */
+    /** Newest first. @return array<int, array{id: string, title: string, published: Carbon}> */
     private function fromRss(string $channelId): array
     {
         $xml = simplexml_load_string(
@@ -82,31 +103,7 @@ class YouTubeSync
             ];
         }
 
-        return $videos;
-    }
-
-    private function fromApi(string $channelId): array
-    {
-        $videos = [];
-        $pageToken = null;
-
-        do {
-            $response = Http::get('https://www.googleapis.com/youtube/v3/playlistItems', array_filter([
-                'part' => 'snippet',
-                'playlistId' => 'UU'.substr($channelId, 2), // the channel's "uploads" playlist
-                'maxResults' => 50,
-                'pageToken' => $pageToken,
-                'key' => config('travel.youtube_api_key'),
-            ]))->throw();
-
-            foreach ($response->json('items', []) as $item) {
-                $videos[] = [
-                    'id' => $item['snippet']['resourceId']['videoId'],
-                    'title' => $item['snippet']['title'],
-                    'published' => Carbon::parse($item['snippet']['publishedAt']),
-                ];
-            }
-        } while (($pageToken = $response->json('nextPageToken')) && count($videos) < 2000);
+        usort($videos, fn ($a, $b) => $b['published'] <=> $a['published']);
 
         return $videos;
     }

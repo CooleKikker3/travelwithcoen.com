@@ -16,7 +16,7 @@ Website + CMS for Coen's walk from the Netherlands to Hanoi. Full requirements: 
 - **Statistics** are computed (`JourneyStats`) from journey days/routes/tracking, never stored.
 - **Gallery** (`GalleryItem`): photos, uploaded videos and YouTube videos in one table (kind image|video|youtube, mixed by date), shown as a Freewall-style brick wall (`x-gallery-wall` + `resources/js/wall.js`: dense CSS grid where wide/tall/big bricks fill gaps, FLIP slide on resize, pop-in, infinite scroll, lightbox with description; videos only play on request). Images placed in article text via the `ImageBlock` custom block (with caption) are synced to the gallery by `ArticleGallerySync`, linked to the article, and only shown once the article is published. Images are re-encoded (`ImageProcessor`, EXIF/GPS stripped); videos via ffmpeg when available (`VideoProcessor`).
 - **Articles** have a type (diary|preparation) and free tags (filter `?tag=`); render bodies with `$article->bodyHtml()`.
-- **YouTube** videos are never added by hand: `youtube:sync` (hourly, `YouTubeSync`) adds the channel from `.env` `YOUTUBE_CHANNEL` to the gallery as kind "youtube" (RSS, or full history with `YOUTUBE_API_KEY`).
+- **YouTube** videos are never added by hand: `youtube:sync` (hourly, `YouTubeSync`) adds the channel from `.env` `YOUTUBE_CHANNEL` to the gallery as kind "youtube" (RSS: only the newest 10, only new ones are added; items of a previous channel are removed).
 - **Route planner** (Filament page): click waypoints, straight lines or BRouter walking paths; waypoints stored on `CountryRoute`.
 - **Roles**: `App\Enums\Role` = admin | trusted_viewer. Visitors without an account are guests.
 - Never invent route, visa, border or Garmin facts; mark uncertain things as not final.

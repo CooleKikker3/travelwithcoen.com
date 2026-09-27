@@ -9,7 +9,7 @@ Artisan::command('inspire', function () {
 
 // Pull new videos from the configured YouTube channel (needs the scheduler: `php artisan schedule:work` locally, cron in production).
 Artisan::command('youtube:sync', function (App\Services\YouTubeSync $sync) {
-    $this->info($sync->sync().' videos synced.');
+    $this->info($sync->sync().' new videos added.');
 })->purpose('Sync videos from the configured YouTube channel');
 
 Schedule::command('youtube:sync')->hourly()->withoutOverlapping();
