@@ -1,6 +1,8 @@
 <x-layouts.app :title="__('site.about.title')">
     <x-page-header :title="__('site.about.title')" :lead="__('site.about.lead')" />
 
+    <x-journey-facts class="container-page mt-12" />
+
     <div class="container-page mt-12">
         <div class="prose prose-lg max-w-3xl prose-headings:font-display prose-p:text-forest-800">
             @foreach (preg_split('/\R\s*\R/', trim(__('site.about.body', ['departure' => __('site.departure')]))) as $paragraph)

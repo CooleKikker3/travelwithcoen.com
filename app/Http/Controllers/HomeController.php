@@ -26,7 +26,6 @@ class HomeController extends Controller
         return view('pages.home', [
             // Before departure the focus is preparation, during the walk progress, afterwards the archive.
             'phase' => JourneyPhase::tryFrom(Settings::get('journey_phase')) ?? JourneyPhase::Preparation,
-            'stats' => JourneyStats::for($user),
             // Stops in the rough direction that match a country link to its page.
             'countryLinks' => Country::published()->get()->mapWithKeys(fn (Country $country) => [mb_strtolower($country->translate('name')) => $country->url()]),
             'heroImage' => ($image = Settings::get('home_image')) ? MediaStorage::url($image) : null,
