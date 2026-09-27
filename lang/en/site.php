@@ -19,7 +19,6 @@ return [
     ],
 
     'status' => [
-        'value' => 'Preparing',
         'not_final' => 'Not final',
     ],
 

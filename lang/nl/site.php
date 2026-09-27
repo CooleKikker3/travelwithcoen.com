@@ -19,7 +19,6 @@ return [
     ],
 
     'status' => [
-        'value' => 'Voorbereiding',
         'not_final' => 'Niet definitief',
     ],
 
