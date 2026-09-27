@@ -9,6 +9,7 @@ use App\Models\Article;
 use App\Models\Country;
 use App\Models\Expense;
 use App\Models\GalleryItem;
+use App\Models\JourneyDay;
 use App\Models\TrackingPoint;
 use App\Support\JourneyStats;
 use App\Support\Settings;
@@ -36,11 +37,16 @@ class JourneyOverview extends StatsOverviewWidget
                 ->description($lastPoint ? 'Received '.$lastPoint->received_at->diffForHumans() : 'No tracking data yet')
                 ->color($lastPoint && $lastPoint->recorded_at->gt(now()->subHours(6)) ? 'success' : 'warning'),
             Stat::make('Total distance', Number::format($stats['distance_km'], 0).' km')
-                ->description(Number::format(\App\Models\JourneyDay::where('date', '>=', now()->startOfMonth())->sum('distance_km'), 0).' km this month · '.$stats['countries'].' countries'),
+                ->description(Number::format(JourneyDay::where('date', '>=', now()->startOfMonth())->sum('distance_km'), 0).' km this month · '.$stats['countries'].' countries'),
             Stat::make('Articles', Article::where('status', ArticleStatus::Published)->count())
                 ->description(Article::where('status', ArticleStatus::Draft)->count().' drafts'),
-            Stat::make('Gallery', GalleryItem::count())
-                ->description(GalleryItem::where('kind', 'image')->count().' photos · '.GalleryItem::whereIn('kind', ['video', 'youtube'])->count().' videos'),
+            Stat::make('Gallery (own uploads)', GalleryItem::where('kind', '!=', 'youtube')->count())
+                ->description(GalleryItem::where('kind', 'image')->count().' photos · '.GalleryItem::where('kind', 'video')->count().' videos'),
+            Stat::make('YouTube videos', GalleryItem::where('kind', 'youtube')->count())
+                ->description(($latest = GalleryItem::where('kind', 'youtube')->latest('taken_at')->first())
+                    ? 'Latest: '.$latest->taken_at->format('j M Y')
+                    : (filled(config('travel.youtube_channel')) ? 'Not synced yet' : 'No channel set (YOUTUBE_CHANNEL)'))
+                ->color('danger'),
             Stat::make('Budget spent (private)', Number::currency($spent, 'EUR'))
                 ->description(Number::currency($available - $spent, 'EUR').' left excl. reserve'
                     .($stats['walking_days'] ? ' · '.Number::currency($spent / max(1, $stats['days']), 'EUR').'/day' : ''))
