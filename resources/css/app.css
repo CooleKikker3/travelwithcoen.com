@@ -410,9 +410,9 @@
 .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.4s ease-out forwards; animation-delay: var(--d, .6s); }
 
 /* Wavy bottom edge for dark sections (echoes the topo pattern). */
-.wave-bottom { --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 40' preserveAspectRatio='none'%3E%3Cpath d='M0 0h1200v18c-100 16-200 22-300 10S700 0 600 12 400 40 300 30 100 8 0 22z'/%3E%3C/svg%3E");
-    -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 39px) no-repeat, var(--wave) bottom / 100% 40px no-repeat;
-    mask: linear-gradient(#000 0 0) top / 100% calc(100% - 39px) no-repeat, var(--wave) bottom / 100% 40px no-repeat; }
+.wave-bottom { --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 80' preserveAspectRatio='none'%3E%3Cpath d='M0 0h1200v40c-80 30-160 38-240 18S800 0 700 20 540 78 420 64 260 10 160 24 50 70 0 52z'/%3E%3C/svg%3E");
+    -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 79px) no-repeat, var(--wave) bottom / 100% 80px no-repeat;
+    mask: linear-gradient(#000 0 0) top / 100% calc(100% - 79px) no-repeat, var(--wave) bottom / 100% 80px no-repeat; }
 
 /* Polaroid-style cards: slightly tilted like photos stuck in a journal; straighten and lift on hover. */
 .polaroid { --tilt: -1.2deg; position: relative; transition: transform .35s cubic-bezier(.2, .9, .3, 1.4), box-shadow .35s; }
@@ -432,7 +432,3 @@
 }
 .polaroid { transform: rotate(var(--tilt)); }
 
-/* Hero: bolder, slowly flowing version of the wave pattern. */
-.topo-strong { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%23a6cf92' stroke-opacity='.24' stroke-width='2'%3E%3Cpath d='M-120 20 q60 -14 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-60 60 q60 -20 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-120 100 q60 -12 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-30 140 q60 -22 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-90 180 q60 -16 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-120 220 q60 -20 120 0 t120 0 t120 0 t120 0'/%3E%3C/g%3E%3C/svg%3E"); background-size: 320px; animation: flow 60s linear infinite; }
-@keyframes flow { to { background-position: 640px 0; } }
-@media (prefers-reduced-motion: reduce) { .topo-strong { animation: none; } }

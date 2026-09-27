@@ -31,7 +31,7 @@
             <div class="absolute inset-0 -z-10 bg-gradient-to-r from-forest-950/90 via-forest-900/60 to-forest-900/10"></div>
             <div class="absolute inset-0 -z-10 bg-gradient-to-t from-forest-950/70 to-transparent to-40%"></div>
         @endif
-        <div class="topo topo-strong absolute inset-0 -z-10" aria-hidden="true"></div>
+        <div class="topo absolute inset-0 -z-10" aria-hidden="true"></div>
 
         <div @class(['container-page flex flex-col justify-end pt-16 pb-24 sm:pt-24 sm:pb-32', 'min-h-[85vh]' => $heroImage])>
             <div class="max-w-2xl">
