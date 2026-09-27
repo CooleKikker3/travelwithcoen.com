@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ArticleType;
 use App\Enums\JourneyPhase;
 use App\Models\Article;
 use App\Models\Country;
@@ -30,8 +29,7 @@ class HomeController extends Controller
             'countryLinks' => Country::published()->get()->mapWithKeys(fn (Country $country) => [mb_strtolower($country->translate('name')) => $country->url()]),
             'heroImage' => ($image = Settings::get('home_image')) ? MediaStorage::url($image) : null,
             'lastLocation' => TrackingPoint::visibleTo($user)->with('country')->latest('recorded_at')->first(),
-            'preparation' => Article::published()->where('type', ArticleType::Preparation)->limit(3)->get(),
-            'diary' => Article::published()->where('type', ArticleType::Diary)->limit(3)->get(),
+            'latest' => Article::published()->with('country')->limit(3)->get(),
             'gallery' => GalleryItem::public()->limit(8)->get(),
             'overview' => RouteGeometry::withOpenPlan(
                 RouteGeometry::withTracking(RouteGeometry::featureCollection($routes, RouteGeometry::OVERVIEW), $user, null, RouteGeometry::OVERVIEW),

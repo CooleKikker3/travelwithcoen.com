@@ -77,6 +77,11 @@
         @apply inline-flex items-center gap-2 rounded-full px-6 py-3 font-bold transition duration-300 border-2 border-dashed border-sage-200/50 text-sage-100 hover:rotate-1 hover:border-fern-300 hover:bg-forest-700/60;
     }
 
+    /* Same as .btn-ghost, for light backgrounds. */
+    .btn-outline {
+        @apply inline-flex items-center gap-2 rounded-full px-6 py-3 font-bold transition duration-300 border-2 border-dashed border-moss-400 text-forest-800 hover:rotate-1 hover:border-moss-600 hover:bg-sage-100;
+    }
+
     .badge {
         @apply inline-flex items-center rounded-full bg-sage-100 px-2.5 py-0.5 text-xs font-semibold text-forest-700;
     }
@@ -419,8 +424,22 @@
 .polaroid:nth-child(3n+2) { --tilt: 1deg; }
 .polaroid:nth-child(3n+3) { --tilt: -.5deg; }
 .polaroid:hover { transform: translateY(-6px) rotate(0deg) scale(1.02) !important; box-shadow: 0 18px 40px -12px rgb(20 42 28 / .35); }
-/* A strip of tape on top. */
-.polaroid::before { content: ''; position: absolute; z-index: 2; top: -10px; left: 50%; width: 84px; height: 22px; transform: translateX(-50%) rotate(-3deg); background: rgb(238 232 216 / .85); box-shadow: 0 1px 2px rgb(0 0 0 / .08); }
+/* Washi tape: a different pattern, colour and spot per card, with torn (zigzag) ends; it lifts a little on hover. */
+.polaroid::before { content: ''; position: absolute; z-index: 2; top: -12px; left: 50%; width: 104px; height: 28px;
+    transform: translateX(-50%) rotate(-4deg);
+    background: repeating-linear-gradient(-45deg, rgb(194 192 122 / .55) 0 6px, rgb(238 232 216 / .9) 6px 12px);
+    -webkit-mask: conic-gradient(from -45deg at left, #0000 25%, #000 0) left / 51% 7px repeat-y, conic-gradient(from 135deg at right, #0000 25%, #000 0) right / 51% 7px repeat-y;
+    mask: conic-gradient(from -45deg at left, #0000 25%, #000 0) left / 51% 7px repeat-y, conic-gradient(from 135deg at right, #0000 25%, #000 0) right / 51% 7px repeat-y;
+    filter: drop-shadow(0 1px 1px rgb(0 0 0 / .12)); transition: transform .35s cubic-bezier(.2, .9, .3, 1.6); }
+/* Dotted green tape across the top-left corner. */
+.polaroid:nth-child(3n+2)::before { top: 4px; left: -22px; width: 92px; transform: rotate(-38deg);
+    background: radial-gradient(circle, rgb(255 255 255 / .8) 2px, transparent 2.5px) 0 0 / 10px 10px, rgb(166 207 146 / .8); }
+/* Plain olive tape across the top-right corner, with fine lines. */
+.polaroid:nth-child(3n+3)::before { top: 2px; left: auto; right: -24px; width: 96px; transform: rotate(36deg);
+    background: repeating-linear-gradient(90deg, transparent 0 9px, rgb(255 255 255 / .35) 9px 10px), rgb(194 192 122 / .75); }
+.polaroid:hover::before { transform: translateX(-50%) rotate(-6deg) scale(1.06); }
+.polaroid:nth-child(3n+2):hover::before { transform: rotate(-42deg) scale(1.06); }
+.polaroid:nth-child(3n+3):hover::before { transform: rotate(40deg) scale(1.06); }
 
 /* Passport-style stamp for route stops. */
 .stamp { display: inline-block; border: 2px dashed currentColor; border-radius: 10px; padding: .15rem .7rem; font-family: var(--font-hand); font-size: 1.35rem; font-weight: 700; line-height: 1.3; transform: rotate(var(--tilt, -2deg)); transition: transform .3s cubic-bezier(.2, .9, .3, 1.6); }

@@ -108,40 +108,25 @@
         </div>
     </section>
 
-    @php
-        $sections = [
-            ['articles' => $diary, 'title' => __('site.home.diary_title'), 'link' => stories_url('diary'), 'more' => __('site.home.all_diary'), 'lead' => null],
-            ['articles' => $preparation, 'title' => __('site.home.preparation_title'), 'link' => stories_url('preparation'), 'more' => __('site.home.all_preparation'), 'lead' => __('site.home.preparation_lead')],
-        ];
-        if ($preparing) {
-            $sections = array_reverse($sections);
-        }
-    @endphp
-
-    @foreach ($sections as $section)
-        @if ($section['articles']->isNotEmpty() || ($preparing && $loop->first))
-            <section class="container-page mt-16">
-                <div class="flex flex-wrap items-end justify-between gap-4">
-                    <div>
-                        <h2 class="text-3xl font-bold sm:text-4xl" data-reveal>{{ $section['title'] }}</h2>
-                        @if ($section['lead'])
-                            <p class="mt-2 max-w-2xl text-forest-700">{{ $section['lead'] }}</p>
-                        @endif
-                    </div>
-                    <a href="{{ $section['link'] }}" class="font-semibold text-moss-600 hover:text-forest-700">{{ $section['more'] }} →</a>
-                </div>
-                @if ($section['articles']->isEmpty())
-                    <p class="mt-8 rounded-2xl border border-dashed border-sage-200 p-8 text-center text-moss-600">{{ __('site.home.empty') }}</p>
-                @else
-                    <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        @foreach ($section['articles'] as $article)
-                            <x-article-card :article="$article" :index="$loop->index" />
-                        @endforeach
-                    </div>
-                @endif
-            </section>
+    {{-- Latest news: the newest stories of any kind (preparation and on the road), stuck in like photos. --}}
+    <section class="container-page mt-20">
+        <div class="flex flex-wrap items-end justify-between gap-4" data-reveal>
+            <div class="flex flex-wrap items-end gap-x-4">
+                <h2 class="text-4xl font-extrabold sm:text-5xl">{{ __('site.home.news_title') }}</h2>
+                <span class="-rotate-3 pb-1 font-hand text-3xl text-moss-600">{{ __('site.home.news_hand') }}</span>
+            </div>
+            <a href="{{ stories_url() }}" class="btn-outline">{{ __('site.home.all_updates') }} →</a>
+        </div>
+        @if ($latest->isEmpty())
+            <p class="mt-8 rounded-2xl border border-dashed border-sage-200 p-8 text-center text-moss-600">{{ __('site.home.empty') }}</p>
+        @else
+            <div class="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($latest as $article)
+                    <x-article-card :article="$article" :index="$loop->index" />
+                @endforeach
+            </div>
         @endif
-    @endforeach
+    </section>
 
     @if ($gallery->isNotEmpty())
         <section class="container-page mt-16">
