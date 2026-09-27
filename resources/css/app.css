@@ -432,3 +432,31 @@
 }
 .polaroid { transform: rotate(var(--tilt)); }
 
+
+/* Floating navigation (layouts/app.blade.php). */
+.site-nav__bar { transition: background-color .4s, box-shadow .4s, padding .4s, backdrop-filter .4s; }
+.site-nav.is-scrolled .site-nav__bar { background: rgb(20 42 28 / .88); backdrop-filter: blur(10px); box-shadow: 0 10px 30px -10px rgb(0 0 0 / .45), inset 0 0 0 1px rgb(255 255 255 / .06); }
+/* Room for the floating bar above the dark top of each page. */
+main > section:first-child, main > article > header:first-child { padding-top: 5.5rem; }
+
+/* Menu links with a wavy underline that grows in on hover and stays on the current page. */
+.nav-link { position: relative; padding: .45rem .8rem; border-radius: 9999px; font-weight: 700; font-size: .95rem; color: var(--color-sage-200); transition: color .2s, transform .3s cubic-bezier(.2, .9, .3, 1.6); }
+.nav-link::after { content: ''; position: absolute; left: .8rem; right: .8rem; bottom: .05rem; height: 7px; background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 7'%3E%3Cpath d='M0 4c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 5 0' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E") repeat-x left center / 20px 7px;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 7'%3E%3Cpath d='M0 4c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 5 0' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E") repeat-x left center / 20px 7px;
+    transform: scaleX(0); transform-origin: left; transition: transform .35s ease; }
+.nav-link:hover { color: #fff; transform: translateY(-2px) rotate(-2deg); }
+.nav-link:hover::after, .nav-link.is-active::after { transform: scaleX(1); }
+.nav-link.is-active { color: #fff; }
+.nav-link.is-active::after { color: var(--color-olive-300); }
+
+/* Mobile menu: links drop in one after another. */
+@keyframes drop-in { from { opacity: 0; transform: translateY(-8px) rotate(-2deg); } }
+.nav-menu[open] .nav-menu__link { animation: drop-in .35s cubic-bezier(.2, .9, .3, 1.4) both; animation-delay: calc(var(--i) * 45ms); }
+.nav-menu[open] summary { background: var(--color-olive-300); }
+@media (prefers-reduced-motion: reduce) { .nav-menu[open] .nav-menu__link { animation: none; } }
+
+/* Logo: dotted trail between Lisse and Hanoi; the dots walk when hovering the logo. */
+.logo-trail { width: 1.6rem; height: 2px; background: radial-gradient(circle, var(--color-olive-300) 1px, transparent 1.3px) 0 50% / 5px 2px repeat-x; }
+.group:hover .logo-trail { animation: trail .6s linear infinite; }
+@keyframes trail { to { background-position: 5px 50%; } }

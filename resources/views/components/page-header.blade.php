@@ -1,6 +1,6 @@
 @props(['title', 'lead' => null, 'eyebrow' => null, 'country' => null])
-<section class="topo bg-forest-800 text-sage-100">
-    <div class="container-page py-14 sm:py-20">
+<section class="topo wave-bottom bg-forest-800 text-sage-100">
+    <div class="container-page pt-14 pb-24 sm:pt-20 sm:pb-28">
         @if ($eyebrow)
             <div class="mb-3 text-sm font-semibold tracking-wide text-fern-300 uppercase">{{ $eyebrow }}</div>
         @endif

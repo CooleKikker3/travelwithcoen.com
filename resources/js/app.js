@@ -13,6 +13,17 @@ const revealer = new IntersectionObserver((entries) => {
 }, { rootMargin: '0px 0px -8% 0px' });
 document.querySelectorAll('[data-reveal]').forEach((el) => revealer.observe(el));
 
+// Floating navigation: solid background once the page is scrolled; close the mobile menu on outside click.
+const nav = document.querySelector('[data-nav]');
+if (nav) {
+    const onScroll = () => nav.classList.toggle('is-scrolled', window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.nav-menu')) nav.querySelector('.nav-menu')?.removeAttribute('open');
+    });
+}
+
 // Sensitive images (articles and gallery lightbox): reveal after the visitor chooses to see them.
 document.addEventListener('click', (event) => {
     const button = event.target.closest('[data-sensitive-reveal]');

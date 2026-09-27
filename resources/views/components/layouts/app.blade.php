@@ -56,42 +56,46 @@
 <body class="flex min-h-screen flex-col">
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">{{ __('site.skip') }}</a>
 
-    <header class="bg-forest-900 text-sage-100">
-        <div class="container-page flex items-center justify-between gap-4 py-4">
+    {{-- Floating navigation: transparent over the dark top of every page, a blurred green pill once scrolled (js in app.js). --}}
+    <header class="site-nav fixed inset-x-0 top-0 z-[1100] px-3 pt-3 text-sage-100 sm:px-5" data-nav>
+        <div class="site-nav__bar mx-auto flex max-w-6xl items-center justify-between gap-4 rounded-full py-2 pr-2 pl-4 sm:pl-5">
             <a href="{{ lroute('home') }}" class="group flex items-center gap-3">
-                <svg class="size-9 shrink-0 text-fern-300 transition duration-300 group-hover:-rotate-6 group-hover:scale-110" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+                <svg class="size-10 shrink-0 text-fern-300 transition duration-500 group-hover:-rotate-12 group-hover:scale-110" viewBox="0 0 36 36" fill="none" aria-hidden="true">
                     <path d="M3 28 L13 12 L19 21 L23 16 L33 28 Z" fill="currentColor" opacity=".25"/>
                     <path d="M3 28 L13 12 L19 21 L23 16 L33 28" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                     <path d="M6 33 C12 30, 16 31, 20 29 S29 26, 32 23" stroke="#c2c07a" stroke-width="1.6" stroke-dasharray="2 2.5" stroke-linecap="round"/>
                 </svg>
-                <span class="leading-tight">
-                    <span class="block font-display text-lg font-semibold text-white">{{ __('site.name') }}</span>
-                    <span class="block font-hand text-base leading-none text-fern-300">Lisse → Hanoi</span>
+                <span class="leading-none">
+                    <span class="block font-display text-xl font-extrabold tracking-tight text-white">{{ __('site.name') }}</span>
+                    {{-- Start and finish joined by a dotted trail that walks on hover. --}}
+                    <span class="mt-1 flex items-center gap-1.5 text-[10px] font-extrabold tracking-[.2em] text-fern-300 uppercase">Lisse<span class="logo-trail" aria-hidden="true"></span>Hanoi</span>
                 </span>
             </a>
 
-            <nav class="hidden items-center gap-0.5 xl:flex" aria-label="Main">
+            <nav class="hidden items-center gap-1 lg:flex" aria-label="Main">
                 @foreach ($nav as $name => $label)
-                    <a href="{{ lroute($name) }}" @class(['rounded-full px-3 py-1.5 text-sm font-semibold transition', 'bg-forest-700 text-white' => $isActive($name), 'text-sage-200 hover:text-white' => ! $isActive($name)]) @if ($isActive($name)) aria-current="page" @endif>{{ $label }}</a>
+                    <a href="{{ lroute($name) }}" @class(['nav-link', 'is-active' => $isActive($name)]) @if ($isActive($name)) aria-current="page" @endif>{{ $label }}</a>
                 @endforeach
             </nav>
 
             <div class="flex items-center gap-2">
-                <div class="flex rounded-full border border-forest-700 p-0.5 text-xs font-bold" role="group" aria-label="{{ __('site.language') }}">
+                <div class="flex rounded-full bg-forest-950/40 p-1 text-xs font-extrabold" role="group" aria-label="{{ __('site.language') }}">
                     @foreach ($locales as $l => $label)
                         @if ($l === $locale)
                             <span class="rounded-full bg-fern-300 px-2.5 py-1 text-forest-950" aria-current="true" title="{{ $label }}">{{ strtoupper($l) }}</span>
                         @else
-                            <a href="{{ $alternates[$l] ?? lroute('home', [], $l) }}" hreflang="{{ $l }}" lang="{{ $l }}" class="rounded-full px-2.5 py-1 text-sage-200 hover:text-white" title="{{ $label }}">{{ strtoupper($l) }}</a>
+                            <a href="{{ ($alternates[$l] ?? lroute('home', [], $l)).'?lang='.$l }}" hreflang="{{ $l }}" lang="{{ $l }}" class="rounded-full px-2.5 py-1 text-sage-200 transition hover:-rotate-6 hover:text-white" title="{{ $label }}">{{ strtoupper($l) }}</a>
                         @endif
                     @endforeach
                 </div>
 
-                <details class="relative xl:hidden">
-                    <summary class="list-none cursor-pointer rounded-full border border-forest-700 px-3 py-1.5 text-sm font-semibold">{{ __('site.menu') }}</summary>
-                    <nav class="absolute right-0 z-20 mt-2 w-52 rounded-xl bg-forest-800 p-2 shadow-xl" aria-label="Main">
+                <details class="nav-menu lg:hidden">
+                    <summary class="flex size-10 cursor-pointer list-none items-center justify-center rounded-full bg-fern-300 text-forest-950 transition hover:rotate-6" aria-label="{{ __('site.menu') }}">
+                        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M4 7c3-2 5 2 8 0s5-2 8 0M4 12c3-2 5 2 8 0s5-2 8 0M4 17c3-2 5 2 8 0s5-2 8 0"/></svg>
+                    </summary>
+                    <nav class="topo absolute inset-x-3 top-full mt-2 rounded-3xl bg-forest-900/95 p-4 shadow-2xl ring-1 ring-white/10 backdrop-blur" aria-label="Main">
                         @foreach ($nav as $name => $label)
-                            <a href="{{ lroute($name) }}" @class(['block rounded-lg px-3 py-2 font-semibold', 'bg-forest-700 text-white' => $isActive($name), 'text-sage-200' => ! $isActive($name)])>{{ $label }}</a>
+                            <a href="{{ lroute($name) }}" @class(['nav-menu__link block rounded-2xl px-4 py-2.5 font-display text-2xl font-bold', 'bg-forest-700 text-white' => $isActive($name), 'text-sage-100 hover:bg-forest-800' => ! $isActive($name)]) style="--i: {{ $loop->index }}">{{ $label }}</a>
                         @endforeach
                     </nav>
                 </details>

@@ -50,6 +50,19 @@ class SiteTest extends TestCase
         $this->get('/')->assertOk()->assertSee('site/hero.jpg', false);
     }
 
+    public function test_dutch_visitors_get_the_dutch_home_page_unless_they_choose_english(): void
+    {
+        $this->get('/', ['Accept-Language' => 'nl-NL,nl;q=0.9,en;q=0.8'])->assertRedirect(url('/nl'));
+        $this->get('/', ['CF-IPCountry' => 'NL', 'Accept-Language' => 'en-US'])->assertRedirect(url('/nl'));
+        $this->get('/', ['Accept-Language' => 'en-US,en;q=0.9'])->assertOk();
+        $this->get('/about', ['Accept-Language' => 'nl-NL'])->assertOk(); // only the home page redirects
+
+        // Choosing English with the language switch is remembered.
+        $this->get('/?lang=en', ['Accept-Language' => 'nl-NL'])->assertRedirect(url('/'))->assertCookie('locale', 'en');
+        $this->withCookie('locale', 'en')->get('/', ['Accept-Language' => 'nl-NL'])->assertOk();
+        $this->withCookie('locale', 'nl')->get('/', ['Accept-Language' => 'en-US'])->assertRedirect(url('/nl'));
+    }
+
     public function test_stops_in_the_rough_direction_link_to_their_country(): void
     {
         Country::create(['iso_code' => 'NL', 'name' => ['en' => 'Netherlands', 'nl' => 'Nederland'], 'is_published' => true]);

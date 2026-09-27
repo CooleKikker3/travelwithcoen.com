@@ -19,12 +19,12 @@
         @endif
         <div class="topo absolute inset-0 -z-10" aria-hidden="true"></div>
 
-        <div @class(['container-page flex flex-col justify-end pt-16 pb-24 sm:pt-24 sm:pb-32', 'min-h-[85vh]' => $heroImage])>
+        <div @class(['container-page flex flex-col justify-center pt-12 pb-24 sm:pt-16 sm:pb-32', 'min-h-[80vh]' => $heroImage])>
             <div class="max-w-2xl">
                 <h1 class="rise text-5xl leading-[0.95] font-extrabold text-white drop-shadow sm:text-7xl" style="--d: .1s">{{ $title }}</h1>
                 {{-- Handwritten note with an arrow that draws itself. --}}
                 <p class="rise mt-3 flex items-center gap-2 font-hand text-3xl text-olive-300 -rotate-2" style="--d: .5s">
-                    <svg class="h-8 w-14 shrink-0" viewBox="0 0 56 32" fill="none" aria-hidden="true"><path class="draw" pathLength="1" d="M2 4c10 18 26 22 44 16m0 0-8-7m8 7-9 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="--d: .9s"/></svg>
+                    <svg class="h-8 w-14 shrink-0" viewBox="0 0 56 32" fill="none" aria-hidden="true"><g stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path class="draw" pathLength="1" d="M2 4c10 18 26 22 44 16" style="--d: .9s"/><path class="draw" pathLength="1" d="M38.3 17.7 46 20l-4.8 6.5" style="--d: 1.9s"/></g></svg>
                     {{ __('site.home.hand_note') }}
                 </p>
                 <p class="rise mt-6 max-w-xl text-lg text-sage-100" style="--d: .25s">{{ $lead }}</p>
