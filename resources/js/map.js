@@ -22,13 +22,14 @@ const satellite = {
 function sharpWhenZoomed(map) {
     const esri = (service) => L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/${service}/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 18 });
     const sharp = L.layerGroup([esri('World_Imagery'), esri('Reference/World_Boundaries_and_Places')]);
-    const streets = esri('Reference/World_Transportation');
+    // Esri tiles are pre-rendered (highways and railways can't be switched off), so roads are faded and only shown close up.
+    const streets = esri('Reference/World_Transportation').setOpacity(0.35);
     const credit = L.control.attribution({ prefix: false }).addAttribution('Imagery &amp; labels &copy; Esri, Maxar, Earthstar Geographics');
     const show = (layer, visible) => (visible ? !map.hasLayer(layer) && layer.addTo(map) : layer.remove());
     const update = () => {
         const zoom = map.getZoom();
         show(sharp, zoom > 8);
-        show(streets, zoom > 11);
+        show(streets, zoom >= 14);
         zoom > 8 ? credit.addTo(map) : credit.remove();
     };
     map.on('zoomend', update);
