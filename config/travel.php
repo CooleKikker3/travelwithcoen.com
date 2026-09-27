@@ -8,6 +8,10 @@ return [
         'nl' => 'Nederlands',
     ],
 
+    // Start and destination of the walk (shown on the home map; the rough plan runs between them).
+    'start' => ['name' => 'Lisse', 'country' => 'NL', 'lat' => 52.2575, 'lng' => 4.5570],
+    'destination' => ['name' => 'Hanoi', 'country' => 'VN', 'lat' => 21.0285, 'lng' => 105.8542],
+
     // Shared secret for POST /api/tracking (phone app / device). Empty = ingest disabled.
     'tracking_ingest_token' => env('TRACKING_INGEST_TOKEN'),
 

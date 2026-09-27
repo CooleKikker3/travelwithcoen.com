@@ -468,3 +468,26 @@ main > section:first-child, main > article > header:first-child { padding-top: 5
 .stamp .stamp__nr { background: var(--color-olive-300); color: var(--color-forest-900); }
 .stamp--edge { background: var(--color-forest-800) !important; color: var(--color-fern-300) !important; font-size: 1.6rem; }
 .stamp--link:hover { background: var(--color-fern-300) !important; color: var(--color-forest-950) !important; }
+
+/* Map markers (js/map.js): pulsing latest location, start/destination with a handwritten label. */
+.map-position span { position: absolute; inset: 0; border-radius: 9999px; background: var(--color-fern-300); box-shadow: 0 0 0 3px #fff; }
+.map-position span::after { content: ''; position: absolute; inset: -3px; border-radius: 9999px; border: 3px solid var(--color-fern-300); animation: ping 1.8s cubic-bezier(0, 0, .2, 1) infinite; }
+@keyframes ping { 75%, 100% { transform: scale(2.6); opacity: 0; } }
+.map-endpoint__dot { position: absolute; inset: 0; border-radius: 9999px; background: var(--color-olive-300); box-shadow: 0 0 0 3px var(--color-forest-900); }
+.map-endpoint__label { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%) rotate(-4deg); white-space: nowrap; font: 700 1.5rem/1 var(--font-hand); color: #fff; text-shadow: 0 1px 3px rgb(0 0 0 / .8), 0 0 10px rgb(0 0 0 / .5); }
+
+/* Legend keys, matching the map styles. */
+.map-legend__key { flex: none; width: 1.75rem; height: 0; }
+.map-legend__key--planned { border-top: 3px dashed var(--color-sand-100); }
+.map-legend__key--actual { border-top: 4px solid var(--color-fern-300); }
+.map-legend__key--open { height: 3px; background: radial-gradient(circle, var(--color-olive-300) 1.5px, transparent 2px) 0 50% / 8px 3px repeat-x; }
+.map-legend__key--position, .map-legend__key--endpoints { width: .75rem; height: .75rem; margin: 0 .5rem; border-radius: 9999px; }
+.map-legend__key--position { background: var(--color-fern-300); box-shadow: 0 0 0 2px #fff; }
+.map-legend__key--endpoints { background: var(--color-olive-300); box-shadow: 0 0 0 2px var(--color-forest-900), 0 0 0 3px rgb(255 255 255 / .4); }
+@media (prefers-reduced-motion: reduce) { .map-position span::after { animation: none; } }
+
+/* Wavy top and bottom edge (same wave as .wave-bottom, mirrored at the top). */
+.wave-both { --wave-top: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 80' preserveAspectRatio='none'%3E%3Cpath transform='matrix(1 0 0 -1 0 80)' d='M0 0h1200v40c-80 30-160 38-240 18S800 0 700 20 540 78 420 64 260 10 160 24 50 70 0 52z'/%3E%3C/svg%3E");
+    --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 80' preserveAspectRatio='none'%3E%3Cpath d='M0 0h1200v40c-80 30-160 38-240 18S800 0 700 20 540 78 420 64 260 10 160 24 50 70 0 52z'/%3E%3C/svg%3E");
+    -webkit-mask: var(--wave-top) top / 100% 80px no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 156px) no-repeat, var(--wave) bottom / 100% 80px no-repeat;
+    mask: var(--wave-top) top / 100% 80px no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 156px) no-repeat, var(--wave) bottom / 100% 80px no-repeat; }

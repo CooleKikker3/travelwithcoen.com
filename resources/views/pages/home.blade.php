@@ -89,12 +89,23 @@
         </section>
     @endif
 
-    <section class="container-page mt-16">
-        <div class="flex flex-wrap items-end justify-between gap-4">
-            <h2 class="text-3xl font-bold sm:text-4xl" data-reveal>{{ __('site.home.map_title') }}</h2>
-            <a href="{{ lroute('journey') }}" class="font-semibold text-moss-600 hover:text-forest-700">{{ __('site.journey.title') }} →</a>
+    {{-- The route: dark band with waves at the top and bottom, the plan and the latest (delayed) location. --}}
+    <section id="route" class="topo wave-both relative mt-20 bg-forest-900 pt-24 pb-28 text-sage-100">
+        <div class="container-page">
+            <div class="flex flex-wrap items-end justify-between gap-4" data-reveal>
+                <div>
+                    <div class="flex flex-wrap items-end gap-x-4">
+                        <h2 class="text-4xl font-extrabold text-white sm:text-5xl">{{ __('site.home.map_title') }}</h2>
+                        <span class="-rotate-3 pb-1 font-hand text-3xl text-olive-300">{{ __('site.home.map_hand') }}</span>
+                    </div>
+                    @if ($lastLocation)
+                        <p class="mt-2 text-sm text-sage-200">{{ __('site.home.last_seen', ['date' => $lastLocation->recorded_at->translatedFormat('j F Y')]) }}</p>
+                    @endif
+                </div>
+                <a href="{{ lroute('journey') }}" class="btn-ghost">{{ __('site.journey.title') }} →</a>
+            </div>
+            <x-route-map :geojson="$overview" :delay-days="$delayDays" class="mt-8 h-[26rem] rounded-3xl shadow-2xl shadow-black/40 ring-4 ring-forest-700 sm:h-[34rem]" data-reveal />
         </div>
-        <x-route-map :geojson="$overview" start-home class="mt-6 h-80 sm:h-[26rem]" />
     </section>
 
     @php

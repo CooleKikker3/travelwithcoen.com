@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\RouteType;
 use App\Models\CountryRoute;
 use App\Models\JourneyEvent;
 use App\Models\TrackingPoint;
@@ -20,6 +21,31 @@ class RouteGeometry
      * Outline of a country as GeoJSON MultiPolygon coordinates ([lng, lat]), from Natural Earth 1:50m
      * (public domain, resources/data/country-borders/{ISO}.json). Null when unknown.
      */
+    /**
+     * Start and destination markers, plus a straight "still to be planned" line from the last point
+     * of the planned route (the last published country that has one) — or from the start — to the destination.
+     */
+    public static function withOpenPlan(array $collection): array
+    {
+        [$start, $destination] = [config('travel.start'), config('travel.destination')];
+
+        $lastPlanned = CountryRoute::where('type', RouteType::Planned)
+            ->join('countries', 'countries.id', '=', 'country_routes.country_id')
+            ->where('countries.is_published', true)
+            ->orderByDesc('countries.sort_order')
+            ->select('country_routes.*')
+            ->get()
+            ->map(fn (CountryRoute $route) => $route->points()->reorder('sequence', 'desc')->first())
+            ->filter()
+            ->first();
+        $from = $lastPlanned ? [$lastPlanned->latitude, $lastPlanned->longitude] : [$start['lat'], $start['lng']];
+
+        $collection['features'][] = self::line('open', [$from, [$destination['lat'], $destination['lng']]]);
+        $collection['features'][] = self::point('start', $start['lat'], $start['lng'], ['label' => $start['name']]);
+        $collection['features'][] = self::point('destination', $destination['lat'], $destination['lng'], ['label' => $destination['name']]);
+
+        return $collection;
+    }
     public static function border(?string $isoCode): ?array
     {
         $file = resource_path('data/country-borders/'.strtoupper((string) $isoCode).'.json');

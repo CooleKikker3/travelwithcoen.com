@@ -63,6 +63,22 @@ class SiteTest extends TestCase
         $this->withCookie('locale', 'nl')->get('/', ['Accept-Language' => 'en-US'])->assertRedirect(url('/nl'));
     }
 
+    public function test_the_home_map_runs_an_open_line_from_the_end_of_the_plan_to_hanoi(): void
+    {
+        $open = fn () => collect($this->get('/')->viewData('overview')['features'])->firstWhere('properties.type', 'open')['geometry']['coordinates'];
+
+        // Nothing planned yet: straight from the start (Lisse) to Hanoi.
+        $this->assertSame([[4.557, 52.2575], [105.8542, 21.0285]], $open());
+
+        $country = Country::create(['iso_code' => 'NL', 'name' => ['en' => 'Netherlands'], 'is_published' => true]);
+        $route = $country->routes()->create(['type' => RouteType::Planned, 'name' => 'Plan']);
+        foreach ([[52.26, 4.56], [51.85, 5.86]] as $i => [$lat, $lng]) {
+            $route->points()->create(['latitude' => $lat, 'longitude' => $lng, 'sequence' => $i]);
+        }
+
+        $this->assertSame([[5.86, 51.85], [105.8542, 21.0285]], $open());
+    }
+
     public function test_stops_in_the_rough_direction_link_to_their_country(): void
     {
         Country::create(['iso_code' => 'NL', 'name' => ['en' => 'Netherlands', 'nl' => 'Nederland'], 'is_published' => true]);

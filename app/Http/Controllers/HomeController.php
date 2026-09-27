@@ -33,7 +33,10 @@ class HomeController extends Controller
             'preparation' => Article::published()->where('type', ArticleType::Preparation)->limit(3)->get(),
             'diary' => Article::published()->where('type', ArticleType::Diary)->limit(3)->get(),
             'gallery' => GalleryItem::public()->limit(8)->get(),
-            'overview' => RouteGeometry::withTracking(RouteGeometry::featureCollection($routes, RouteGeometry::OVERVIEW), $user, null, RouteGeometry::OVERVIEW),
+            'overview' => RouteGeometry::withOpenPlan(
+                RouteGeometry::withTracking(RouteGeometry::featureCollection($routes, RouteGeometry::OVERVIEW), $user, null, RouteGeometry::OVERVIEW),
+            ),
+            'delayDays' => $user?->canSeeLiveTracking() ? 0 : (int) round(Settings::get('public_tracking_delay_hours') / 24),
         ]);
     }
 }

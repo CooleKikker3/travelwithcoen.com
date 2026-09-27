@@ -54,6 +54,8 @@ return [
         'all_preparation' => 'All preparation',
         'all_diary' => 'Whole diary',
         'empty' => 'Nothing published yet. The first stories are on their way.',
+        'map_hand' => 'follow along!',
+        'last_seen' => 'Last seen :date',
         'map_title' => 'The route',
     ],
 
@@ -104,6 +106,11 @@ return [
     ],
 
     'map' => [
+        'legend' => 'Legend',
+        'open' => 'Still to be planned',
+        'position' => 'Latest location',
+        'delay' => ':days days delay',
+        'endpoints' => 'Start & finish',
         'label' => 'Map of the route',
         'planned' => 'Planned route',
         'actual' => 'Walked route',

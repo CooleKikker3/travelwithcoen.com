@@ -54,6 +54,8 @@ return [
         'all_preparation' => 'Alle voorbereiding',
         'all_diary' => 'Heel het dagboek',
         'empty' => 'Nog niets gepubliceerd. De eerste verhalen komen eraan.',
+        'map_hand' => 'volg me!',
+        'last_seen' => 'Laatst gezien :date',
         'map_title' => 'De route',
     ],
 
@@ -104,6 +106,11 @@ return [
     ],
 
     'map' => [
+        'legend' => 'Legenda',
+        'open' => 'Nog in te plannen',
+        'position' => 'Laatste locatie',
+        'delay' => ':days dagen vertraagd',
+        'endpoints' => 'Start & bestemming',
         'label' => 'Kaart van de route',
         'planned' => 'Geplande route',
         'actual' => 'Gelopen route',

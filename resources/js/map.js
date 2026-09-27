@@ -5,6 +5,8 @@ import 'leaflet/dist/leaflet.css';
 const styles = {
     planned: { color: '#eee8d8', weight: 3, dashArray: '6 8', opacity: 0.95 },
     actual: { color: '#a6cf92', weight: 5, opacity: 1 },
+    // Home map: straight line from the end of the planned route to the destination, still to be planned. Dotted.
+    open: { color: '#c2c07a', weight: 3, dashArray: '1 9', lineCap: 'round', opacity: 0.95 },
 };
 
 // Rough view of the whole direction (Netherlands → Vietnam) for maps without data.
@@ -67,12 +69,22 @@ function initMap(figure) {
 
     const layer = L.geoJSON(data, {
         style: (feature) => styles[feature.properties.type],
-        // Points: last (visible) location and journey events.
-        pointToLayer: (feature, latlng) => L.circleMarker(latlng, feature.properties.type === 'position'
-            ? { radius: 8, color: '#ffffff', weight: 3, fillColor: '#6a8a3c', fillOpacity: 1 }
-            : { radius: 5, color: '#5b4631', weight: 2, fillColor: '#eee8d8', fillOpacity: 1 }),
+        // Points: last (visible) location (pulsing), start/destination (handwritten label) and journey events.
+        pointToLayer: (feature, latlng) => {
+            const type = feature.properties.type;
+            if (type === 'position') {
+                return L.marker(latlng, { icon: L.divIcon({ className: 'map-position', html: '<span></span>', iconSize: [18, 18] }), keyboard: false });
+            }
+            if (type === 'start' || type === 'destination') {
+                const icon = L.divIcon({ className: `map-endpoint map-endpoint--${type}`, html: '<span class="map-endpoint__dot"></span><span class="map-endpoint__label"></span>', iconSize: [12, 12] });
+                const marker = L.marker(latlng, { icon, keyboard: false, interactive: false });
+                marker.on('add', () => { marker.getElement().querySelector('.map-endpoint__label').textContent = feature.properties.label; }); // text only
+                return marker;
+            }
+            return L.circleMarker(latlng, { radius: 5, color: '#5b4631', weight: 2, fillColor: '#eee8d8', fillOpacity: 1 });
+        },
         onEachFeature: (feature, marker) => {
-            if (feature.properties.label && interactive) {
+            if (feature.properties.label && interactive && !['start', 'destination'].includes(feature.properties.type)) {
                 const label = document.createElement('span');
                 label.textContent = feature.properties.label; // text only, never HTML
                 marker.bindPopup(label);
