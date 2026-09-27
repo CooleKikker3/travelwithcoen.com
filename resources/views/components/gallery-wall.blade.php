@@ -18,7 +18,7 @@
                 };
                 $caption = $item->translate('caption');
             @endphp
-            <a href="{{ $item->url() }}" data-wall-item class="wall-tile {{ $shape }}"
+            <a href="{{ $item->url() }}" data-wall-item @class(['wall-tile', $shape, 'wall-tile--video' => $item->isVideo() || $item->isYoutube()])
                 data-kind="{{ $item->kind }}"
                 data-src="{{ $item->isYoutube() ? $item->youtube_id : $item->url() }}"
                 data-thumb="{{ $item->thumbnailUrl() }}"
