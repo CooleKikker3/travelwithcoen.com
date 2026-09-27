@@ -46,6 +46,16 @@
         @apply font-display tracking-tight;
     }
 
+    /* Tailwind v4 resets buttons to the default cursor; clickable things should show a pointer. */
+    button:not(:disabled),
+    [role="button"] {
+        cursor: pointer;
+    }
+
+    button:disabled {
+        cursor: not-allowed;
+    }
+
     :focus-visible {
         @apply outline-2 outline-offset-2 outline-moss-500;
     }
@@ -103,7 +113,7 @@
     border-radius: 0.6rem;
     background: var(--color-forest-800);
     box-shadow: 0 6px 18px -10px rgb(14 28 19 / 0.5);
-    cursor: zoom-in;
+    cursor: pointer;
 }
 
 .wall-tile--wide { grid-column: span 2; }
