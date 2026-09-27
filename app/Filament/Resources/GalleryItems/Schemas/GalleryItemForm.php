@@ -5,6 +5,7 @@ namespace App\Filament\Resources\GalleryItems\Schemas;
 use App\Filament\Support\Options;
 use App\Filament\Support\TranslatableTabs;
 use App\Models\GalleryItem;
+use App\Support\MediaStorage;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -42,7 +43,12 @@ class GalleryItemForm
         return FileUpload::make($name)
             ->label('Photo or video')
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v'])
-            ->disk('public')
+            ->disk(MediaStorage::diskName())
+            // Resize in the browser first: much smaller uploads on a weak connection.
+            ->imageResizeTargetWidth('2400')
+            ->imageResizeTargetHeight('2400')
+            ->imageResizeMode('contain')
+            ->imageResizeUpscale(false)
             ->directory('gallery')
             ->maxSize(512000)
             ->helperText('Photos are resized; location data (GPS) is removed from photos, and from videos when ffmpeg is installed.');

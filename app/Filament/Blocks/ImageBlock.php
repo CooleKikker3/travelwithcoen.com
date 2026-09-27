@@ -2,12 +2,12 @@
 
 namespace App\Filament\Blocks;
 
+use App\Support\MediaStorage;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor\RichContentCustomBlock;
 use Filament\Forms\Components\TextInput;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * "Image with caption" block for article texts. Images placed this way also appear
@@ -38,7 +38,12 @@ class ImageBlock extends RichContentCustomBlock
                 FileUpload::make('path')
                     ->label('Image')
                     ->image()
-                    ->disk('public')
+                    ->disk(MediaStorage::diskName())
+                    // Resize in the browser first: much smaller uploads on a weak connection.
+                    ->imageResizeTargetWidth('2400')
+                    ->imageResizeTargetHeight('2400')
+                    ->imageResizeMode('contain')
+                    ->imageResizeUpscale(false)
                     ->directory('articles/images')
                     ->maxSize(20480)
                     ->required()
@@ -82,7 +87,7 @@ class ImageBlock extends RichContentCustomBlock
         }
 
         return view('components.article-image', [
-            'url' => Storage::disk('public')->url($path),
+            'url' => MediaStorage::url($path),
             'caption' => $config['caption'] ?? null,
             'alt' => $config['alt'] ?? $config['caption'] ?? '',
             'imageStyle' => $imageStyle,

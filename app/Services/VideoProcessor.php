@@ -2,10 +2,9 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Carbon;
+use App\Support\MediaStorage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Phone videos can contain the GPS location in their metadata. With ffmpeg installed
@@ -13,22 +12,27 @@ use Illuminate\Support\Facades\Storage;
  */
 class VideoProcessor
 {
-    public function stripMetadata(string $path, string $disk = 'public'): ?Carbon
+    public function stripMetadata(string $path): void
     {
-        $file = Storage::disk($disk)->path($path);
-        $temp = $file.'.clean.'.pathinfo($file, PATHINFO_EXTENSION);
+        $ffmpeg = config('travel.ffmpeg_path');
 
-        $result = rescue(fn () => Process::timeout(300)->run([
-            config('travel.ffmpeg_path'), '-y', '-i', $file, '-map_metadata', '-1', '-map', '0', '-c', 'copy', $temp,
-        ]), report: false);
+        // Check first, so a large video is not downloaded from R2 for nothing.
+        if (! rescue(fn () => Process::run([$ffmpeg, '-version'])->successful(), false, report: false)) {
+            Log::warning('Video metadata (possibly including GPS) not removed: ffmpeg not available.', ['path' => $path]);
 
-        if ($result?->successful() && is_file($temp)) {
-            rename($temp, $file);
-        } else {
-            @unlink($temp);
-            Log::warning('Video metadata (possibly including GPS) could not be removed: ffmpeg not available.', ['path' => $path]);
+            return;
         }
 
-        return null;
+        MediaStorage::editLocally($path, function (string $file) use ($ffmpeg, $path) {
+            $temp = $file.'.clean.'.pathinfo($file, PATHINFO_EXTENSION);
+            $result = Process::timeout(600)->run([$ffmpeg, '-y', '-i', $file, '-map_metadata', '-1', '-map', '0', '-c', 'copy', $temp]);
+
+            if ($result->successful() && is_file($temp)) {
+                rename($temp, $file);
+            } else {
+                @unlink($temp);
+                Log::warning('Video metadata could not be removed.', ['path' => $path, 'error' => $result->errorOutput()]);
+            }
+        });
     }
 }

@@ -8,6 +8,7 @@ use App\Filament\Blocks\ImageBlock;
 use App\Filament\Support\Options;
 use App\Filament\Support\TranslatableTabs;
 use App\Models\Article;
+use App\Support\MediaStorage;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
@@ -79,7 +80,12 @@ class ArticleForm
                             ->searchable(),
                         FileUpload::make('cover_image')
                             ->image()
-                            ->disk('public')
+                            ->disk(MediaStorage::diskName())
+                            // Resize in the browser first: much smaller uploads on a weak connection.
+                            ->imageResizeTargetWidth('2400')
+                            ->imageResizeTargetHeight('2400')
+                            ->imageResizeMode('contain')
+                            ->imageResizeUpscale(false)
                             ->directory('articles/covers')
                             ->maxSize(8192),
                     ]),

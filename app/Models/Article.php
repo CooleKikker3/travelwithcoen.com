@@ -7,13 +7,14 @@ use App\Enums\ArticleType;
 use App\Filament\Blocks\ImageBlock;
 use App\Models\Concerns\HasTranslations;
 use App\Services\ArticleGallerySync;
+use App\Services\ImageProcessor;
+use App\Support\MediaStorage;
 use Filament\Forms\Components\RichEditor\RichContentRenderer;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Storage;
 
 #[Fillable(['type', 'title', 'slug', 'excerpt', 'body', 'status', 'published_at', 'country_id', 'journey_day_id', 'cover_image', 'tags'])]
 class Article extends Model
@@ -36,6 +37,13 @@ class Article extends Model
 
     protected static function booted(): void
     {
+        // Cover photos get the same treatment as gallery photos: resized, EXIF/GPS removed.
+        static::saving(function (Article $article) {
+            if ($article->isDirty('cover_image') && $article->cover_image) {
+                app(ImageProcessor::class)->process($article->cover_image);
+            }
+        });
+
         // Images in the text also appear in the gallery.
         static::saved(fn (Article $article) => app(ArticleGallerySync::class)->sync($article));
     }
@@ -87,6 +95,6 @@ class Article extends Model
 
     public function coverUrl(): ?string
     {
-        return $this->cover_image ? Storage::disk('public')->url($this->cover_image) : null;
+        return $this->cover_image ? MediaStorage::url($this->cover_image) : null;
     }
 }

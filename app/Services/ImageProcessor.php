@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
+use App\Support\MediaStorage;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 /**
@@ -14,10 +14,19 @@ class ImageProcessor
 {
     public const MAX_SIZE = 2400;
 
-    /** Processes the image in place and returns the EXIF capture time, if any. */
-    public function process(string $path, string $disk = 'public'): ?Carbon
+    /**
+     * Processes the image on the media disk.
+     *
+     * @return array{taken_at: ?Carbon, width: ?int, height: ?int}
+     */
+    public function process(string $path): array
     {
-        $file = Storage::disk($disk)->path($path);
+        return MediaStorage::editLocally($path, fn (string $file) => $this->processFile($file));
+    }
+
+    /** @return array{taken_at: ?Carbon, width: ?int, height: ?int} */
+    public function processFile(string $file): array
+    {
         $type = @exif_imagetype($file);
         $exif = $type === IMAGETYPE_JPEG ? (@exif_read_data($file) ?: []) : [];
 
@@ -29,7 +38,7 @@ class ImageProcessor
         };
 
         if (! $image) {
-            return null;
+            return ['taken_at' => null, 'width' => null, 'height' => null];
         }
 
         $image = match ($exif['Orientation'] ?? 1) {
@@ -51,9 +60,11 @@ class ImageProcessor
         };
 
         try {
-            return isset($exif['DateTimeOriginal']) ? Carbon::createFromFormat('Y:m:d H:i:s', $exif['DateTimeOriginal']) : null;
+            $takenAt = isset($exif['DateTimeOriginal']) ? Carbon::createFromFormat('Y:m:d H:i:s', $exif['DateTimeOriginal']) : null;
         } catch (Throwable) {
-            return null;
+            $takenAt = null;
         }
+
+        return ['taken_at' => $takenAt, 'width' => imagesx($image), 'height' => imagesy($image)];
     }
 }

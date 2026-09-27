@@ -78,6 +78,22 @@ class ContentTest extends TestCase
         $this->assertEmpty(@exif_read_data(Storage::disk('public')->path('photos/big.jpg'), 'GPS') ?: []);
     }
 
+    public function test_photos_on_external_storage_are_processed_via_a_temporary_copy(): void
+    {
+        // The "r2" disk is S3-compatible; faked here, so processing takes the download → process → upload route.
+        config(['travel.media_disk' => 'r2']);
+        Storage::fake('r2');
+        ob_start();
+        imagejpeg(imagecreatetruecolor(3000, 2000));
+        Storage::disk('r2')->put('gallery/remote.jpg', ob_get_clean());
+
+        $item = GalleryItem::create(['path' => 'gallery/remote.jpg']);
+
+        $this->assertSame([2400, 1600], [$item->width, $item->height]);
+        $this->assertSame([2400, 1600], array_slice(getimagesizefromstring(Storage::disk('r2')->get('gallery/remote.jpg')), 0, 2));
+        $this->assertStringStartsWith('/storage/gallery/remote.jpg', parse_url($item->url(), PHP_URL_PATH));
+    }
+
     public function test_all_cms_screens_render(): void
     {
         $this->actingAs(User::factory()->create(['role' => Role::Admin]));

@@ -6,11 +6,11 @@ use App\Enums\ArticleStatus;
 use App\Models\Concerns\HasTranslations;
 use App\Services\ImageProcessor;
 use App\Services\VideoProcessor;
+use App\Support\MediaStorage;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * One item in the gallery, all mixed together:
@@ -42,14 +42,14 @@ class GalleryItem extends Model
         static::saving(function (GalleryItem $item) {
             if ($item->isDirty('path') && $item->path) {
                 $item->kind = in_array(strtolower(pathinfo($item->path, PATHINFO_EXTENSION)), self::VIDEO_EXTENSIONS, true) ? 'video' : 'image';
-                $takenAt = $item->kind === 'video'
-                    ? app(VideoProcessor::class)->stripMetadata($item->path)
-                    : app(ImageProcessor::class)->process($item->path);
-                $item->taken_at ??= $takenAt ?? now();
-
-                if ($item->kind === 'image' && $size = @getimagesize(Storage::disk('public')->path($item->path))) {
-                    [$item->width, $item->height] = [$size[0], $size[1]];
+                if ($item->kind === 'video') {
+                    app(VideoProcessor::class)->stripMetadata($item->path);
+                } else {
+                    $image = app(ImageProcessor::class)->process($item->path);
+                    [$item->width, $item->height] = [$image['width'], $image['height']];
+                    $item->taken_at ??= $image['taken_at'];
                 }
+                $item->taken_at ??= now();
             }
         });
     }
@@ -98,7 +98,7 @@ class GalleryItem extends Model
     {
         return $this->isYoutube()
             ? "https://www.youtube.com/watch?v={$this->youtube_id}"
-            : Storage::disk('public')->url($this->path);
+            : MediaStorage::url($this->path);
     }
 
     /** Image to show in a grid: the photo itself or the YouTube thumbnail. */
