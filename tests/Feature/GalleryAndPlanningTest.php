@@ -89,7 +89,7 @@ class GalleryAndPlanningTest extends TestCase
 
     public function test_youtube_videos_are_synced_from_the_channel_feed(): void
     {
-        Settings::set(['youtube_channel' => 'https://www.youtube.com/@SomeChannel']);
+        config(['travel.youtube_channel' => 'https://www.youtube.com/@SomeChannel']);
         Http::fake([
             'www.youtube.com/@SomeChannel' => Http::response('<script>{"externalId":"UCabcdefghijklmnopqrstuv"}</script>'),
             'www.youtube.com/feeds/*' => Http::response(<<<'XML'
@@ -107,9 +107,14 @@ class GalleryAndPlanningTest extends TestCase
         $this->assertSame(1, app(YouTubeSync::class)->sync());
         $this->assertSame(1, app(YouTubeSync::class)->sync()); // idempotent
 
-        $video = Video::sole();
-        $this->assertSame('Walking across Europe', $video->translate('title'));
-        $this->get('/gallery')->assertSee('youtube-nocookie.com/embed/dQw4w9WgXcQ', false);
+        $video = GalleryItem::sole();
+        $this->assertTrue($video->isYoutube());
+        $this->assertSame('Walking across Europe', $video->translate('caption'));
+
+        // Mixed with uploads in one gallery, newest first.
+        GalleryItem::create(['kind' => 'image', 'source' => 'upload', 'path' => 'gallery/old.jpg', 'taken_at' => '2027-07-01', 'caption' => ['en' => 'Older photo']]);
+        $this->get('/gallery')->assertSeeInOrder(['data-youtube="dQw4w9WgXcQ"', 'Older photo'], false);
+        $this->get('/gallery?kind=image')->assertDontSee('dQw4w9WgXcQ');
     }
 
     public function test_a_route_can_be_drawn_in_the_planner(): void

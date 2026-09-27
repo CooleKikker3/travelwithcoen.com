@@ -54,11 +54,6 @@ class Settings extends Page
                         ->required()
                         ->helperText('Visitors only see locations older than this. 336 = 14 days, 168 = 7, 504 = 21, 720 = 30. Family sees everything live.'),
                 ]),
-                Section::make('YouTube')->schema([
-                    TextInput::make('youtube_channel')
-                        ->label('YouTube channel')
-                        ->helperText('Channel URL or @handle. Its videos are synced to the website every hour.'),
-                ]),
                 Section::make('Budget (private)')->columns(2)->schema([
                     TextInput::make('budget_total_eur')->label('Total budget')->numeric()->prefix('€')->required(),
                     TextInput::make('budget_reserve_eur')->label('Of which emergency reserve')->numeric()->prefix('€')->required(),

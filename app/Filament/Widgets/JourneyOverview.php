@@ -10,7 +10,6 @@ use App\Models\Country;
 use App\Models\Expense;
 use App\Models\GalleryItem;
 use App\Models\TrackingPoint;
-use App\Models\Video;
 use App\Support\JourneyStats;
 use App\Support\Settings;
 use Filament\Widgets\StatsOverviewWidget;
@@ -40,7 +39,8 @@ class JourneyOverview extends StatsOverviewWidget
                 ->description(Number::format(\App\Models\JourneyDay::where('date', '>=', now()->startOfMonth())->sum('distance_km'), 0).' km this month · '.$stats['countries'].' countries'),
             Stat::make('Articles', Article::where('status', ArticleStatus::Published)->count())
                 ->description(Article::where('status', ArticleStatus::Draft)->count().' drafts'),
-            Stat::make('Photos / videos', GalleryItem::count().' / '.Video::count()),
+            Stat::make('Gallery', GalleryItem::count())
+                ->description(GalleryItem::where('kind', 'image')->count().' photos · '.GalleryItem::whereIn('kind', ['video', 'youtube'])->count().' videos'),
             Stat::make('Budget spent (private)', Number::currency($spent, 'EUR'))
                 ->description(Number::currency($available - $spent, 'EUR').' left excl. reserve'
                     .($stats['walking_days'] ? ' · '.Number::currency($spent / max(1, $stats['days']), 'EUR').'/day' : ''))

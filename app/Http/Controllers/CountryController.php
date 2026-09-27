@@ -60,8 +60,7 @@ class CountryController extends Controller
             'distances' => $this->distances($country->routes, $stats),
             'stats' => $stats,
             'articles' => $country->articles()->published()->get(),
-            'photos' => $country->photos()->public()->limit(12)->get(),
-            'videos' => $country->videos()->public()->get(),
+            'gallery' => $country->gallery()->public()->limit(12)->get(),
             'alternates' => collect(array_keys(config('travel.locales')))
                 ->mapWithKeys(fn (string $l) => [$l => $country->url($l)])
                 ->all(),

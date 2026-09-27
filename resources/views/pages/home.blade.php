@@ -127,20 +127,13 @@
         @endif
     @endforeach
 
-    @if ($video)
-        <section class="container-page mt-16">
-            <h2 class="mb-6 text-3xl font-semibold">{{ __('site.home.video_title') }}</h2>
-            <x-media-grid :videos="collect([$video])" />
-        </section>
-    @endif
-
-    @if ($photos->isNotEmpty())
+    @if ($gallery->isNotEmpty())
         <section class="container-page mt-16">
             <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
                 <h2 class="text-3xl font-semibold">{{ __('site.home.photos_title') }}</h2>
                 <a href="{{ lroute('gallery') }}" class="font-semibold text-moss-600 hover:text-forest-700">{{ __('site.media.title') }} →</a>
             </div>
-            <x-media-grid :photos="$photos" />
+            <x-media-grid :items="$gallery" />
         </section>
     @endif
 </x-layouts.app>

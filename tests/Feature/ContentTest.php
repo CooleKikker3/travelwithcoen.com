@@ -77,14 +77,6 @@ class ContentTest extends TestCase
         $this->assertEmpty(@exif_read_data(Storage::disk('public')->path('photos/big.jpg'), 'GPS') ?: []);
     }
 
-    public function test_youtube_ids_are_extracted_from_links(): void
-    {
-        foreach (['https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://youtu.be/dQw4w9WgXcQ?t=3', 'dQw4w9WgXcQ'] as $input) {
-            $this->assertSame('dQw4w9WgXcQ', Video::extractYoutubeId($input));
-        }
-        $this->assertNull(Video::extractYoutubeId('https://example.com'));
-    }
-
     public function test_all_cms_screens_render(): void
     {
         $this->actingAs(User::factory()->create(['role' => Role::Admin]));

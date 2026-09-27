@@ -8,7 +8,6 @@ use App\Models\Article;
 use App\Models\CountryRoute;
 use App\Models\GalleryItem;
 use App\Models\TrackingPoint;
-use App\Models\Video;
 use App\Support\JourneyStats;
 use App\Support\RouteGeometry;
 use App\Support\Settings;
@@ -29,8 +28,7 @@ class HomeController extends Controller
             'lastLocation' => TrackingPoint::visibleTo($user)->with('country')->latest('recorded_at')->first(),
             'preparation' => Article::published()->where('type', ArticleType::Preparation)->limit(3)->get(),
             'diary' => Article::published()->where('type', ArticleType::Diary)->limit(3)->get(),
-            'photos' => GalleryItem::public()->limit(6)->get(),
-            'video' => Video::public()->first(),
+            'gallery' => GalleryItem::public()->limit(8)->get(),
             'overview' => RouteGeometry::withTracking(RouteGeometry::featureCollection($routes, RouteGeometry::OVERVIEW), $user, null, RouteGeometry::OVERVIEW),
         ]);
     }

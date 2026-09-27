@@ -50,15 +50,10 @@ class Article extends Model
         return $this->belongsTo(JourneyDay::class);
     }
 
-    /** Gallery items uploaded for this article (images inside the text are shown there already). */
+    /** Gallery items linked to this article: uploads and YouTube videos (images in the text are shown there already). */
     public function gallery(): HasMany
     {
-        return $this->hasMany(GalleryItem::class)->where('is_public', true)->where('source', 'upload')->oldest('taken_at');
-    }
-
-    public function videos(): HasMany
-    {
-        return $this->hasMany(Video::class)->where('is_public', true);
+        return $this->hasMany(GalleryItem::class)->where('is_public', true)->where('source', '!=', 'article')->oldest('taken_at');
     }
 
     /** Published and not scheduled for the future, newest first. */

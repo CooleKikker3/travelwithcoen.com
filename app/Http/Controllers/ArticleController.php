@@ -36,7 +36,7 @@ class ArticleController extends Controller
         $article = Article::published()
             ->where('type', $type)
             ->where(fn ($query) => $query->whereSlug($slug, $locale)->orWhere(fn ($query) => $query->whereSlug($slug, $fallback)))
-            ->with(['country', 'gallery', 'videos'])
+            ->with(['country', 'gallery'])
             ->firstOrFail();
 
         // Always serve an article on its own slug for this locale.

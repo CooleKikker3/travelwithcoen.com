@@ -41,14 +41,9 @@ class Country extends Model
         return $this->hasMany(JourneyDay::class);
     }
 
-    public function photos(): HasMany
+    public function gallery(): HasMany
     {
         return $this->hasMany(GalleryItem::class);
-    }
-
-    public function videos(): HasMany
-    {
-        return $this->hasMany(Video::class);
     }
 
     public function scopePublished(Builder $query): Builder

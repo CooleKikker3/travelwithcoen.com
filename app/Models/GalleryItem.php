@@ -13,10 +13,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * A photo or (non-YouTube) video in the gallery. Items with source "article" are
- * created automatically from the images in an article (see ArticleGallerySync).
+ * One item in the gallery, all mixed together:
+ *  - kind "image" / "video": uploaded files (source "upload"), or images from an article's text (source "article")
+ *  - kind "youtube": synced from the YouTube channel (source "youtube", see YouTubeSync)
  */
-#[Fillable(['path', 'kind', 'source', 'caption', 'taken_at', 'country_id', 'article_id', 'journey_day_id', 'journey_event_id', 'is_public'])]
+#[Fillable(['path', 'youtube_id', 'kind', 'source', 'caption', 'taken_at', 'country_id', 'article_id', 'journey_day_id', 'journey_event_id', 'is_public'])]
 class GalleryItem extends Model
 {
     use HasTranslations;
@@ -41,7 +42,7 @@ class GalleryItem extends Model
         static::saving(function (GalleryItem $item) {
             if ($item->isDirty('path') && $item->path) {
                 $item->kind = in_array(strtolower(pathinfo($item->path, PATHINFO_EXTENSION)), self::VIDEO_EXTENSIONS, true) ? 'video' : 'image';
-                $takenAt = $item->isVideo()
+                $takenAt = $item->kind === 'video'
                     ? app(VideoProcessor::class)->stripMetadata($item->path)
                     : app(ImageProcessor::class)->process($item->path);
                 $item->taken_at ??= $takenAt ?? now();
@@ -59,14 +60,24 @@ class GalleryItem extends Model
         return $this->belongsTo(Article::class);
     }
 
-    /** Public items; images from articles only once that article is published. */
+    /** Public items, newest first; images from articles only once that article is published. */
     public function scopePublic(Builder $query): Builder
     {
         return $query->where('is_public', true)
-            ->where(fn ($q) => $q->whereNull('article_id')->orWhereHas('article', fn ($a) => $a
+            ->where(fn ($q) => $q->where('source', '!=', 'article')->orWhereHas('article', fn ($a) => $a
                 ->where('status', ArticleStatus::Published)
                 ->where('published_at', '<=', now())))
             ->latest('taken_at');
+    }
+
+    /** Photos, or videos (uploaded and YouTube). */
+    public function scopeOfKind(Builder $query, ?string $kind): Builder
+    {
+        return match ($kind) {
+            'image' => $query->where('kind', 'image'),
+            'video' => $query->whereIn('kind', ['video', 'youtube']),
+            default => $query,
+        };
     }
 
     public function isVideo(): bool
@@ -74,9 +85,26 @@ class GalleryItem extends Model
         return $this->kind === 'video';
     }
 
+    public function isYoutube(): bool
+    {
+        return $this->kind === 'youtube';
+    }
+
     public function url(): string
     {
-        return Storage::disk('public')->url($this->path);
+        return $this->isYoutube()
+            ? "https://www.youtube.com/watch?v={$this->youtube_id}"
+            : Storage::disk('public')->url($this->path);
+    }
+
+    /** Image to show in a grid: the photo itself or the YouTube thumbnail. */
+    public function thumbnailUrl(): ?string
+    {
+        return match ($this->kind) {
+            'youtube' => "https://i.ytimg.com/vi/{$this->youtube_id}/hqdefault.jpg",
+            'image' => $this->url(),
+            default => null,
+        };
     }
 
     protected function fillMissingSlugs(): void {}

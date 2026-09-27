@@ -2,8 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Video;
-use App\Support\Settings;
+use App\Models\GalleryItem;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -11,10 +10,10 @@ use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
- * Imports the videos of the configured YouTube channel (Settings → YouTube channel).
- * Without an API key the public RSS feed is used (newest ~15 videos, which is enough when
- * syncing hourly); with YOUTUBE_API_KEY the complete upload history is fetched.
- * Existing videos keep their CMS settings (visibility, country, article, Dutch title).
+ * Adds the videos of the YouTube channel in .env (YOUTUBE_CHANNEL) to the gallery.
+ * Without an API key the public RSS feed is used (newest ~15 videos, enough when syncing
+ * hourly); with YOUTUBE_API_KEY the complete upload history is fetched.
+ * Existing items keep their CMS settings (visibility, country, article, Dutch caption).
  */
 class YouTubeSync
 {
@@ -23,7 +22,7 @@ class YouTubeSync
 
     public function sync(): int
     {
-        $channel = trim((string) Settings::get('youtube_channel'));
+        $channel = trim((string) config('travel.youtube_channel'));
 
         if ($channel === '') {
             return 0;
@@ -33,12 +32,12 @@ class YouTubeSync
         $videos = config('travel.youtube_api_key') ? $this->fromApi($channelId) : $this->fromRss($channelId);
 
         foreach ($videos as $v) {
-            $video = Video::firstOrNew(['youtube_id' => $v['id']]);
-            $video->title = array_merge($video->title ?? [], ['en' => $v['title']]);
-            $video->description = array_merge($video->description ?? [], ['en' => Str::limit($v['description'], 1000)]);
-            $video->published_on = $v['published'];
-            $video->is_public ??= true;
-            $video->save();
+            $item = GalleryItem::firstOrNew(['youtube_id' => $v['id']]);
+            $item->fill(['kind' => 'youtube', 'source' => 'youtube', 'taken_at' => $v['published']]);
+            // The YouTube title is the (English) caption; a Dutch caption can be added in the CMS.
+            $item->caption = array_merge($item->caption ?? [], ['en' => Str::limit($v['title'], 300)]);
+            $item->is_public ??= true;
+            $item->save();
         }
 
         return count($videos);
@@ -66,7 +65,7 @@ class YouTubeSync
         });
     }
 
-    /** @return array<int, array{id: string, title: string, description: string, published: Carbon}> */
+    /** @return array<int, array{id: string, title: string, published: Carbon}> */
     private function fromRss(string $channelId): array
     {
         $xml = simplexml_load_string(
@@ -76,12 +75,9 @@ class YouTubeSync
 
         $videos = [];
         foreach ($xml->entry as $entry) {
-            $yt = $entry->children('http://www.youtube.com/xml/schemas/2015');
-            $media = $entry->children('http://search.yahoo.com/mrss/')->group;
             $videos[] = [
-                'id' => (string) $yt->videoId,
+                'id' => (string) $entry->children('http://www.youtube.com/xml/schemas/2015')->videoId,
                 'title' => (string) $entry->title,
-                'description' => (string) $media?->description,
                 'published' => Carbon::parse((string) $entry->published),
             ];
         }
@@ -107,7 +103,6 @@ class YouTubeSync
                 $videos[] = [
                     'id' => $item['snippet']['resourceId']['videoId'],
                     'title' => $item['snippet']['title'],
-                    'description' => $item['snippet']['description'] ?? '',
                     'published' => Carbon::parse($item['snippet']['publishedAt']),
                 ];
             }

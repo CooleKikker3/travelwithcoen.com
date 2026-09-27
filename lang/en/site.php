@@ -47,7 +47,7 @@ return [
         'title_archive' => 'From the Netherlands to Hanoi, on foot',
         'lead_archive' => 'The complete walk: the route, the stories and the numbers.',
         'latest_location' => 'Latest public location',
-        'photos_title' => 'Recent photos',
+        'photos_title' => 'Latest from the gallery',
         'video_title' => 'Latest video',
         'direction_title' => 'The rough direction',
         'direction_note' => 'This is a direction, not a fixed route. Visas, borders, safety, weather and my own body will shape the real one.',

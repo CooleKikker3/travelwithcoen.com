@@ -45,8 +45,8 @@
                 {!! $article->bodyHtml() !!}
             </div>
 
-            @if ($article->gallery->isNotEmpty() || $article->videos->isNotEmpty())
-                <div class="mt-10"><x-media-grid :photos="$article->gallery" :videos="$article->videos" /></div>
+            @if ($article->gallery->isNotEmpty())
+                <div class="mt-10"><x-media-grid :items="$article->gallery" /></div>
             @endif
 
             @if ($article->tags)

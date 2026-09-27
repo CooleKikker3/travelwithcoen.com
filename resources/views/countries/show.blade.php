@@ -45,10 +45,10 @@
         </section>
     @endif
 
-    @if ($photos->isNotEmpty() || $videos->isNotEmpty())
+    @if ($gallery->isNotEmpty())
         <section class="container-page mt-14">
             <h2 class="mb-6 text-2xl font-semibold">{{ __('site.media.title') }}</h2>
-            <x-media-grid :photos="$photos" :videos="$videos" />
+            <x-media-grid :items="$gallery" />
         </section>
     @endif
 

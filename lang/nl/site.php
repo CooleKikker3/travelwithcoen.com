@@ -47,7 +47,7 @@ return [
         'title_archive' => 'Te voet van Nederland naar Hanoi',
         'lead_archive' => 'De complete tocht: de route, de verhalen en de cijfers.',
         'latest_location' => 'Laatste publieke locatie',
-        'photos_title' => 'Recente foto’s',
+        'photos_title' => 'Nieuw in de galerij',
         'video_title' => 'Nieuwste video',
         'direction_title' => 'De globale richting',
         'direction_note' => 'Dit is een richting, geen vaste route. Visa, grenzen, veiligheid, weer en mijn eigen lichaam bepalen de echte route.',
