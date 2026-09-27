@@ -21,10 +21,6 @@
 
         <div @class(['container-page flex flex-col justify-end pt-16 pb-24 sm:pt-24 sm:pb-32', 'min-h-[85vh]' => $heroImage])>
             <div class="max-w-2xl">
-                <div class="rise mb-4 inline-flex items-center gap-2 rounded-full bg-forest-700/70 px-3 py-1 text-sm font-semibold text-fern-300 backdrop-blur">
-                    <span class="size-2 animate-pulse rounded-full bg-olive-300"></span>
-                    {{ __('site.status.label') }}: {{ $phase->getLabel() }}
-                </div>
                 <h1 class="rise text-5xl leading-[0.95] font-extrabold text-white drop-shadow sm:text-7xl" style="--d: .1s">{{ $title }}</h1>
                 {{-- Handwritten note with an arrow that draws itself. --}}
                 <p class="rise mt-3 flex items-center gap-2 font-hand text-3xl text-olive-300 -rotate-2" style="--d: .5s">
