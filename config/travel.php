@@ -17,7 +17,7 @@ return [
     // YouTube channel whose videos are added to the gallery (URL, @handle or channel id).
     'youtube_channel' => env('YOUTUBE_CHANNEL'),
 
-    // Where uploaded photos/videos are stored: 'public' (local disk) or 'r2' (Cloudflare R2, see config/filesystems.php).
-    'media_disk' => env('MEDIA_DISK', 'public'),
+    // Where uploaded photos/videos are stored: Cloudflare R2 when R2_ENABLED=true (see config/filesystems.php), else the local disk.
+    'media_disk' => env('R2_ENABLED', false) ? 'r2' : 'public',
 
 ];

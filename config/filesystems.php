@@ -47,7 +47,7 @@ return [
             'report' => false,
         ],
 
-        // Cloudflare R2 (S3-compatible) for photos and videos in production. Use with MEDIA_DISK=r2.
+        // Cloudflare R2 (S3-compatible) for photos and videos in production. Switched on with R2_ENABLED=true.
         // R2_URL is the public address of the bucket (r2.dev URL or a custom domain such as media.travelwithcoen.com).
         'r2' => [
             'driver' => 's3',

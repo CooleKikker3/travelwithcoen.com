@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * Where uploaded photos and videos live: the local "public" disk in development,
- * Cloudflare R2 (or another S3-compatible store) in production — set MEDIA_DISK in .env.
+ * Cloudflare R2 (S3-compatible) when R2_ENABLED=true in .env.
  */
 class MediaStorage
 {
