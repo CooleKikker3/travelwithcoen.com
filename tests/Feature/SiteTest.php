@@ -42,6 +42,14 @@ class SiteTest extends TestCase
         }
     }
 
+    public function test_the_home_page_shows_the_image_chosen_in_settings(): void
+    {
+        $this->get('/')->assertOk()->assertDontSee('fetchpriority', false);
+
+        \App\Support\Settings::set(['home_image' => 'site/hero.jpg']);
+        $this->get('/')->assertOk()->assertSee('site/hero.jpg', false);
+    }
+
     public function test_cms_text_overrides_replace_default_texts(): void
     {
         SiteTexts::save(['site.home.title' => ['en' => 'Custom title', 'nl' => '']]);

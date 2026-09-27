@@ -3,8 +3,11 @@
 namespace App\Filament\Pages;
 
 use App\Enums\JourneyPhase;
+use App\Services\ImageProcessor;
+use App\Support\MediaStorage;
 use App\Support\Settings as SiteSettings;
 use BackedEnum;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -44,6 +47,19 @@ class Settings extends Page
                         ->required()
                         ->helperText('Changes the focus of the home page.'),
                 ]),
+                Section::make('Home page')->schema([
+                    FileUpload::make('home_image')
+                        ->label('Main image')
+                        ->helperText('Large photo at the top of the home page. Landscape works best. Without an image the green pattern is shown.')
+                        ->image()
+                        ->disk(MediaStorage::diskName())
+                        ->imageResizeTargetWidth('2400')
+                        ->imageResizeTargetHeight('2400')
+                        ->imageResizeMode('contain')
+                        ->imageResizeUpscale(false)
+                        ->directory('site')
+                        ->maxSize(8192),
+                ]),
                 Section::make('Tracking privacy')->columns(2)->schema([
                     TextInput::make('public_tracking_delay_hours')
                         ->label('Public tracking delay')
@@ -65,6 +81,10 @@ class Settings extends Page
     {
         $state = $this->form->getState();
         $state['journey_phase'] = $state['journey_phase'] instanceof JourneyPhase ? $state['journey_phase']->value : $state['journey_phase'];
+
+        if ($state['home_image'] && $state['home_image'] !== SiteSettings::get('home_image')) {
+            app(ImageProcessor::class)->process($state['home_image']); // re-encode, strip EXIF/GPS
+        }
 
         SiteSettings::set($state);
         Log::info('Settings changed', ['user' => auth()->id(), 'settings' => $state]);

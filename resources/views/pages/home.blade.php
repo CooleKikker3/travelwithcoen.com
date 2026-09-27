@@ -24,15 +24,23 @@
     };
 @endphp
 <x-layouts.app>
-    <section class="topo relative overflow-hidden bg-forest-900 text-sage-100">
-        <div class="container-page grid gap-12 py-16 sm:py-24 lg:grid-cols-[1.3fr_1fr] lg:items-center">
-            <div>
-                <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-forest-700/70 px-3 py-1 text-sm font-semibold text-fern-300">
+    {{-- Hero: the photo chosen in Settings, with the green wave pattern over a gradient; without a photo just the pattern. --}}
+    <section class="relative isolate overflow-hidden bg-forest-900 text-sage-100">
+        @if ($heroImage)
+            <img src="{{ $heroImage }}" alt="" class="absolute inset-0 -z-20 size-full object-cover" fetchpriority="high">
+            <div class="absolute inset-0 -z-10 bg-gradient-to-r from-forest-950/90 via-forest-900/60 to-forest-900/10"></div>
+            <div class="absolute inset-0 -z-10 bg-gradient-to-t from-forest-950/70 to-transparent to-40%"></div>
+        @endif
+        <div class="topo absolute inset-0 -z-10" aria-hidden="true"></div>
+
+        <div @class(['container-page flex flex-col justify-end py-16 sm:py-24', 'min-h-[80vh]' => $heroImage])>
+            <div class="max-w-2xl">
+                <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-forest-700/70 px-3 py-1 text-sm font-semibold text-fern-300 backdrop-blur">
                     <span class="size-2 rounded-full bg-olive-300"></span>
                     {{ __('site.status.label') }}: {{ $phase->getLabel() }}
                 </div>
-                <h1 class="text-4xl leading-[1.05] font-semibold text-white sm:text-6xl">{{ $title }}</h1>
-                <p class="mt-6 max-w-xl text-lg text-sage-200">{{ $lead }}</p>
+                <h1 class="text-4xl leading-[1.05] font-semibold text-white drop-shadow sm:text-6xl">{{ $title }}</h1>
+                <p class="mt-6 max-w-xl text-lg text-sage-100">{{ $lead }}</p>
                 @if (! $preparing && $lastLocation)
                     <p class="mt-4 text-sm text-fern-300">
                         {{ __('site.home.latest_location') }}:
@@ -48,16 +56,15 @@
                     @endif
                     <a href="{{ lroute('about') }}" class="btn-ghost">{{ __('site.home.cta_about') }}</a>
                 </div>
-            </div>
 
-            <dl class="grid grid-cols-2 gap-3">
-                @foreach ($facts as [$label, $value])
-                    <div class="rounded-2xl bg-forest-800/80 p-5 ring-1 ring-forest-700">
-                        <dt class="text-xs font-semibold tracking-wide text-fern-300 uppercase">{{ $label }}</dt>
-                        <dd class="mt-1 font-display text-xl text-white">{{ $value }}</dd>
-                    </div>
-                @endforeach
-            </dl>
+                {{-- Key facts as one quiet line instead of statistic tiles. --}}
+                <p class="mt-10 flex flex-wrap gap-x-2 gap-y-1 text-sm text-sage-200">
+                    @foreach ($facts as [$label, $value])
+                        <span>{{ $label }} <strong class="font-semibold text-white">{{ $value }}</strong></span>
+                        @unless ($loop->last)<span class="text-fern-300/60" aria-hidden="true">·</span>@endunless
+                    @endforeach
+                </p>
+            </div>
         </div>
     </section>
 

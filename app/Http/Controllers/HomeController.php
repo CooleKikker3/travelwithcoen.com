@@ -9,6 +9,7 @@ use App\Models\CountryRoute;
 use App\Models\GalleryItem;
 use App\Models\TrackingPoint;
 use App\Support\JourneyStats;
+use App\Support\MediaStorage;
 use App\Support\RouteGeometry;
 use App\Support\Settings;
 use Illuminate\Http\Request;
@@ -25,6 +26,7 @@ class HomeController extends Controller
             // Before departure the focus is preparation, during the walk progress, afterwards the archive.
             'phase' => JourneyPhase::tryFrom(Settings::get('journey_phase')) ?? JourneyPhase::Preparation,
             'stats' => JourneyStats::for($user),
+            'heroImage' => ($image = Settings::get('home_image')) ? MediaStorage::url($image) : null,
             'lastLocation' => TrackingPoint::visibleTo($user)->with('country')->latest('recorded_at')->first(),
             'preparation' => Article::published()->where('type', ArticleType::Preparation)->limit(3)->get(),
             'diary' => Article::published()->where('type', ArticleType::Diary)->limit(3)->get(),
