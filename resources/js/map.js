@@ -21,12 +21,10 @@ const satellite = {
 // names when zoomed in further. Esri requires a credit, shown only then.
 function sharpWhenZoomed(map) {
     const esri = (service) => L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/${service}/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 18 });
-    // Place names from CARTO's label-only layer: names without (municipal) borders.
-    const names = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', { maxZoom: 18, subdomains: 'abcd' });
-    const sharp = L.layerGroup([esri('World_Imagery'), names]);
+    const sharp = L.layerGroup([esri('World_Imagery'), esri('Reference/World_Boundaries_and_Places')]);
     // Esri tiles are pre-rendered (highways and railways can't be switched off), so roads are faded and only shown close up.
     const streets = esri('Reference/World_Transportation').setOpacity(0.35);
-    const credit = L.control.attribution({ prefix: false }).addAttribution('Imagery &copy; Esri, Maxar, Earthstar Geographics · Labels &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; CARTO');
+    const credit = L.control.attribution({ prefix: false }).addAttribution('Imagery &amp; labels &copy; Esri, Maxar, Earthstar Geographics');
     const show = (layer, visible) => (visible ? !map.hasLayer(layer) && layer.addTo(map) : layer.remove());
     const update = () => {
         const zoom = map.getZoom();
