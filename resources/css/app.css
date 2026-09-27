@@ -431,3 +431,8 @@
     .rise, .drift, .bob, .draw { animation: none; stroke-dashoffset: 0; }
 }
 .polaroid { transform: rotate(var(--tilt)); }
+
+/* Hero: bolder, slowly flowing version of the wave pattern. */
+.topo-strong { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%23a6cf92' stroke-opacity='.24' stroke-width='2'%3E%3Cpath d='M-120 20 q60 -14 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-60 60 q60 -20 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-120 100 q60 -12 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-30 140 q60 -22 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-90 180 q60 -16 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-120 220 q60 -20 120 0 t120 0 t120 0 t120 0'/%3E%3C/g%3E%3C/svg%3E"); background-size: 320px; animation: flow 60s linear infinite; }
+@keyframes flow { to { background-position: 640px 0; } }
+@media (prefers-reduced-motion: reduce) { .topo-strong { animation: none; } }

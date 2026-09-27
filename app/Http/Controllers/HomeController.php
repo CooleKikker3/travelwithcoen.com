@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ArticleType;
 use App\Enums\JourneyPhase;
 use App\Models\Article;
+use App\Models\Country;
 use App\Models\CountryRoute;
 use App\Models\GalleryItem;
 use App\Models\TrackingPoint;
@@ -26,6 +27,8 @@ class HomeController extends Controller
             // Before departure the focus is preparation, during the walk progress, afterwards the archive.
             'phase' => JourneyPhase::tryFrom(Settings::get('journey_phase')) ?? JourneyPhase::Preparation,
             'stats' => JourneyStats::for($user),
+            // Stops in the rough direction that match a country link to its page.
+            'countryLinks' => Country::published()->get()->mapWithKeys(fn (Country $country) => [mb_strtolower($country->translate('name')) => $country->url()]),
             'heroImage' => ($image = Settings::get('home_image')) ? MediaStorage::url($image) : null,
             'lastLocation' => TrackingPoint::visibleTo($user)->with('country')->latest('recorded_at')->first(),
             'preparation' => Article::published()->where('type', ArticleType::Preparation)->limit(3)->get(),

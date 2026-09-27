@@ -31,7 +31,7 @@
             <div class="absolute inset-0 -z-10 bg-gradient-to-r from-forest-950/90 via-forest-900/60 to-forest-900/10"></div>
             <div class="absolute inset-0 -z-10 bg-gradient-to-t from-forest-950/70 to-transparent to-40%"></div>
         @endif
-        <div class="topo absolute inset-0 -z-10" aria-hidden="true"></div>
+        <div class="topo topo-strong absolute inset-0 -z-10" aria-hidden="true"></div>
 
         <div @class(['container-page flex flex-col justify-end pt-16 pb-24 sm:pt-24 sm:pb-32', 'min-h-[85vh]' => $heroImage])>
             <div class="max-w-2xl">
@@ -62,13 +62,6 @@
                     <a href="{{ lroute('about') }}" class="btn-ghost">{{ __('site.home.cta_about') }}</a>
                 </div>
 
-                {{-- Key facts as one quiet line instead of statistic tiles. --}}
-                <p class="rise mt-10 flex flex-wrap gap-x-2 gap-y-1 text-sm text-sage-200" style="--d: .55s">
-                    @foreach ($facts as [$label, $value])
-                        <span>{{ $label }} <strong class="font-semibold text-white">{{ $value }}</strong></span>
-                        @unless ($loop->last)<span class="text-fern-300/60" aria-hidden="true">·</span>@endunless
-                    @endforeach
-                </p>
             </div>
         </div>
     </section>
@@ -84,7 +77,12 @@
                 <ol class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-4">
                     @foreach (preg_split('/\R+/', trim(__('site.home.direction'))) as $stop)
                         <li class="flex items-center gap-3" data-reveal style="--i: {{ $loop->index }}; --tilt: {{ [-3, 2, -1, 3, -2][$loop->index % 5] }}deg">
-                            <span @class(['stamp', 'bg-forest-800 text-fern-300' => $loop->first || $loop->last, 'bg-white text-moss-600' => ! ($loop->first || $loop->last)])>{{ $stop }}</span>
+                            {{-- Stops that match a country on the site link to its page. --}}
+                            @if ($link = $countryLinks[mb_strtolower(trim($stop))] ?? null)
+                                <a href="{{ $link }}" @class(['stamp hover:bg-fern-300 hover:text-forest-950', 'bg-forest-800 text-fern-300' => $loop->first || $loop->last, 'bg-white text-moss-600' => ! ($loop->first || $loop->last)])>{{ $stop }}</a>
+                            @else
+                                <span @class(['stamp', 'bg-forest-800 text-fern-300' => $loop->first || $loop->last, 'bg-white text-moss-600' => ! ($loop->first || $loop->last)])>{{ $stop }}</span>
+                            @endif
                             @unless ($loop->last)
                                 <svg class="h-3 w-8 text-moss-400" viewBox="0 0 32 12" fill="none" aria-hidden="true"><path d="M1 8c8-6 16-6 24-2" stroke="currentColor" stroke-width="2" stroke-dasharray="3 4" stroke-linecap="round"/><path d="M24 2l5 4-6 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             @endunless
@@ -95,6 +93,17 @@
             </div>
         </section>
     @endif
+
+    <section class="container-page mt-6">
+        <dl class="flex flex-wrap gap-4">
+            @foreach ($facts as [$label, $value])
+                <div class="bob rounded-xl border-2 border-dashed border-olive-300 bg-sand-100 px-4 py-2 shadow-sm" data-reveal style="--i: {{ $loop->index }}; --tilt: {{ [2, -2, 1, -1][$loop->index % 4] }}deg; animation-delay: -{{ $loop->index * 0.8 }}s">
+                    <dt class="text-xs font-bold tracking-wide text-bark-700 uppercase">{{ $label }}</dt>
+                    <dd class="font-hand text-2xl leading-tight text-forest-900">{{ $value }}</dd>
+                </div>
+            @endforeach
+        </dl>
+    </section>
 
     <section class="container-page mt-16">
         <div class="flex flex-wrap items-end justify-between gap-4">

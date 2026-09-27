@@ -50,6 +50,13 @@ class SiteTest extends TestCase
         $this->get('/')->assertOk()->assertSee('site/hero.jpg', false);
     }
 
+    public function test_stops_in_the_rough_direction_link_to_their_country(): void
+    {
+        Country::create(['iso_code' => 'NL', 'name' => ['en' => 'Netherlands', 'nl' => 'Nederland'], 'is_published' => true]);
+
+        $this->get('/')->assertSee('href="'.url('/countries/netherlands').'" class="stamp', false);
+    }
+
     public function test_cms_text_overrides_replace_default_texts(): void
     {
         SiteTexts::save(['site.home.title' => ['en' => 'Custom title', 'nl' => '']]);
