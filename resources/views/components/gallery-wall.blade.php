@@ -35,7 +35,7 @@
                     <img src="{{ $item->thumbnailUrl() }}" alt="{{ $caption ?? '' }}" loading="lazy">
                 @endif
                 @if ($item->isVideo() || $item->isYoutube())
-                    <span class="wall-play" aria-hidden="true">▶</span>
+                    <span class="wall-play" aria-hidden="true"><x-icons.play /></span>
                 @endif
             </a>
         @endforeach
@@ -55,7 +55,7 @@
                 <p data-lightbox-caption class="text-lg text-forest-900"></p>
                 <p data-lightbox-meta class="mt-3 text-sm text-moss-600"></p>
                 <a data-lightbox-article href="#" class="mt-3 block text-sm font-semibold text-moss-600 hover:text-forest-700"></a>
-                <button type="button" data-lightbox-play class="mt-6 inline-flex items-center gap-2 rounded-full bg-forest-800 px-5 py-2.5 font-semibold text-white hover:bg-forest-700">▶ {{ __('site.media.play') }}</button>
+                <button type="button" data-lightbox-play class="mt-6 inline-flex items-center gap-2 rounded-full bg-forest-800 px-5 py-2.5 font-semibold text-white hover:bg-forest-700"><x-icons.play class="size-4" /> {{ __('site.media.play') }}</button>
                 <div class="mt-auto flex items-center gap-2 pt-6">
                     <button type="button" data-lightbox-prev class="wall-lightbox__nav" aria-label="{{ __('site.media.previous') }}">←</button>
                     <button type="button" data-lightbox-next class="wall-lightbox__nav" aria-label="{{ __('site.media.next') }}">→</button>

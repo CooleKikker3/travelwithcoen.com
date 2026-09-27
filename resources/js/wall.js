@@ -3,6 +3,9 @@
 // - older items load from the next page when the "more" link comes near;
 // - clicking a tile opens the lightbox (large media + description); videos only play on request.
 
+// Same icon as resources/views/components/icons/play.blade.php.
+const PLAY_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l11.02-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14Z"/></svg>';
+
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const popIn = new IntersectionObserver((entries) => {
@@ -147,7 +150,9 @@ function initLightbox(wall, grid, tiles, loadMore) {
             poster.dataset.youtubePoster = d.src;
             const image = el('img', { src: d.thumb.replace('hqdefault', 'maxresdefault'), alt: '' });
             image.addEventListener('error', () => { image.src = d.thumb; }, { once: true });
-            poster.append(image, el('span', { className: 'wall-play', textContent: '▶' }));
+            const icon = el('span', { className: 'wall-play' });
+            icon.innerHTML = PLAY_ICON;
+            poster.append(image, icon);
             poster.addEventListener('click', play);
             media.append(poster);
         }
