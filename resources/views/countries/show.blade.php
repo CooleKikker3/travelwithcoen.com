@@ -2,7 +2,7 @@
     $km = fn (float $value) => __('site.stats.km', ['km' => \Illuminate\Support\Number::format($value, maxPrecision: 0, locale: app()->getLocale())]);
 @endphp
 <x-layouts.app :title="$country->translate('name')" :description="$country->translate('intro')" :alternates="$alternates">
-    <x-page-header :title="$country->flag().' '.$country->translate('name')" :lead="$country->translate('intro')">
+    <x-page-header :country="$country" :title="$country->translate('name')" :lead="$country->translate('intro')">
         <div class="mt-6 flex flex-wrap items-center gap-3">
             <span class="badge">{{ $country->status->getLabel() }}</span>
             <span class="text-sm text-sage-200">{{ __('site.stats.planned') }}: <strong class="text-white">{{ $km($distances['planned']) }}</strong></span>
