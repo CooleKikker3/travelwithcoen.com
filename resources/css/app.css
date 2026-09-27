@@ -380,3 +380,6 @@
     font-weight: 700;
     text-align: center;
 }
+
+/* Single-country maps: the surroundings are blurred and faded so the country stands out. */
+.map-surroundings { filter: blur(3px) saturate(0.6) brightness(1.15); }

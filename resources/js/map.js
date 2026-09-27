@@ -10,6 +10,12 @@ const styles = {
 // Rough view of the whole direction (Netherlands → Vietnam) for maps without data.
 const fallbackView = { center: [40, 60], zoom: 3 };
 
+// Satellite imagery without labels, for the single-country maps. Check the terms before going live.
+const satellite = {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics',
+};
+
 const area = (bounds) => (bounds.getNorth() - bounds.getSouth()) * (bounds.getEast() - bounds.getWest());
 
 function initMap(figure) {
@@ -27,10 +33,14 @@ function initMap(figure) {
         keyboard: interactive,
     });
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
+    const borderData = figure.querySelector('script[data-border]');
+
+    if (!borderData) {
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        }).addTo(map);
+    }
 
     const layer = L.geoJSON(data, {
         style: (feature) => styles[feature.properties.type],
@@ -47,23 +57,33 @@ function initMap(figure) {
         },
     }).addTo(map);
 
-    // Only one country: cover everything around it and zoom to its outline.
-    const borderData = figure.querySelector('script[data-border]');
+    // Only one country: satellite imagery without place names, sharp inside the border
+    // and blurred/faded around it, zoomed to the country.
     if (borderData) {
         const polygons = JSON.parse(borderData.textContent)
             .map((polygon) => polygon[0].map(([lng, lat]) => [lat, lng]));
-        const world = [[-90, -360], [-90, 360], [90, 360], [90, -360]];
 
-        L.polygon([world, ...polygons], {
-            stroke: false, fillColor: '#e6eedc', fillOpacity: 1, fillRule: 'evenodd', interactive: false,
-        }).addTo(map);
-        L.polygon(polygons, { color: '#264d33', weight: 1.5, fill: false, interactive: false }).addTo(map);
+        // Two copies of the imagery: the blurred one fills the map, the sharp one is clipped to the country.
+        map.createPane('countryPane').style.zIndex = 250;
+        L.tileLayer(satellite.url, { maxZoom: 18, attribution: satellite.attribution, className: 'map-surroundings' }).addTo(map);
+        L.tileLayer(satellite.url, { maxZoom: 18, pane: 'countryPane' }).addTo(map);
+
+        L.polygon(polygons, { color: '#ffffff', weight: 1.5, opacity: 0.8, fill: false, interactive: false }).addTo(map);
         layer.bringToFront();
+
+        const clip = () => {
+            const path = polygons.map((ring) => 'M' + ring.map((latlng) => {
+                const p = map.latLngToLayerPoint(latlng);
+                return `${Math.round(p.x)},${Math.round(p.y)}`;
+            }).join('L') + 'Z').join('');
+            map.getPane('countryPane').style.clipPath = `path(evenodd, '${path}')`;
+        };
+        map.on('zoomend viewreset', clip);
 
         // Zoom to the mainland (largest part), so overseas territories don't shrink the country.
         const mainland = polygons.map((p) => L.latLngBounds(p)).sort((a, b) => area(b) - area(a))[0];
-        map.fitBounds(mainland, { padding: [12, 12] });
-    } else if (layer.getLayers().length) {
+        map.fitBounds(mainland, { padding: [12, 12], animate: false });
+        clip();    } else if (layer.getLayers().length) {
         map.fitBounds(layer.getBounds(), { padding: [24, 24] });
     } else {
         map.setView(fallbackView.center, fallbackView.zoom);
