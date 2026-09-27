@@ -98,7 +98,7 @@ class ContentTest extends TestCase
     {
         $this->actingAs(User::factory()->create(['role' => Role::Admin]));
 
-        $this->get('/admin')->assertOk()->assertSee('Quick actions');
+        $this->get('/admin')->assertOk()->assertSee('Quick actions')->assertSee('admin-drafts', false);
         $this->get('/admin/settings')->assertOk()->assertSee('Public tracking delay');
 
         Livewire::test(JourneyOverview::class)->assertOk()->assertSee('Budget spent');
