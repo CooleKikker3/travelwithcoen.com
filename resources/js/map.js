@@ -109,7 +109,7 @@ function initMap(figure) {
         clip();
     } else if (figure.dataset.startHome === 'true' && !data.features.some((f) => f.properties.type === 'position')) {
         // No (visible) location yet: start at home, Lisse.
-        map.setView(home, 8);
+        map.setView(home, 6.5);
     } else if (layer.getLayers().length) {
         map.fitBounds(layer.getBounds(), { padding: [24, 24] });
     } else {
