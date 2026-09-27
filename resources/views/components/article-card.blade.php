@@ -1,13 +1,13 @@
-@props(['article'])
-<article class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-sage-200 transition hover:shadow-md">
-    <a href="{{ $article->url() }}" class="block aspect-[16/9] overflow-hidden bg-sage-100">
+@props(['article', 'index' => 0])
+<article class="polaroid group flex flex-col rounded-md bg-white p-3 pb-4 shadow-md ring-1 ring-sage-200/70" data-reveal style="--i: {{ $index ?? 0 }}">
+    <a href="{{ $article->url() }}" class="block aspect-[4/3] overflow-hidden rounded-sm bg-sage-100">
         @if ($article->coverUrl())
             <img src="{{ $article->coverUrl() }}" alt="" loading="lazy" class="size-full object-cover transition duration-500 group-hover:scale-105">
         @else
             <div class="topo size-full bg-forest-700"></div>
         @endif
     </a>
-    <div class="flex flex-1 flex-col gap-2 p-5">
+    <div class="flex flex-1 flex-col gap-2 px-2 pt-4">
         <div class="flex flex-wrap items-center gap-2 text-xs text-moss-600">
             <time datetime="{{ $article->published_at->toDateString() }}">{{ $article->published_at->translatedFormat('j F Y') }}</time>
             @foreach (array_slice($article->tags ?? [], 0, 3) as $tag)

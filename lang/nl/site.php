@@ -25,6 +25,7 @@ return [
     ],
 
     'home' => [
+        'hand_note' => 'ja, lopend!',
         'eyebrow' => 'Nederland → Hanoi, te voet',
         'title' => 'Te voet van Nederland naar Hanoi',
         'lead' => ':Departure wil ik vanuit Nederland oostwaarts gaan lopen, zoveel mogelijk te voet en over land, met een tent op mijn rug. De bestemming is Hanoi, Vietnam. Alles daartussen wordt nog uitgezocht.',

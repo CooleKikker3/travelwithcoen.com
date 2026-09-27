@@ -105,7 +105,7 @@
         @else
             <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($articles as $article)
-                    <x-article-card :article="$article" />
+                    <x-article-card :article="$article" :index="$loop->index" />
                 @endforeach
             </div>
             <div class="mt-10">{{ $articles->links() }}</div>

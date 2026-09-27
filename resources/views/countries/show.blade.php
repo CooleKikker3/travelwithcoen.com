@@ -39,7 +39,7 @@
             <h2 class="text-2xl font-semibold">{{ __('site.country.articles', ['country' => $country->translate('name')]) }}</h2>
             <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($articles as $article)
-                    <x-article-card :article="$article" />
+                    <x-article-card :article="$article" :index="$loop->index" />
                 @endforeach
             </div>
         </section>

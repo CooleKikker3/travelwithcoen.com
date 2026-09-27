@@ -5,6 +5,7 @@ Website + CMS for Coen's walk from the Netherlands to Hanoi. Full requirements: 
 ## Stack
 - Laravel 13 monolith, PHP 8.5, SQLite locally. No separate API/frontend without Coen's explicit approval.
 - Public site: Blade + Tailwind v4 (`resources/css/app.css` holds the green palette tokens: forest/moss/olive/fern/sage/mist, bark/sand accents). No JS framework.
+- Style: playful travel journal. Fonts Bricolage Grotesque (display), Nunito (body), Caveat (`font-hand`, handwritten notes). Helpers in app.css: `data-reveal` (scroll-in, stagger `--i`, tilt `--tilt`), `.rise` (entrance, `--d`), `.drift`, `.bob`, `.draw`, `.wave-bottom`, `.polaroid` cards with tape, `.stamp`; the green wave pattern `.topo` is a favourite of Coen: reuse it. Respect reduced motion.
 - CMS: Filament 5 at `/admin`, admins only (`User::canAccessPanel`).
 
 ## Conventions

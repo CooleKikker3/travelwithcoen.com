@@ -32,7 +32,6 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script>document.documentElement.classList.add('js')</script>
     <title>{{ $pageTitle }}</title>
     <meta name="description" content="{{ $description }}">
     <link rel="canonical" href="{{ $canonical }}">
@@ -50,7 +49,8 @@
     <meta property="og:locale" content="{{ $locale === 'nl' ? 'nl_NL' : 'en_GB' }}">
     <meta name="theme-color" content="#142a1c">
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=fraunces:500,600,700|source-sans-3:400,400i,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.bunny.net/css?family=bricolage-grotesque:500,700,800|caveat:600,700|nunito:400,400i,600,700,800&display=swap" rel="stylesheet">
+    <script>document.documentElement.classList.add('js')</script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="flex min-h-screen flex-col">
@@ -59,14 +59,14 @@
     <header class="bg-forest-900 text-sage-100">
         <div class="container-page flex items-center justify-between gap-4 py-4">
             <a href="{{ lroute('home') }}" class="group flex items-center gap-3">
-                <svg class="size-9 shrink-0 text-fern-300" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+                <svg class="size-9 shrink-0 text-fern-300 transition duration-300 group-hover:-rotate-6 group-hover:scale-110" viewBox="0 0 36 36" fill="none" aria-hidden="true">
                     <path d="M3 28 L13 12 L19 21 L23 16 L33 28 Z" fill="currentColor" opacity=".25"/>
                     <path d="M3 28 L13 12 L19 21 L23 16 L33 28" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                     <path d="M6 33 C12 30, 16 31, 20 29 S29 26, 32 23" stroke="#c2c07a" stroke-width="1.6" stroke-dasharray="2 2.5" stroke-linecap="round"/>
                 </svg>
                 <span class="leading-tight">
                     <span class="block font-display text-lg font-semibold text-white">{{ __('site.name') }}</span>
-                    <span class="block text-xs text-fern-300">NL → Hanoi</span>
+                    <span class="block font-hand text-base leading-none text-fern-300">Lisse → Hanoi</span>
                 </span>
             </a>
 

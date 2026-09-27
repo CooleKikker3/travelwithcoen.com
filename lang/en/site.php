@@ -25,6 +25,7 @@ return [
     ],
 
     'home' => [
+        'hand_note' => 'yes, on foot!',
         'eyebrow' => 'The Netherlands → Hanoi, on foot',
         'title' => 'Walking from the Netherlands to Hanoi',
         'lead' => 'In :departure I plan to start walking east from the Netherlands, as much as possible on foot and over land, with a tent on my back. The destination is Hanoi, Vietnam. Everything in between is still being worked out.',
