@@ -75,7 +75,7 @@
                                 </dl>
                             </div>
                             <a href="{{ $country->url() }}" class="block" tabindex="-1" aria-hidden="true">
-                                <x-route-map :geojson="$maps[$country->id]" :interactive="false" :legend="false" class="h-56 rounded-none ring-0 md:h-full md:min-h-56" />
+                                <x-route-map :geojson="$maps[$country->id]" :border="\App\Support\RouteGeometry::border($country->iso_code)" :interactive="false" :legend="false" class="h-56 rounded-none ring-0 md:h-full md:min-h-56" />
                             </a>
                         </article>
                     </li>

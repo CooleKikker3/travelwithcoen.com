@@ -12,6 +12,7 @@ use App\Models\GalleryItem;
 use App\Models\User;
 use App\Models\Video;
 use App\Services\YouTubeSync;
+use App\Support\RouteGeometry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -143,6 +144,14 @@ class GalleryAndPlanningTest extends TestCase
 
         $this->get('/gallery')->assertOk()->assertSee('data-wall-next', false)->assertSee('?page=2', false)->assertSee('wall-tile--wide', false);
         $this->get('/nl/galerij?page=2')->assertOk()->assertSee('Video 30')->assertDontSee('data-wall-next', false);
+    }
+
+    public function test_country_maps_on_the_journey_page_only_show_that_country(): void
+    {
+        Country::create(['iso_code' => 'NL', 'name' => ['en' => 'Netherlands']]);
+
+        $this->assertNotNull(RouteGeometry::border('nl'));
+        $this->get('/journey')->assertOk()->assertSee('data-border', false);
     }
 
     public function test_a_route_can_be_drawn_in_the_planner(): void

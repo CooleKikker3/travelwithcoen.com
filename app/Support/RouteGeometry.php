@@ -16,6 +16,19 @@ class RouteGeometry
 
     public const OVERVIEW = 0.005;
 
+    /**
+     * Outline of a country as GeoJSON MultiPolygon coordinates ([lng, lat]), from Natural Earth 1:50m
+     * (public domain, resources/data/country-borders/{ISO}.json). Null when unknown.
+     */
+    public static function border(?string $isoCode): ?array
+    {
+        $file = resource_path('data/country-borders/'.strtoupper((string) $isoCode).'.json');
+
+        return preg_match('/^[A-Za-z]{2}$/', (string) $isoCode) && is_file($file)
+            ? json_decode(file_get_contents($file), true)
+            : null;
+    }
+
     /** @param array<int, array{0: float, 1: float}> $points [lat, lng] */
     public static function distanceKm(array $points): float
     {

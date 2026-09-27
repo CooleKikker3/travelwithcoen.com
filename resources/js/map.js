@@ -10,12 +10,15 @@ const styles = {
 // Rough view of the whole direction (Netherlands → Vietnam) for maps without data.
 const fallbackView = { center: [40, 60], zoom: 3 };
 
+const area = (bounds) => (bounds.getNorth() - bounds.getSouth()) * (bounds.getEast() - bounds.getWest());
+
 function initMap(figure) {
     const data = JSON.parse(figure.querySelector('script[type="application/json"]').textContent);
     const interactive = figure.dataset.interactive === 'true';
 
     const map = L.map(figure.querySelector('[data-map-canvas]'), {
         scrollWheelZoom: false,
+        zoomSnap: 0.25, // lets a country fill its map instead of jumping a whole zoom level
         zoomControl: interactive,
         dragging: interactive,
         touchZoom: interactive,
@@ -44,7 +47,23 @@ function initMap(figure) {
         },
     }).addTo(map);
 
-    if (layer.getLayers().length) {
+    // Only one country: cover everything around it and zoom to its outline.
+    const borderData = figure.querySelector('script[data-border]');
+    if (borderData) {
+        const polygons = JSON.parse(borderData.textContent)
+            .map((polygon) => polygon[0].map(([lng, lat]) => [lat, lng]));
+        const world = [[-90, -360], [-90, 360], [90, 360], [90, -360]];
+
+        L.polygon([world, ...polygons], {
+            stroke: false, fillColor: '#e6eedc', fillOpacity: 1, fillRule: 'evenodd', interactive: false,
+        }).addTo(map);
+        L.polygon(polygons, { color: '#264d33', weight: 1.5, fill: false, interactive: false }).addTo(map);
+        layer.bringToFront();
+
+        // Zoom to the mainland (largest part), so overseas territories don't shrink the country.
+        const mainland = polygons.map((p) => L.latLngBounds(p)).sort((a, b) => area(b) - area(a))[0];
+        map.fitBounds(mainland, { padding: [12, 12] });
+    } else if (layer.getLayers().length) {
         map.fitBounds(layer.getBounds(), { padding: [24, 24] });
     } else {
         map.setView(fallbackView.center, fallbackView.zoom);
