@@ -113,7 +113,7 @@ class GalleryAndPlanningTest extends TestCase
 
         // Mixed with uploads in one gallery, newest first.
         GalleryItem::create(['kind' => 'image', 'source' => 'upload', 'path' => 'gallery/old.jpg', 'taken_at' => '2027-07-01', 'caption' => ['en' => 'Older photo']]);
-        $this->get('/gallery')->assertSeeInOrder(['data-youtube="dQw4w9WgXcQ"', 'Older photo'], false);
+        $this->get('/gallery')->assertSeeInOrder(['data-src="dQw4w9WgXcQ"', 'Older photo'], false);
         $this->get('/gallery?kind=image')->assertDontSee('dQw4w9WgXcQ');
     }
 
@@ -123,7 +123,7 @@ class GalleryAndPlanningTest extends TestCase
             GalleryItem::create(['kind' => 'youtube', 'source' => 'youtube', 'youtube_id' => sprintf('vid%08d', $i), 'taken_at' => now()->subDays($i), 'caption' => ['en' => "Video {$i}"]]);
         }
 
-        $this->get('/gallery')->assertOk()->assertSee('data-wall-next', false)->assertSee('?page=2', false)->assertSee('data-ratio="1.7778"', false);
+        $this->get('/gallery')->assertOk()->assertSee('data-wall-next', false)->assertSee('?page=2', false)->assertSee('wall-tile--wide', false);
         $this->get('/nl/galerij?page=2')->assertOk()->assertSee('Video 30')->assertDontSee('data-wall-next', false);
     }
 

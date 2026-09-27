@@ -75,61 +75,85 @@
     }
 }
 
-/* Gallery wall (components/gallery-wall.blade.php + js/wall.js). Without JS: plain CSS columns. */
-.wall-source {
-    column-count: 2;
-    column-gap: 1rem;
+/*
+ * Gallery wall (components/gallery-wall.blade.php + js/wall.js), in the spirit of Freewall:
+ * bricks of different sizes packed into a dense grid that always fills the full width;
+ * later bricks fill the gaps, and bricks slide to their new place when the width changes.
+ */
+.wall-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    grid-auto-rows: 110px;
+    grid-auto-flow: row dense;
+    gap: 8px;
 }
 
 @media (min-width: 640px) {
-    .wall-source { column-count: 3; }
+    .wall-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); grid-auto-rows: 140px; }
 }
 
 @media (min-width: 1024px) {
-    .wall-source { column-count: 4; }
+    .wall-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); grid-auto-rows: 160px; }
 }
 
-.wall-source.is-arranged {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    column-count: auto;
-}
-
-.wall-column {
-    display: flex;
-    min-width: 0;
-    flex: 1;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.wall-item {
+.wall-tile {
     position: relative;
-    margin-bottom: 1rem;
+    display: block;
     overflow: hidden;
-    break-inside: avoid;
-    border-radius: 1rem;
-    background: white;
-    box-shadow: 0 1px 2px rgb(20 42 28 / 0.08), 0 8px 24px -12px rgb(20 42 28 / 0.25);
+    border-radius: 0.6rem;
+    background: var(--color-forest-800);
+    box-shadow: 0 6px 18px -10px rgb(14 28 19 / 0.5);
+    cursor: zoom-in;
 }
 
-.is-arranged .wall-item {
-    margin-bottom: 0;
+.wall-tile--wide { grid-column: span 2; }
+.wall-tile--tall { grid-row: span 2; }
+.wall-tile--big { grid-column: span 2; grid-row: span 2; }
+
+.wall-tile img,
+.wall-tile video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    transition: transform 0.6s ease, filter 0.3s ease;
 }
 
-/* Pop-in: tiles start small, low and tilted, then bounce into place with a slight playful tilt. */
-.js .wall-item {
-    transition:
-        opacity 0.5s ease var(--delay, 0ms),
-        transform 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) var(--delay, 0ms),
-        box-shadow 0.3s ease;
+.wall-tile:hover img,
+.wall-tile:hover video,
+.wall-tile:focus-visible img {
+    transform: scale(1.07);
+    filter: saturate(1.15);
 }
 
-.js .wall-item:not(.is-in) {
+.wall-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    width: 3rem;
+    height: 3rem;
+    align-items: center;
+    justify-content: center;
+    padding-left: 0.2rem;
+    border-radius: 999px;
+    background: rgb(20 42 28 / 0.8);
+    color: white;
+    transform: translate(-50%, -50%);
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.wall-tile:hover .wall-play { background: var(--color-moss-600); transform: translate(-50%, -50%) scale(1.12); }
+
+/* Pop-in: bricks start low, small and tilted, then bounce straight into the wall. */
+.js .wall-tile {
+    transition: opacity 0.5s ease var(--delay, 0ms), transform 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) var(--delay, 0ms);
+}
+
+.js .wall-tile:not(.is-in) {
     opacity: 0;
-    transform: translateY(48px) scale(0.88) rotate(calc(var(--tilt, 0deg) * 3));
-    /* Safety net: show the tile anyway if the script never runs. */
+    transform: translateY(48px) scale(0.85) rotate(var(--tilt, 0deg));
+    /* Safety net: show the brick anyway if the script never runs. */
     animation: wall-fallback 0.4s ease 4s forwards;
 }
 
@@ -137,28 +161,89 @@
     to { opacity: 1; transform: none; }
 }
 
-.js .wall-item.is-in {
-    transform: rotate(calc(var(--tilt, 0deg) * 0.35));
+[data-wall-next].is-loading { opacity: 0.6; pointer-events: none; }
+
+/* Lightbox: large media left, description right (stacked on small screens). */
+.wall-lightbox {
+    width: min(1200px, 94vw);
+    max-width: none;
+    max-height: 92vh;
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 1rem;
+    background: white;
 }
 
-.js .wall-item.is-in:hover {
-    z-index: 1;
-    transform: rotate(0deg) scale(1.03);
-    transition-delay: 0ms;
-    box-shadow: 0 2px 4px rgb(20 42 28 / 0.1), 0 20px 40px -16px rgb(20 42 28 / 0.4);
+.wall-lightbox[open] { animation: lightbox-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.wall-lightbox::backdrop { background: rgb(14 28 19 / 0.85); backdrop-filter: blur(4px); }
+
+@keyframes lightbox-in {
+    from { opacity: 0; transform: scale(0.92) translateY(20px); }
 }
 
-[data-wall-next].is-loading {
-    opacity: 0.6;
-    pointer-events: none;
+.wall-lightbox__inner {
+    display: grid;
+    max-height: 92vh;
+    grid-template-rows: minmax(0, 1fr) auto;
 }
+
+@media (min-width: 768px) {
+    .wall-lightbox__inner { grid-template-columns: minmax(0, 1fr) 20rem; grid-template-rows: none; }
+}
+
+.wall-lightbox__media {
+    display: flex;
+    min-height: 40vh;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-forest-950);
+}
+
+.wall-lightbox__media img,
+.wall-lightbox__media video {
+    max-width: 100%;
+    max-height: 92vh;
+    object-fit: contain;
+}
+
+.wall-lightbox__media iframe,
+.wall-lightbox__poster {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 0;
+}
+
+.wall-lightbox__poster img { width: 100%; height: 100%; object-fit: cover; }
+.wall-lightbox__poster .wall-play { width: 4.5rem; height: 4.5rem; font-size: 1.5rem; }
+.wall-lightbox__poster:hover .wall-play { background: var(--color-moss-600); }
+
+.wall-lightbox__info {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+.wall-lightbox__nav {
+    display: inline-flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--color-sage-100);
+    color: var(--color-forest-800);
+    font-weight: 700;
+}
+
+.wall-lightbox__nav:hover:not(:disabled) { background: var(--color-sage-200); }
+.wall-lightbox__nav:disabled { opacity: 0.35; }
 
 @media (prefers-reduced-motion: reduce) {
-    .js .wall-item,
-    .js .wall-item:not(.is-in),
-    .js .wall-item.is-in,
-    .js .wall-item.is-in:hover {
-        transform: none;
-        transition: opacity 0.3s ease;
-    }
+    .js .wall-tile,
+    .js .wall-tile:not(.is-in) { transform: none; transition: opacity 0.3s ease; }
+    .wall-lightbox[open] { animation: none; }
 }

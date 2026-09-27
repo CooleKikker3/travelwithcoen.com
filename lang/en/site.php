@@ -197,6 +197,11 @@ return [
         'youtube' => 'On YouTube',
         'from_article' => 'From: :title',
         'more' => 'Show older',
+        'open' => 'Open',
+        'play' => 'Play video',
+        'previous' => 'Previous',
+        'next' => 'Next',
+        'close' => 'Close',
         'empty' => 'No photos or videos yet.',
     ],
 

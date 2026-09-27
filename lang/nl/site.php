@@ -197,6 +197,11 @@ return [
         'youtube' => 'Op YouTube',
         'from_article' => 'Uit: :title',
         'more' => 'Oudere tonen',
+        'open' => 'Openen',
+        'play' => 'Video afspelen',
+        'previous' => 'Vorige',
+        'next' => 'Volgende',
+        'close' => 'Sluiten',
         'empty' => 'Nog geen foto’s of video’s.',
     ],
 

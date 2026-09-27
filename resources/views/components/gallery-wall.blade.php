@@ -1,40 +1,43 @@
-@props(['items', 'next' => null, 'columns' => 4])
+@props(['items', 'next' => null])
 {{--
-    Playful masonry "wall" of gallery items (photos, videos, YouTube) in their own formats.
-    resources/js/wall.js spreads the tiles over columns, pops them in while scrolling and,
-    when $next is given, keeps loading older items. Without JS it is a simple column layout.
+    Playful photo wall: tiles of different shapes interlock in a dense mosaic (wide items span two
+    columns, tall ones two rows, now and then a big one). Clicking a tile opens the lightbox with the
+    large version and its description; videos only play when started there. See resources/js/wall.js.
 --}}
-<div data-wall data-max-columns="{{ $columns }}" {{ $attributes->class('wall') }}>
-    <div data-wall-source class="wall-source">
+<div data-wall {{ $attributes->class('wall') }}>
+    <div data-wall-grid class="wall-grid">
         @foreach ($items as $item)
-            @php($caption = $item->translate('caption'))
-            <figure data-wall-item data-ratio="{{ $item->ratio() }}" class="wall-item">
-                @if ($item->isYoutube())
-                    {{-- The YouTube player loads only when clicked (resources/js/app.js). --}}
-                    <a href="{{ $item->url() }}" data-youtube="{{ $item->youtube_id }}" target="_blank" rel="noopener"
-                        class="group relative block aspect-video overflow-hidden bg-forest-900" aria-label="{{ $caption ?? 'YouTube video' }}">
-                        <img src="{{ $item->thumbnailUrl() }}" alt="" loading="lazy" class="size-full object-cover opacity-90 transition group-hover:opacity-100">
-                        <span class="absolute inset-0 flex items-center justify-center" aria-hidden="true">
-                            <span class="flex size-14 items-center justify-center rounded-full bg-forest-900/80 pl-1 text-xl text-white shadow-lg transition group-hover:scale-110 group-hover:bg-moss-600">▶</span>
-                        </span>
-                    </a>
-                @elseif ($item->isVideo())
-                    <video src="{{ $item->url() }}" controls preload="metadata" playsinline class="block w-full bg-forest-900" style="aspect-ratio: {{ $item->ratio() }}"></video>
+            @php
+                $ratio = $item->ratio();
+                $shape = match (true) {
+                    $item->id % 9 === 0 => 'wall-tile--big',
+                    $ratio >= 1.45 => 'wall-tile--wide',
+                    $ratio <= 0.8 => 'wall-tile--tall',
+                    $ratio > 1.15 && $item->id % 2 === 0 => 'wall-tile--wide',
+                    default => '',
+                };
+                $caption = $item->translate('caption');
+            @endphp
+            <a href="{{ $item->url() }}" data-wall-item class="wall-tile {{ $shape }}"
+                data-kind="{{ $item->kind }}"
+                data-src="{{ $item->isYoutube() ? $item->youtube_id : $item->url() }}"
+                data-thumb="{{ $item->thumbnailUrl() }}"
+                data-caption="{{ $caption }}"
+                data-date="{{ $item->taken_at?->translatedFormat('j F Y') }}"
+                data-country="{{ $item->country ? $item->country->flag().' '.$item->country->translate('name') : '' }}"
+                @if ($item->article)
+                    data-article-url="{{ $item->article->url() }}" data-article-title="{{ __('site.media.from_article', ['title' => $item->article->translate('title')]) }}"
+                @endif
+                aria-label="{{ $caption ?: __('site.media.open') }}">
+                @if ($item->isVideo())
+                    <video src="{{ $item->url() }}#t=0.5" preload="metadata" muted playsinline tabindex="-1" aria-hidden="true"></video>
                 @else
-                    <a href="{{ $item->url() }}" target="_blank" rel="noopener" class="block overflow-hidden bg-sage-100">
-                        <img src="{{ $item->url() }}" alt="{{ $caption ?? '' }}" loading="lazy" class="block w-full" style="aspect-ratio: {{ $item->ratio() }}">
-                    </a>
+                    <img src="{{ $item->thumbnailUrl() }}" alt="{{ $caption ?? '' }}" loading="lazy">
                 @endif
-
-                @if ($caption || ($item->source === 'article' && $item->article))
-                    <figcaption class="px-3 py-2 text-sm text-forest-800">
-                        {{ $caption }}
-                        @if ($item->source === 'article' && $item->article)
-                            <a href="{{ $item->article->url() }}" class="mt-0.5 block text-xs font-semibold text-moss-600 hover:text-forest-700">{{ __('site.media.from_article', ['title' => $item->article->translate('title')]) }} →</a>
-                        @endif
-                    </figcaption>
+                @if ($item->isVideo() || $item->isYoutube())
+                    <span class="wall-play" aria-hidden="true">▶</span>
                 @endif
-            </figure>
+            </a>
         @endforeach
     </div>
 
@@ -43,4 +46,22 @@
             <a href="{{ $next }}" data-wall-next class="inline-block rounded-full bg-forest-800 px-5 py-2.5 font-semibold text-white hover:bg-forest-700">{{ __('site.media.more') }}</a>
         </div>
     @endif
+
+    {{-- Lightbox: large media left, description right. --}}
+    <dialog data-wall-lightbox class="wall-lightbox" aria-label="{{ __('site.media.title') }}">
+        <div class="wall-lightbox__inner">
+            <div data-lightbox-media class="wall-lightbox__media"></div>
+            <aside class="wall-lightbox__info">
+                <p data-lightbox-caption class="text-lg text-forest-900"></p>
+                <p data-lightbox-meta class="mt-3 text-sm text-moss-600"></p>
+                <a data-lightbox-article href="#" class="mt-3 block text-sm font-semibold text-moss-600 hover:text-forest-700"></a>
+                <button type="button" data-lightbox-play class="mt-6 inline-flex items-center gap-2 rounded-full bg-forest-800 px-5 py-2.5 font-semibold text-white hover:bg-forest-700">▶ {{ __('site.media.play') }}</button>
+                <div class="mt-auto flex items-center gap-2 pt-6">
+                    <button type="button" data-lightbox-prev class="wall-lightbox__nav" aria-label="{{ __('site.media.previous') }}">←</button>
+                    <button type="button" data-lightbox-next class="wall-lightbox__nav" aria-label="{{ __('site.media.next') }}">→</button>
+                    <button type="button" data-lightbox-close class="wall-lightbox__nav ms-auto" aria-label="{{ __('site.media.close') }}">✕</button>
+                </div>
+            </aside>
+        </div>
+    </dialog>
 </div>
