@@ -33,6 +33,9 @@ function initMap(figure) {
         keyboard: interactive,
     });
 
+    // Leaflet itself needs no credit; the imagery credit (Esri) is required, so it stays, small.
+    map.attributionControl.setPrefix(false);
+
     const borderData = figure.querySelector('script[data-border]');
 
     if (!borderData) {

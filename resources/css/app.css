@@ -384,3 +384,4 @@
 
 /* Single-country maps: the surroundings are blurred and faded so the country stands out. */
 .map-surroundings { filter: blur(3px) saturate(0.6) brightness(1.15); }
+.leaflet-container .leaflet-control-attribution { background: rgb(20 42 28 / 0.45); color: rgb(255 255 255 / 0.75); font-size: 9px; line-height: 1.4; padding: 0 5px; border-top-left-radius: 4px; }
