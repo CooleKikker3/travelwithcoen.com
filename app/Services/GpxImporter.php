@@ -3,9 +3,7 @@
 namespace App\Services;
 
 use App\Models\CountryRoute;
-use App\Support\RouteGeometry;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
 use SimpleXMLElement;
@@ -20,24 +18,7 @@ class GpxImporter
     {
         $points = $this->parse(Storage::disk('local')->get($route->gpx_path) ?? '');
 
-        DB::transaction(function () use ($route, $points) {
-            $route->points()->delete();
-
-            foreach (array_chunk($points, 500, preserve_keys: true) as $chunk) {
-                $route->points()->insert(array_map(fn (array $p, int $i) => [
-                    'country_route_id' => $route->id,
-                    'sequence' => $i,
-                    'latitude' => $p['lat'],
-                    'longitude' => $p['lng'],
-                    'elevation' => $p['ele'],
-                    'recorded_at' => $p['time'],
-                ], $chunk, array_keys($chunk)));
-            }
-
-            $route->forceFill([
-                'distance_km' => round(RouteGeometry::distanceKm(array_map(fn ($p) => [$p['lat'], $p['lng']], $points)), 2),
-            ])->saveQuietly();
-        });
+        $route->replacePoints($points);
 
         return count($points);
     }

@@ -27,6 +27,7 @@ class ArticlesTable
                     ->wrap(),
                 TextColumn::make('type')->badge(),
                 TextColumn::make('status')->badge(),
+                TextColumn::make('tags')->badge()->separator(',')->toggleable(),
                 IconColumn::make('dutch')
                     ->label('NL')
                     ->state(fn (Article $record) => $record->isTranslated('nl'))

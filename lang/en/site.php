@@ -18,7 +18,7 @@ return [
         'live' => 'Live',
         'statistics' => 'Statistics',
         'equipment' => 'Gear',
-        'media' => 'Media',
+        'media' => 'Gallery',
     ],
 
     'status' => [
@@ -86,7 +86,8 @@ return [
         'back_diary' => 'Back to the diary',
         'back_preparation' => 'Back to preparation',
         'empty' => 'No articles yet.',
-        'other_topic' => 'Other',
+        'all_tags' => 'All',
+        'tagged' => 'Tagged “:tag”',
     ],
 
     'diary' => [
@@ -97,7 +98,6 @@ return [
     'preparation' => [
         'title' => 'Road to Hanoi',
         'lead' => 'Everything that happens before departure: planning, training, gear, visas and the first nights outside.',
-        'topic_empty' => 'Nothing here yet.',
     ],
 
     'about' => [
@@ -189,10 +189,13 @@ return [
     ],
 
     'media' => [
-        'title' => 'Photos & videos',
+        'title' => 'Gallery',
         'lead' => 'Pictures and films from the preparation and the road.',
         'photos' => 'Photos',
         'videos' => 'Videos',
+        'all' => 'All',
+        'youtube' => 'On YouTube',
+        'from_article' => 'From: :title',
         'empty' => 'No photos or videos yet.',
     ],
 

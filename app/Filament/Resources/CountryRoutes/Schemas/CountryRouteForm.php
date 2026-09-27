@@ -45,7 +45,7 @@ class CountryRouteForm
                             ->default(0),
                         FileUpload::make('gpx_path')
                             ->label('GPX file')
-                            ->helperText('Export from Komoot, gpx.studio, a GPS watch, etc. Uploading a new file replaces the route.')
+                            ->helperText('Optional: export from Komoot, gpx.studio, a GPS watch, etc. No GPX? Use the Route planner to draw the route on a map.')
                             ->disk('local')
                             ->directory('gpx')
                             ->preserveFilenames()

@@ -10,9 +10,9 @@
     <div class="flex flex-1 flex-col gap-2 p-5">
         <div class="flex flex-wrap items-center gap-2 text-xs text-moss-600">
             <time datetime="{{ $article->published_at->toDateString() }}">{{ $article->published_at->translatedFormat('j F Y') }}</time>
-            @if ($article->topic)
-                <span class="badge">{{ $article->topic->getLabel() }}</span>
-            @endif
+            @foreach (array_slice($article->tags ?? [], 0, 3) as $tag)
+                <span class="badge">#{{ $tag }}</span>
+            @endforeach
             @if ($article->country)
                 <span class="badge">{{ $article->country->flag() }} {{ $article->country->translate('name') }}</span>
             @endif

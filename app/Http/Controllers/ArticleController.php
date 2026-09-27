@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ArticleType;
-use App\Enums\PreparationTopic;
 use App\Models\Article;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,21 +10,20 @@ use Illuminate\View\View;
 
 class ArticleController extends Controller
 {
-    public function index(string $type): View
+    /** Diary or preparation list, optionally filtered on a tag (?tag=gear). */
+    public function index(Request $request, string $type): View
     {
+        $tag = $request->string('tag')->trim()->value() ?: null;
+        $articles = Article::published()->where('type', $type);
+
         return view('articles.index', [
             'type' => ArticleType::from($type),
-            'articles' => Article::published()->where('type', $type)->with('country')->paginate(12),
-        ]);
-    }
-
-    public function preparation(): View
-    {
-        $articles = Article::published()->where('type', ArticleType::Preparation)->get();
-
-        return view('articles.preparation', [
-            'topics' => PreparationTopic::cases(),
-            'byTopic' => $articles->groupBy(fn (Article $article) => $article->topic?->value ?? 'other'),
+            'tag' => $tag,
+            'tags' => (clone $articles)->pluck('tags')->flatten()->filter()->unique()->sort()->values(),
+            'articles' => $articles->when($tag, fn ($q) => $q->whereJsonContains('tags', $tag))
+                ->with('country')
+                ->paginate(12)
+                ->withQueryString(),
         ]);
     }
 
@@ -38,7 +36,7 @@ class ArticleController extends Controller
         $article = Article::published()
             ->where('type', $type)
             ->where(fn ($query) => $query->whereSlug($slug, $locale)->orWhere(fn ($query) => $query->whereSlug($slug, $fallback)))
-            ->with(['country', 'photos', 'videos'])
+            ->with(['country', 'gallery', 'videos'])
             ->firstOrFail();
 
         // Always serve an article on its own slug for this locale.

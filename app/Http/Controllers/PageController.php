@@ -6,7 +6,7 @@ use App\Enums\EquipmentCategory;
 use App\Enums\EquipmentStatus;
 use App\Models\Country;
 use App\Models\EquipmentItem;
-use App\Models\Photo;
+use App\Models\GalleryItem;
 use App\Models\Video;
 use App\Support\JourneyStats;
 use Illuminate\Http\Request;
@@ -40,11 +40,15 @@ class PageController extends Controller
         ]);
     }
 
-    public function media(): View
+    /** Gallery: uploaded photos/videos plus images from articles (?kind=image|video), and the YouTube videos. */
+    public function gallery(Request $request): View
     {
-        return view('pages.media', [
-            'photos' => Photo::public()->with('country')->paginate(24),
-            'videos' => Video::public()->get(),
+        $kind = in_array($request->query('kind'), ['image', 'video'], true) ? $request->query('kind') : null;
+
+        return view('pages.gallery', [
+            'kind' => $kind,
+            'items' => GalleryItem::public()->with(['country', 'article'])->when($kind, fn ($q) => $q->where('kind', $kind))->paginate(24)->withQueryString(),
+            'videos' => $kind === 'image' ? collect() : Video::public()->limit(12)->get(),
         ]);
     }
 }

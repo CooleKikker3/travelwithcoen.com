@@ -14,9 +14,6 @@
             <div class="container-page max-w-4xl py-14 sm:py-20">
                 <div class="flex flex-wrap items-center gap-2 text-sm">
                     <span class="badge bg-forest-700 text-fern-300">{{ $article->type->getLabel() }}</span>
-                    @if ($article->topic)
-                        <span class="badge bg-forest-700 text-fern-300">{{ $article->topic->getLabel() }}</span>
-                    @endif
                     @if ($article->country)
                         <a href="{{ $article->country->url() }}" class="badge bg-forest-700 text-fern-300 hover:text-white">{{ $article->country->flag() }} {{ $article->country->translate('name') }}</a>
                     @endif
@@ -45,17 +42,17 @@
 
             {{-- Body is HTML from the admin-only CMS editor. --}}
             <div class="prose prose-lg mt-8 max-w-none prose-headings:font-display prose-a:text-moss-600 prose-img:rounded-xl" lang="{{ $contentLocale }}">
-                {!! $article->translate('body') !!}
+                {!! $article->bodyHtml() !!}
             </div>
 
-            @if ($article->photos->isNotEmpty() || $article->videos->isNotEmpty())
-                <div class="mt-10"><x-media-grid :photos="$article->photos" :videos="$article->videos" /></div>
+            @if ($article->gallery->isNotEmpty() || $article->videos->isNotEmpty())
+                <div class="mt-10"><x-media-grid :photos="$article->gallery" :videos="$article->videos" /></div>
             @endif
 
             @if ($article->tags)
                 <ul class="mt-10 flex flex-wrap gap-2" aria-label="{{ __('site.articles.tags') }}">
                     @foreach ($article->tags as $tag)
-                        <li class="badge">#{{ $tag }}</li>
+                        <li><a href="{{ lroute($isDiary ? 'diary.index' : 'preparation.index') }}?tag={{ urlencode($tag) }}" class="badge hover:bg-sage-200">#{{ $tag }}</a></li>
                     @endforeach
                 </ul>
             @endif

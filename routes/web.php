@@ -27,12 +27,12 @@ $publicRoutes = fn (string $locale) => function () use ($locale) {
     Route::get($segment('live'), [TrackingController::class, 'live'])->name('live');
     Route::get($segment('statistics'), [PageController::class, 'statistics'])->name('statistics');
     Route::get($segment('equipment'), [PageController::class, 'equipment'])->name('equipment');
-    Route::get($segment('media'), [PageController::class, 'media'])->name('media');
+    Route::get($segment('gallery'), [PageController::class, 'gallery'])->name('gallery');
 
     Route::get($segment('diary'), [ArticleController::class, 'index'])->defaults('type', ArticleType::Diary->value)->name('diary.index');
     Route::get($segment('diary').'/{slug}', [ArticleController::class, 'show'])->defaults('type', ArticleType::Diary->value)->name('diary.show');
 
-    Route::get($segment('preparation'), [ArticleController::class, 'preparation'])->name('preparation.index');
+    Route::get($segment('preparation'), [ArticleController::class, 'index'])->defaults('type', ArticleType::Preparation->value)->name('preparation.index');
     Route::get($segment('preparation').'/{slug}', [ArticleController::class, 'show'])->defaults('type', ArticleType::Preparation->value)->name('preparation.show');
 
     Route::get($segment('login'), [LoginController::class, 'show'])->middleware('guest')->name('login');

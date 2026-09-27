@@ -4,10 +4,10 @@ namespace App\Filament\Resources\Articles\Schemas;
 
 use App\Enums\ArticleStatus;
 use App\Enums\ArticleType;
-use App\Enums\PreparationTopic;
+use App\Filament\Blocks\ImageBlock;
 use App\Filament\Support\Options;
 use App\Filament\Support\TranslatableTabs;
-use App\Models\Country;
+use App\Models\Article;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
@@ -16,7 +16,6 @@ use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class ArticleForm
@@ -46,8 +45,9 @@ class ArticleForm
                                 ->maxLength(400),
                             RichEditor::make("body.{$locale}")
                                 ->label('Body')
-                                ->fileAttachmentsDisk('public')
-                                ->fileAttachmentsDirectory('articles/attachments'),
+                                ->helperText('Use the "Image with caption" block (toolbar, blocks icon) to place photos in the text. They also appear in the gallery.')
+                                ->customBlocks([ImageBlock::class])
+                                ->fileAttachments(false),
                         ]),
                     ]),
 
@@ -57,12 +57,7 @@ class ArticleForm
                         Select::make('type')
                             ->options(ArticleType::class)
                             ->default(ArticleType::Preparation)
-                            ->required()
-                            ->live(),
-                        Select::make('topic')
-                            ->label('Preparation topic')
-                            ->options(PreparationTopic::class)
-                            ->visible(fn (Get $get) => self::isPreparation($get('type'))),
+                            ->required(),
                         Select::make('status')
                             ->options(ArticleStatus::class)
                             ->default(ArticleStatus::Draft)
@@ -71,10 +66,12 @@ class ArticleForm
                             ->label('Publish date')
                             ->default(now())
                             ->helperText('A future date schedules the article.'),
+                        TagsInput::make('tags')
+                            ->suggestions(fn () => Article::allTags())
+                            ->helperText('E.g. gear, training, camping, visas. Visitors can filter on tags.'),
                         Select::make('country_id')
                             ->label('Country')
-                            ->options(fn () => Country::orderBy('sort_order')->get()
-                                ->mapWithKeys(fn (Country $country) => [$country->id => $country->flag().' '.$country->translate('name', 'en')]))
+                            ->options(fn () => Options::countries())
                             ->searchable(),
                         Select::make('journey_day_id')
                             ->label('Journey day')
@@ -85,13 +82,7 @@ class ArticleForm
                             ->disk('public')
                             ->directory('articles/covers')
                             ->maxSize(8192),
-                        TagsInput::make('tags'),
                     ]),
             ]);
-    }
-
-    private static function isPreparation(mixed $type): bool
-    {
-        return ($type instanceof ArticleType ? $type : ArticleType::tryFrom((string) $type)) === ArticleType::Preparation;
     }
 }

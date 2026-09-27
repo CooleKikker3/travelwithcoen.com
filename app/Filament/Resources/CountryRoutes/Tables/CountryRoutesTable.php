@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\CountryRoutes\Tables;
 
 use App\Enums\RouteType;
+use App\Filament\Pages\RoutePlanner;
 use App\Models\Country;
 use App\Models\CountryRoute;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -34,7 +36,11 @@ class CountryRoutesTable
                     ->label('Country')
                     ->options(fn () => Country::orderBy('sort_order')->get()->mapWithKeys(fn (Country $c) => [$c->id => $c->translate('name', 'en')])),
             ])
+            ->headerActions([
+                Action::make('draw')->label('Draw a route on the map')->icon('heroicon-o-pencil-square')->url(RoutePlanner::getUrl()),
+            ])
             ->recordActions([
+                Action::make('planner')->label('Map')->icon('heroicon-o-map')->url(fn (CountryRoute $record) => RoutePlanner::getUrl(['route' => $record->id])),
                 EditAction::make(),
             ])
             ->toolbarActions([

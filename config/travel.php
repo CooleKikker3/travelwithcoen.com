@@ -11,4 +11,10 @@ return [
     // Shared secret for POST /api/tracking (phone app / device). Empty = ingest disabled.
     'tracking_ingest_token' => env('TRACKING_INGEST_TOKEN'),
 
+    // Used to strip metadata (incl. GPS) from uploaded videos. Optional.
+    'ffmpeg_path' => env('FFMPEG_PATH', 'ffmpeg'),
+
+    // YouTube sync: an API key is optional; without it only the ~15 newest videos (RSS) are synced.
+    'youtube_api_key' => env('YOUTUBE_API_KEY'),
+
 ];

@@ -18,7 +18,7 @@ return [
         'live' => 'Live',
         'statistics' => 'Statistieken',
         'equipment' => 'Uitrusting',
-        'media' => 'Media',
+        'media' => 'Galerij',
     ],
 
     'status' => [
@@ -86,7 +86,8 @@ return [
         'back_diary' => 'Terug naar het dagboek',
         'back_preparation' => 'Terug naar de voorbereiding',
         'empty' => 'Nog geen artikelen.',
-        'other_topic' => 'Overig',
+        'all_tags' => 'Alles',
+        'tagged' => 'Met tag “:tag”',
     ],
 
     'diary' => [
@@ -97,7 +98,6 @@ return [
     'preparation' => [
         'title' => 'Road to Hanoi',
         'lead' => 'Alles wat vóór vertrek gebeurt: planning, training, uitrusting, visa en de eerste nachten buiten.',
-        'topic_empty' => 'Hier staat nog niets.',
     ],
 
     'about' => [
@@ -189,10 +189,13 @@ return [
     ],
 
     'media' => [
-        'title' => 'Foto’s & video’s',
+        'title' => 'Galerij',
         'lead' => 'Beelden van de voorbereiding en van onderweg.',
         'photos' => 'Foto’s',
         'videos' => 'Video’s',
+        'all' => 'Alles',
+        'youtube' => 'Op YouTube',
+        'from_article' => 'Uit: :title',
         'empty' => 'Nog geen foto’s of video’s.',
     ],
 

@@ -22,7 +22,7 @@
         'live' => __('site.nav.live'),
         'diary.index' => __('site.nav.diary'),
         'preparation.index' => __('site.nav.preparation'),
-        'media' => __('site.nav.media'),
+        'gallery' => __('site.nav.media'),
         'equipment' => __('site.nav.equipment'),
         'statistics' => __('site.nav.statistics'),
         'about' => __('site.nav.about'),

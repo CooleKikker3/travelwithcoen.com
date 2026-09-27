@@ -16,6 +16,8 @@ class Settings
         'journey_phase' => 'preparation',
         'budget_total_eur' => 35000,
         'budget_reserve_eur' => 5000,
+        // Placeholder channel until Coen has his own.
+        'youtube_channel' => 'https://www.youtube.com/@AlexanderCampbellOfficial',
     ];
 
     private const CACHE_KEY = 'settings';

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Photos\Schemas;
+namespace App\Filament\Resources\GalleryItems\Schemas;
 
 use App\Filament\Support\Options;
 use App\Filament\Support\TranslatableTabs;
@@ -11,7 +11,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
-class PhotoForm
+class GalleryItemForm
 {
     public static function configure(Schema $schema): Schema
     {
@@ -26,18 +26,19 @@ class PhotoForm
             ]);
     }
 
+    /** Photos and videos that don't go to YouTube. */
     public static function upload(string $name = 'path'): FileUpload
     {
         return FileUpload::make($name)
-            ->label('Photo')
-            ->image()
+            ->label('Photo or video')
+            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v'])
             ->disk('public')
-            ->directory('photos')
-            ->maxSize(20480)
-            ->helperText('Resized on upload; all metadata including GPS location is removed.');
+            ->directory('gallery')
+            ->maxSize(512000)
+            ->helperText('Photos are resized; location data (GPS) is removed from photos, and from videos when ffmpeg is installed.');
     }
 
-    /** Links to country/article/day/event, shared with the bulk upload action. */
+    /** Links to country/article/day, shared with the bulk upload action. */
     public static function links(): array
     {
         return [

@@ -14,7 +14,10 @@ Website + CMS for Coen's walk from the Netherlands to Hanoi. Full requirements: 
 - **Routes/maps**: `CountryRoute` (planned|actual, per country) with `RoutePoint`s imported from GPX (`GpxImporter`). Global map, journey timeline and country pages all read these via `RouteGeometry::featureCollection()`. Leaflet in `resources/js/map.js`.
 - **Tracking privacy**: all location-bearing data (tracking points, journey days, events) is filtered in queries via `TrackingPrivacy` / `visibleTo($user)` scopes — guests only see data older than `public_tracking_delay_hours` (Settings, default 336). Never filter in JS. `/api/public/tracking` is always delayed; `/api/private/tracking` needs a trusted login; `POST /api/tracking` ingests with a bearer token (`TRACKING_INGEST_TOKEN`). No Garmin-specific code yet: research first.
 - **Statistics** are computed (`JourneyStats`) from journey days/routes/tracking, never stored.
-- **Photos** are re-encoded on upload (`ImageProcessor`): resized and EXIF/GPS stripped.
+- **Gallery** (`GalleryItem`: photos + uploaded videos). Images placed in article text via the `ImageBlock` custom block (with caption) are synced to the gallery by `ArticleGallerySync`, linked to the article, and only shown once the article is published. Images are re-encoded (`ImageProcessor`, EXIF/GPS stripped); videos via ffmpeg when available (`VideoProcessor`).
+- **Articles** have a type (diary|preparation) and free tags (filter `?tag=`); render bodies with `$article->bodyHtml()`.
+- **YouTube** videos are never added by hand: `youtube:sync` (hourly, `YouTubeSync`) imports the channel from Settings (RSS, or full history with `YOUTUBE_API_KEY`).
+- **Route planner** (Filament page): click waypoints, straight lines or BRouter walking paths; waypoints stored on `CountryRoute`.
 - **Roles**: `App\Enums\Role` = admin | trusted_viewer. Visitors without an account are guests.
 - Never invent route, visa, border or Garmin facts; mark uncertain things as not final.
 - Keep it simple; build in small, working steps. Run `php artisan test` after changes.

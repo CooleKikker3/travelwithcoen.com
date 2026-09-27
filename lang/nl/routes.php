@@ -10,7 +10,7 @@ return [
     'live' => 'live',
     'statistics' => 'statistieken',
     'equipment' => 'uitrusting',
-    'media' => 'media',
+    'gallery' => 'galerij',
     'login' => 'inloggen',
     'logout' => 'uitloggen',
 ];

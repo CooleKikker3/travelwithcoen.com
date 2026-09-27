@@ -6,7 +6,7 @@ use App\Enums\EquipmentCategory;
 use App\Enums\EquipmentStatus;
 use App\Enums\Role;
 use App\Models\EquipmentItem;
-use App\Models\Photo;
+use App\Models\GalleryItem;
 use App\Models\User;
 use App\Models\Video;
 use App\Support\Settings;
@@ -23,7 +23,7 @@ class ContentTest extends TestCase
 
     public function test_new_pages_render_in_both_languages(): void
     {
-        $pages = ['/live' => '/nl/live', '/statistics' => '/nl/statistieken', '/gear' => '/nl/uitrusting', '/media' => '/nl/media', '/login' => '/nl/inloggen'];
+        $pages = ['/live' => '/nl/live', '/statistics' => '/nl/statistieken', '/gear' => '/nl/uitrusting', '/gallery' => '/nl/galerij', '/login' => '/nl/inloggen'];
 
         foreach ($pages as $en => $nl) {
             $this->get($en)->assertOk();
@@ -70,7 +70,7 @@ class ContentTest extends TestCase
         imagejpeg($image);
         Storage::disk('public')->put('photos/big.jpg', ob_get_clean());
 
-        Photo::create(['path' => 'photos/big.jpg']);
+        GalleryItem::create(['path' => 'photos/big.jpg']);
 
         [$width] = getimagesize(Storage::disk('public')->path('photos/big.jpg'));
         $this->assertSame(2400, $width);
@@ -99,7 +99,7 @@ class ContentTest extends TestCase
             ->assertHasNoErrors();
         $this->assertSame(168, Settings::get('public_tracking_delay_hours'));
 
-        foreach (['tracking-points', 'journey-days', 'journey-events', 'equipment-items', 'photos', 'videos', 'expenses'] as $resource) {
+        foreach (['tracking-points', 'journey-days', 'journey-events', 'equipment-items', 'gallery-items', 'expenses'] as $resource) {
             $this->get("/admin/{$resource}")->assertOk();
             $this->get("/admin/{$resource}/create")->assertOk();
         }

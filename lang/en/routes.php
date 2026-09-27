@@ -10,7 +10,7 @@ return [
     'live' => 'live',
     'statistics' => 'statistics',
     'equipment' => 'gear',
-    'media' => 'media',
+    'gallery' => 'gallery',
     'login' => 'login',
     'logout' => 'logout',
 ];

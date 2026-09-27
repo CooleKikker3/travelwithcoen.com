@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Enums\ArticleStatus;
 use App\Enums\ArticleType;
-use App\Enums\PreparationTopic;
+use App\Filament\Blocks\ImageBlock;
 use App\Models\Concerns\HasTranslations;
+use App\Services\ArticleGallerySync;
+use Filament\Forms\Components\RichEditor\RichContentRenderer;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['type', 'topic', 'title', 'slug', 'excerpt', 'body', 'status', 'published_at', 'country_id', 'journey_day_id', 'cover_image', 'tags'])]
+#[Fillable(['type', 'title', 'slug', 'excerpt', 'body', 'status', 'published_at', 'country_id', 'journey_day_id', 'cover_image', 'tags'])]
 class Article extends Model
 {
     use HasTranslations;
@@ -26,11 +28,16 @@ class Article extends Model
     {
         return [
             'type' => ArticleType::class,
-            'topic' => PreparationTopic::class,
             'status' => ArticleStatus::class,
             'published_at' => 'datetime',
             'tags' => 'array',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Images in the text also appear in the gallery.
+        static::saved(fn (Article $article) => app(ArticleGallerySync::class)->sync($article));
     }
 
     public function country(): BelongsTo
@@ -43,9 +50,10 @@ class Article extends Model
         return $this->belongsTo(JourneyDay::class);
     }
 
-    public function photos(): HasMany
+    /** Gallery items uploaded for this article (images inside the text are shown there already). */
+    public function gallery(): HasMany
     {
-        return $this->hasMany(Photo::class)->where('is_public', true)->oldest('taken_at');
+        return $this->hasMany(GalleryItem::class)->where('is_public', true)->where('source', 'upload')->oldest('taken_at');
     }
 
     public function videos(): HasMany
@@ -66,6 +74,20 @@ class Article extends Model
         $locale ??= app()->getLocale();
 
         return lroute("{$this->type->routePrefix()}.show", $this->translate('slug', $locale), $locale);
+    }
+
+    /** Body HTML with image blocks rendered. HTML comes from the admin-only editor. */
+    public function bodyHtml(?string $locale = null): string
+    {
+        return RichContentRenderer::make($this->translate('body', $locale) ?? '')
+            ->customBlocks([ImageBlock::class])
+            ->toUnsafeHtml();
+    }
+
+    /** Tags as a flat list. */
+    public static function allTags(): array
+    {
+        return static::whereNotNull('tags')->pluck('tags')->flatten()->filter()->unique()->sort()->values()->all();
     }
 
     public function coverUrl(): ?string

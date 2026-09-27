@@ -43,7 +43,7 @@ class Country extends Model
 
     public function photos(): HasMany
     {
-        return $this->hasMany(Photo::class);
+        return $this->hasMany(GalleryItem::class);
     }
 
     public function videos(): HasMany
