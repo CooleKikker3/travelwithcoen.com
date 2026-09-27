@@ -22,6 +22,7 @@ Website + CMS for Coen's walk from the Netherlands to Hanoi. Full requirements: 
 - **Articles** have a type (diary|preparation) and free tags. There are no separate diary/preparation pages: all stories live on the Journey page (`#stories`, filter `?type=&tag=`, link with `stories_url()`); the timeline starts with a Preparation item. Old /diary and /preparation lists redirect there; render bodies with `$article->bodyHtml()`.
 - **YouTube** videos are never added by hand: `youtube:sync` (hourly, `YouTubeSync`) adds the channel from `.env` `YOUTUBE_CHANNEL` to the gallery as kind "youtube" (RSS: only the newest 10, only new ones are added; items of a previous channel are removed).
 - **Route planner** (Filament page): click waypoints, straight lines or BRouter walking paths; waypoints stored on `CountryRoute`.
+- **Website access**: Settings `site_open` off → `ComingSoon` middleware (alias `coming-soon`, on all public routes + sitemap) shows `pages.coming-soon` (503) to everyone except logged-in admins and `PREVIEW_IPS` (.env, config travel.preview_ips; not editable in the CMS). Behind a proxy/Cloudflare, configure trusted proxies so `request()->ip()` is the visitor IP.
 - **Roles**: `App\Enums\Role` = admin | trusted_viewer. Visitors without an account are guests.
 - Never invent route, visa, border or Garmin facts; mark uncertain things as not final.
 - Keep it simple; build in small, working steps. Run `php artisan test` after changes.

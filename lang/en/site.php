@@ -257,6 +257,12 @@ return [
         'retired' => 'No longer used',
     ],
 
+    'coming_soon' => [
+        'title' => 'Something is coming...',
+        'hand' => 'lacing up my boots!',
+        'lead' => 'This is where I will share my walk from the Netherlands to Hanoi: the route, the stories and the photos. Almost ready, come back soon!',
+    ],
+
     'footer' => [
         'note' => 'A walk from the Netherlands to Hanoi.',
         'hand' => 'see you on the road!',

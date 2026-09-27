@@ -79,6 +79,20 @@ class SiteTest extends TestCase
         $this->assertSame([[5.86, 51.85], [105.8542, 21.0285]], $open());
     }
 
+    public function test_a_closed_website_shows_coming_soon_except_to_admins_and_preview_ips(): void
+    {
+        \App\Support\Settings::set(['site_open' => false]);
+        config(['travel.preview_ips' => ['10.0.0.5']]);
+
+        $this->get('/about')->assertStatus(503)->assertSee('Something is coming')->assertDontSee('About the project');
+        $this->get('/nl')->assertStatus(503)->assertSee('Er komt iets aan');
+        $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.5'])->get('/about')->assertOk();
+        $this->actingAs(User::factory()->create(['role' => Role::Admin]))->get('/about')->assertOk();
+
+        \App\Support\Settings::set(['site_open' => true]);
+        $this->get('/about')->assertOk();
+    }
+
     public function test_stops_in_the_rough_direction_link_to_their_country(): void
     {
         Country::create(['iso_code' => 'NL', 'name' => ['en' => 'Netherlands', 'nl' => 'Nederland'], 'is_published' => true]);

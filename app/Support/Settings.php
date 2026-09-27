@@ -16,6 +16,8 @@ class Settings
         'journey_phase' => 'preparation',
         'budget_total_eur' => 35000,
         'budget_reserve_eur' => 5000,
+        // Closed = visitors see a "coming soon" page; admins and PREVIEW_IPS (.env) see the site.
+        'site_open' => true,
     ];
 
     private const CACHE_KEY = 'settings';

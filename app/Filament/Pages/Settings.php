@@ -9,6 +9,8 @@ use App\Support\Settings as SiteSettings;
 use BackedEnum;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Toggle;
+use App\Http\Middleware\ComingSoon;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -40,6 +42,11 @@ class Settings extends Page
         return $schema
             ->statePath('data')
             ->components([
+                Section::make('Website access')->schema([
+                    Toggle::make('site_open')
+                        ->label('Website is open')
+                        ->helperText('When off, visitors only see a "coming soon" page. Logged-in admins (and the IP addresses in PREVIEW_IPS in .env) still see the full site.'),
+                ]),
                 Section::make('Journey')->columns(2)->schema([
                     Select::make('journey_phase')
                         ->label('Phase of the project')

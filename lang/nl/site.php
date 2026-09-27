@@ -257,6 +257,12 @@ return [
         'retired' => 'Niet meer in gebruik',
     ],
 
+    'coming_soon' => [
+        'title' => 'Er komt iets aan...',
+        'hand' => 'de veters worden gestrikt!',
+        'lead' => 'Hier deel ik straks mijn wandeltocht van Nederland naar Hanoi: de route, de verhalen en de foto’s. Bijna klaar, kom snel terug!',
+    ],
+
     'footer' => [
         'note' => 'Een wandeltocht van Nederland naar Hanoi.',
         'hand' => 'tot ziens onderweg!',

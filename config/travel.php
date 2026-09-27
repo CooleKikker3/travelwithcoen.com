@@ -12,6 +12,9 @@ return [
     'start' => ['name' => 'Lisse', 'country' => 'NL', 'lat' => 52.2575, 'lng' => 4.5570],
     'destination' => ['name' => 'Hanoi', 'country' => 'VN', 'lat' => 21.0285, 'lng' => 105.8542],
 
+    // IP addresses that see the full site while it is closed (Settings > Website access), comma separated.
+    'preview_ips' => array_filter(array_map('trim', explode(',', (string) env('PREVIEW_IPS', '127.0.0.1,::1')))),
+
     // Shared secret for POST /api/tracking (phone app / device). Empty = ingest disabled.
     'tracking_ingest_token' => env('TRACKING_INGEST_TOKEN'),
 

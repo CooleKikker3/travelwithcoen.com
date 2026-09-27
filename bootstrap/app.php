@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\ComingSoon;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -14,7 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias(['locale' => SetLocale::class]);
+        $middleware->alias(['locale' => SetLocale::class, 'coming-soon' => ComingSoon::class]);
         $middleware->web(append: [SecurityHeaders::class]);
         // Device ingest authenticates with a bearer token instead of a session.
         $middleware->validateCsrfTokens(except: ['api/tracking']);

@@ -43,11 +43,11 @@ $publicRoutes = fn (string $locale) => function () use ($locale) {
 
 foreach (array_keys(config('travel.locales')) as $locale) {
     $locale === config('app.fallback_locale')
-        ? Route::middleware("locale:{$locale}")->group($publicRoutes($locale))
-        : Route::prefix($locale)->name("{$locale}.")->middleware("locale:{$locale}")->group($publicRoutes($locale));
+        ? Route::middleware(["locale:{$locale}", 'coming-soon'])->group($publicRoutes($locale))
+        : Route::prefix($locale)->name("{$locale}.")->middleware(["locale:{$locale}", 'coming-soon'])->group($publicRoutes($locale));
 }
 
-Route::get('sitemap.xml', SitemapController::class)->middleware('locale:en')->name('sitemap');
+Route::get('sitemap.xml', SitemapController::class)->middleware(['locale:en', 'coming-soon'])->name('sitemap');
 // robots.txt as a route, so it can point search engines to the sitemap with the full (environment) URL.
 Route::get('robots.txt', fn () => response(
     "User-agent: *\nDisallow: /admin\nDisallow: /api/\n\nSitemap: ".route('sitemap')."\n", 200, ['Content-Type' => 'text/plain'],
