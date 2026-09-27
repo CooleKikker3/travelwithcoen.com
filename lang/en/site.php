@@ -119,6 +119,7 @@ return [
         'countries' => 'Countries',
     ],
     'phase' => [
+        'preparation' => 'Preparing',
         'journey' => 'On the road',
         'archive' => 'Completed',
     ],

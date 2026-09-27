@@ -119,6 +119,7 @@ return [
         'countries' => 'Landen',
     ],
     'phase' => [
+        'preparation' => 'Voorbereiding',
         'journey' => 'Onderweg',
         'archive' => 'Afgerond',
     ],
