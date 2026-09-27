@@ -1,0 +1,107 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\EquipmentCategory;
+use App\Enums\EquipmentStatus;
+use App\Enums\Role;
+use App\Models\EquipmentItem;
+use App\Models\Photo;
+use App\Models\User;
+use App\Models\Video;
+use App\Support\Settings;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Filament\Pages\Settings as SettingsPage;
+use App\Filament\Widgets\JourneyOverview;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class ContentTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_new_pages_render_in_both_languages(): void
+    {
+        $pages = ['/live' => '/nl/live', '/statistics' => '/nl/statistieken', '/gear' => '/nl/uitrusting', '/media' => '/nl/media', '/login' => '/nl/inloggen'];
+
+        foreach ($pages as $en => $nl) {
+            $this->get($en)->assertOk();
+            $this->get($nl)->assertOk()->assertSee('<html lang="nl">', false);
+        }
+
+        $this->get('/sitemap.xml')->assertOk()->assertSee(url('/nl/dagboek'));
+    }
+
+    public function test_home_follows_the_journey_phase(): void
+    {
+        $this->get('/')->assertSee('Road to Hanoi');
+
+        Settings::set(['journey_phase' => 'journey']);
+        $this->get('/')->assertSee('On the way to Hanoi');
+    }
+
+    public function test_family_can_log_in_and_out(): void
+    {
+        $user = User::factory()->create(['role' => Role::TrustedViewer, 'password' => 'a-long-password']);
+
+        $this->post('/nl/inloggen', ['email' => $user->email, 'password' => 'wrong'])->assertSessionHasErrors('email');
+        $this->post('/nl/inloggen', ['email' => $user->email, 'password' => 'a-long-password'])->assertRedirect('/nl/live');
+        $this->assertAuthenticatedAs($user);
+
+        $this->post('/logout')->assertRedirect('/');
+        $this->assertGuest();
+    }
+
+    public function test_equipment_page_shows_pack_weight(): void
+    {
+        EquipmentItem::create(['name' => ['en' => 'Tent'], 'category' => EquipmentCategory::Shelter, 'status' => EquipmentStatus::Carried, 'weight_g' => 1200]);
+        EquipmentItem::create(['name' => ['en' => 'Boots'], 'category' => EquipmentCategory::Footwear, 'status' => EquipmentStatus::Carried, 'weight_g' => 900, 'is_worn' => true]);
+        EquipmentItem::create(['name' => ['en' => 'Secret'], 'category' => EquipmentCategory::Other, 'status' => EquipmentStatus::Carried, 'weight_g' => 5000, 'is_public' => false]);
+
+        $this->get('/gear')->assertSee('Tent')->assertSee('1.20 kg')->assertSee('0.90 kg')->assertDontSee('Secret');
+    }
+
+    public function test_uploaded_photos_are_resized_and_stripped(): void
+    {
+        Storage::fake('public');
+        $image = imagecreatetruecolor(3000, 1500);
+        ob_start();
+        imagejpeg($image);
+        Storage::disk('public')->put('photos/big.jpg', ob_get_clean());
+
+        Photo::create(['path' => 'photos/big.jpg']);
+
+        [$width] = getimagesize(Storage::disk('public')->path('photos/big.jpg'));
+        $this->assertSame(2400, $width);
+        $this->assertEmpty(@exif_read_data(Storage::disk('public')->path('photos/big.jpg'), 'GPS') ?: []);
+    }
+
+    public function test_youtube_ids_are_extracted_from_links(): void
+    {
+        foreach (['https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://youtu.be/dQw4w9WgXcQ?t=3', 'dQw4w9WgXcQ'] as $input) {
+            $this->assertSame('dQw4w9WgXcQ', Video::extractYoutubeId($input));
+        }
+        $this->assertNull(Video::extractYoutubeId('https://example.com'));
+    }
+
+    public function test_all_cms_screens_render(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => Role::Admin]));
+
+        $this->get('/admin')->assertOk()->assertSee('Quick actions');
+        $this->get('/admin/settings')->assertOk()->assertSee('Public tracking delay');
+
+        Livewire::test(JourneyOverview::class)->assertOk()->assertSee('Budget spent');
+        Livewire::test(SettingsPage::class)
+            ->set('data.public_tracking_delay_hours', 168)
+            ->call('save')
+            ->assertHasNoErrors();
+        $this->assertSame(168, Settings::get('public_tracking_delay_hours'));
+
+        foreach (['tracking-points', 'journey-days', 'journey-events', 'equipment-items', 'photos', 'videos', 'expenses'] as $resource) {
+            $this->get("/admin/{$resource}")->assertOk();
+            $this->get("/admin/{$resource}/create")->assertOk();
+        }
+    }
+}

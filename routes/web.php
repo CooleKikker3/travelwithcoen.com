@@ -4,6 +4,10 @@ use App\Enums\ArticleType;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\TrackingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,12 +24,20 @@ $publicRoutes = fn (string $locale) => function () use ($locale) {
 
     Route::get($segment('journey'), [CountryController::class, 'index'])->name('journey');
     Route::get($segment('countries').'/{slug}', [CountryController::class, 'show'])->name('countries.show');
+    Route::get($segment('live'), [TrackingController::class, 'live'])->name('live');
+    Route::get($segment('statistics'), [PageController::class, 'statistics'])->name('statistics');
+    Route::get($segment('equipment'), [PageController::class, 'equipment'])->name('equipment');
+    Route::get($segment('media'), [PageController::class, 'media'])->name('media');
 
     Route::get($segment('diary'), [ArticleController::class, 'index'])->defaults('type', ArticleType::Diary->value)->name('diary.index');
     Route::get($segment('diary').'/{slug}', [ArticleController::class, 'show'])->defaults('type', ArticleType::Diary->value)->name('diary.show');
 
     Route::get($segment('preparation'), [ArticleController::class, 'preparation'])->name('preparation.index');
     Route::get($segment('preparation').'/{slug}', [ArticleController::class, 'show'])->defaults('type', ArticleType::Preparation->value)->name('preparation.show');
+
+    Route::get($segment('login'), [LoginController::class, 'show'])->middleware('guest')->name('login');
+    Route::post($segment('login'), [LoginController::class, 'store'])->middleware(['guest', 'throttle:5,1']);
+    Route::post($segment('logout'), [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 };
 
 foreach (array_keys(config('travel.locales')) as $locale) {
@@ -33,3 +45,12 @@ foreach (array_keys(config('travel.locales')) as $locale) {
         ? Route::middleware("locale:{$locale}")->group($publicRoutes($locale))
         : Route::prefix($locale)->name("{$locale}.")->middleware("locale:{$locale}")->group($publicRoutes($locale));
 }
+
+Route::get('sitemap.xml', SitemapController::class)->middleware('locale:en')->name('sitemap');
+
+// Tracking API. Privacy is enforced here on the server, never in the browser.
+Route::prefix('api')->name('api.')->group(function () {
+    Route::get('public/tracking', [TrackingController::class, 'publicIndex'])->middleware('throttle:60,1')->name('tracking.public');
+    Route::get('private/tracking', [TrackingController::class, 'privateIndex'])->middleware(['auth', 'can:see-live-tracking', 'throttle:120,1'])->name('tracking.private');
+    Route::post('tracking', [TrackingController::class, 'ingest'])->middleware('throttle:60,1')->name('tracking.ingest');
+});

@@ -7,4 +7,10 @@ return [
     'diary' => 'diary',
     'preparation' => 'preparation',
     'about' => 'about',
+    'live' => 'live',
+    'statistics' => 'statistics',
+    'equipment' => 'gear',
+    'media' => 'media',
+    'login' => 'login',
+    'logout' => 'logout',
 ];

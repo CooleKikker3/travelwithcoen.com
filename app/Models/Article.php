@@ -10,9 +10,10 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['type', 'topic', 'title', 'slug', 'excerpt', 'body', 'status', 'published_at', 'country_id', 'cover_image', 'tags'])]
+#[Fillable(['type', 'topic', 'title', 'slug', 'excerpt', 'body', 'status', 'published_at', 'country_id', 'journey_day_id', 'cover_image', 'tags'])]
 class Article extends Model
 {
     use HasTranslations;
@@ -35,6 +36,21 @@ class Article extends Model
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
+    }
+
+    public function journeyDay(): BelongsTo
+    {
+        return $this->belongsTo(JourneyDay::class);
+    }
+
+    public function photos(): HasMany
+    {
+        return $this->hasMany(Photo::class)->where('is_public', true)->oldest('taken_at');
+    }
+
+    public function videos(): HasMany
+    {
+        return $this->hasMany(Video::class)->where('is_public', true);
     }
 
     /** Published and not scheduled for the future, newest first. */

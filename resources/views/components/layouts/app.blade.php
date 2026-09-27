@@ -19,8 +19,12 @@
     $nav = [
         'home' => __('site.nav.home'),
         'journey' => __('site.nav.journey'),
+        'live' => __('site.nav.live'),
         'diary.index' => __('site.nav.diary'),
         'preparation.index' => __('site.nav.preparation'),
+        'media' => __('site.nav.media'),
+        'equipment' => __('site.nav.equipment'),
+        'statistics' => __('site.nav.statistics'),
         'about' => __('site.nav.about'),
     ];
     $current = preg_replace('/^[a-z]{2}\./', '', request()->route()?->getName() ?? '');
@@ -68,7 +72,7 @@
                 </span>
             </a>
 
-            <nav class="hidden items-center gap-1 md:flex" aria-label="Main">
+            <nav class="hidden items-center gap-0.5 xl:flex" aria-label="Main">
                 @foreach ($nav as $name => $label)
                     <a href="{{ lroute($name) }}" @class(['rounded-full px-3 py-1.5 text-sm font-semibold transition', 'bg-forest-700 text-white' => $isActive($name), 'text-sage-200 hover:text-white' => ! $isActive($name)]) @if ($isActive($name)) aria-current="page" @endif>{{ $label }}</a>
                 @endforeach
@@ -85,7 +89,7 @@
                     @endforeach
                 </div>
 
-                <details class="relative md:hidden">
+                <details class="relative xl:hidden">
                     <summary class="list-none cursor-pointer rounded-full border border-forest-700 px-3 py-1.5 text-sm font-semibold">{{ __('site.menu') }}</summary>
                     <nav class="absolute right-0 z-20 mt-2 w-52 rounded-xl bg-forest-800 p-2 shadow-xl" aria-label="Main">
                         @foreach ($nav as $name => $label)
@@ -104,7 +108,15 @@
     <footer class="topo mt-20 bg-forest-950 text-sage-200">
         <div class="container-page flex flex-col gap-4 py-10 text-sm sm:flex-row sm:items-center sm:justify-between">
             <p><span class="font-display text-base text-white">{{ __('site.name') }}</span> — {{ __('site.footer.note') }}</p>
-            <p class="text-fern-300">© {{ date('Y') }} Coen</p>
+            <div class="flex flex-wrap items-center gap-4">
+                @auth
+                    <span>{{ __('site.login.logged_in_as', ['name' => auth()->user()->name]) }}</span>
+                    <form method="POST" action="{{ lroute('logout') }}">@csrf<button class="font-semibold text-fern-300 hover:text-white">{{ __('site.login.logout') }}</button></form>
+                @else
+                    <a href="{{ lroute('login') }}" class="font-semibold text-fern-300 hover:text-white">{{ __('site.live.family') }}</a>
+                @endauth
+                <span class="text-fern-300">© {{ date('Y') }} Coen</span>
+            </div>
         </div>
     </footer>
 </body>

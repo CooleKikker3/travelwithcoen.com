@@ -6,6 +6,7 @@
         <dl class="mt-8 flex flex-wrap gap-3">
             @foreach ([
                 [__('site.stats.countries'), $countries->count()],
+                [__('site.statistics.countries'), $totals['countries']],
                 [__('site.stats.planned'), $km($totals['planned'])],
                 [__('site.stats.walked'), $km($totals['actual'])],
             ] as [$label, $value])
@@ -31,10 +32,7 @@
         @else
             <ol class="relative mt-8 space-y-8 border-l-2 border-dashed border-moss-400 pl-6 sm:pl-10">
                 @foreach ($countries as $country)
-                    @php
-                        $planned = $country->routes->where('type', \App\Enums\RouteType::Planned)->sum('distance_km');
-                        $actual = $country->routes->where('type', \App\Enums\RouteType::Actual)->sum('distance_km');
-                    @endphp
+                    @php(['planned' => $planned, 'actual' => $actual] = $distances[$country->id])
                     <li class="relative">
                         <span class="absolute top-7 -left-[33px] size-4 rounded-full border-4 border-mist-50 bg-moss-500 sm:-left-[49px]" aria-hidden="true"></span>
                         <article class="grid overflow-hidden rounded-2xl bg-white ring-1 ring-sage-200 md:grid-cols-[1fr_1.2fr]">

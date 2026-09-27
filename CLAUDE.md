@@ -12,10 +12,13 @@ Website + CMS for Coen's walk from the Netherlands to Hanoi. Full requirements: 
 - **Editable texts**: every text in the `site`, `articles`, `countries` lang groups can be overridden in the CMS ("Website texts", `App\Support\SiteTexts` + `DatabaseOverridesLoader`). New keys appear there automatically; keep texts as strings, not arrays.
 - **Translatable content**: JSON columns keyed by locale via `App\Models\Concerns\HasTranslations` (`$model->translate('title')`, fallback to English; `isTranslated('nl')`). Slugs are generated per locale on save. In Filament use `TranslatableTabs::make(fn ($locale, $isDefault) => [...])` with fields named `title.{$locale}`.
 - **Routes/maps**: `CountryRoute` (planned|actual, per country) with `RoutePoint`s imported from GPX (`GpxImporter`). Global map, journey timeline and country pages all read these via `RouteGeometry::featureCollection()`. Leaflet in `resources/js/map.js`.
+- **Tracking privacy**: all location-bearing data (tracking points, journey days, events) is filtered in queries via `TrackingPrivacy` / `visibleTo($user)` scopes — guests only see data older than `public_tracking_delay_hours` (Settings, default 336). Never filter in JS. `/api/public/tracking` is always delayed; `/api/private/tracking` needs a trusted login; `POST /api/tracking` ingests with a bearer token (`TRACKING_INGEST_TOKEN`). No Garmin-specific code yet: research first.
+- **Statistics** are computed (`JourneyStats`) from journey days/routes/tracking, never stored.
+- **Photos** are re-encoded on upload (`ImageProcessor`): resized and EXIF/GPS stripped.
 - **Roles**: `App\Enums\Role` = admin | trusted_viewer. Visitors without an account are guests.
 - Never invent route, visa, border or Garmin facts; mark uncertain things as not final.
 - Keep it simple; build in small, working steps. Run `php artisan test` after changes.
 
 ## Roadmap
-- Done: phase 0 (skeleton, i18n, layout), phase 1 (CMS: countries, articles, users, website texts), phase 2 (route data per country, GPX import, maps, journey timeline).
-- Next: tracking with server-side 14-day public delay (`public_tracking_delay_hours`, default 336) and trusted-viewer live access. Design polish is postponed by Coen.
+- Done: phases 0–6 — i18n, CMS, website texts, routes/maps, tracking + privacy + family login, journey days/events/statistics, equipment, media, private budget, dashboard, settings, sitemap, security headers.
+- Open: Garmin integration (after research), deployment + backups + map tile provider, 2FA, design polish (postponed by Coen).

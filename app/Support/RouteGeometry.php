@@ -3,6 +3,9 @@
 namespace App\Support;
 
 use App\Models\CountryRoute;
+use App\Models\JourneyEvent;
+use App\Models\TrackingPoint;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -56,6 +59,71 @@ class RouteGeometry
                 ];
             })->filter()->values()->all(),
         ]);
+    }
+
+    /**
+     * Add tracking (as actual route + last position) and journey events to a route collection,
+     * limited to what the user may see. Not cached: visibility depends on the user and time.
+     */
+    public static function withTracking(array $collection, ?User $user, ?int $countryId, float $tolerance): array
+    {
+        $points = TrackingPoint::visibleTo($user)
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
+            ->orderBy('recorded_at')
+            ->get(['latitude', 'longitude', 'recorded_at']);
+
+        // A new line after gaps longer than 12 hours (e.g. transport or no signal).
+        $segments = [];
+        $previous = null;
+        foreach ($points as $point) {
+            if (! $previous || $previous->recorded_at->diffInHours($point->recorded_at) > 12) {
+                $segments[] = [];
+            }
+            $segments[array_key_last($segments)][] = [$point->latitude, $point->longitude];
+            $previous = $point;
+        }
+
+        foreach ($segments as $segment) {
+            if (count($segment) > 1) {
+                $collection['features'][] = self::line('actual', self::simplify($segment, $tolerance));
+            }
+        }
+
+        if ($last = $points->last()) {
+            $collection['features'][] = self::point('position', $last->latitude, $last->longitude, [
+                'label' => __('site.live.last_location').': '.$last->recorded_at->translatedFormat('j F Y, H:i'),
+            ]);
+        }
+
+        JourneyEvent::visibleTo($user)
+            ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
+            ->whereNotNull('latitude')
+            ->get()
+            ->each(function (JourneyEvent $event) use (&$collection) {
+                $collection['features'][] = self::point('event', $event->latitude, $event->longitude, [
+                    'label' => $event->occurred_at->translatedFormat('j F Y').' — '.$event->translate('title'),
+                ]);
+            });
+
+        return $collection;
+    }
+
+    private static function line(string $type, array $points): array
+    {
+        return [
+            'type' => 'Feature',
+            'properties' => ['type' => $type],
+            'geometry' => ['type' => 'LineString', 'coordinates' => array_map(fn ($p) => [round($p[1], 5), round($p[0], 5)], $points)],
+        ];
+    }
+
+    private static function point(string $type, float $lat, float $lng, array $properties = []): array
+    {
+        return [
+            'type' => 'Feature',
+            'properties' => ['type' => $type] + $properties,
+            'geometry' => ['type' => 'Point', 'coordinates' => [round($lng, 5), round($lat, 5)]],
+        ];
     }
 
     /** Ramer–Douglas–Peucker line simplification (planar approximation, fine for display). */

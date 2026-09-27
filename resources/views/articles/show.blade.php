@@ -48,6 +48,10 @@
                 {!! $article->translate('body') !!}
             </div>
 
+            @if ($article->photos->isNotEmpty() || $article->videos->isNotEmpty())
+                <div class="mt-10"><x-media-grid :photos="$article->photos" :videos="$article->videos" /></div>
+            @endif
+
             @if ($article->tags)
                 <ul class="mt-10 flex flex-wrap gap-2" aria-label="{{ __('site.articles.tags') }}">
                     @foreach ($article->tags as $tag)

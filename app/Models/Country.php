@@ -36,6 +36,21 @@ class Country extends Model
         return $this->hasMany(CountryRoute::class)->orderBy('sort_order');
     }
 
+    public function days(): HasMany
+    {
+        return $this->hasMany(JourneyDay::class);
+    }
+
+    public function photos(): HasMany
+    {
+        return $this->hasMany(Photo::class);
+    }
+
+    public function videos(): HasMany
+    {
+        return $this->hasMany(Video::class);
+    }
+
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true)->orderBy('sort_order');

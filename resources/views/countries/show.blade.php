@@ -15,6 +15,16 @@
         <p class="mt-3 text-sm text-moss-600">{{ __('site.map.planned_note') }}</p>
     </section>
 
+    @if ($stats['days'])
+        <dl class="container-page mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <x-stat :label="__('site.statistics.days')" :value="$stats['days']" :hint="$stats['first_day']->translatedFormat('j M').' – '.$stats['last_day']->translatedFormat('j M Y')" />
+            <x-stat :label="__('site.statistics.walking_days')" :value="$stats['walking_days']" />
+            <x-stat :label="__('site.statistics.rest_days')" :value="$stats['rest_days']" />
+            <x-stat :label="__('site.statistics.average')" :value="$km($stats['average_km'] ?? 0)" />
+            <x-stat :label="__('site.statistics.hours')" :value="round($stats['walking_hours'])" />
+        </dl>
+    @endif
+
     <div class="container-page mt-12 max-w-4xl">
         <h2 class="text-2xl font-semibold">{{ __('site.country.story') }}</h2>
         @if ($story = $country->translate('story'))
@@ -32,6 +42,13 @@
                     <x-article-card :article="$article" />
                 @endforeach
             </div>
+        </section>
+    @endif
+
+    @if ($photos->isNotEmpty() || $videos->isNotEmpty())
+        <section class="container-page mt-14">
+            <h2 class="mb-6 text-2xl font-semibold">{{ __('site.media.title') }}</h2>
+            <x-media-grid :photos="$photos" :videos="$videos" />
         </section>
     @endif
 

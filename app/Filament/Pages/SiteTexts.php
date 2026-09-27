@@ -15,6 +15,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
+use UnitEnum;
 
 /**
  * Edit every fixed text of the public site, per language. Empty field = default text.
@@ -28,6 +29,8 @@ class SiteTexts extends Page
     protected static ?string $navigationLabel = 'Website texts';
 
     protected static ?string $title = 'Website texts';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Website';
 
     protected static ?int $navigationSort = 90;
 

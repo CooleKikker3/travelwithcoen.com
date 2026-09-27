@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Articles\Schemas;
 use App\Enums\ArticleStatus;
 use App\Enums\ArticleType;
 use App\Enums\PreparationTopic;
+use App\Filament\Support\Options;
 use App\Filament\Support\TranslatableTabs;
 use App\Models\Country;
 use Filament\Forms\Components\DateTimePicker;
@@ -74,6 +75,10 @@ class ArticleForm
                             ->label('Country')
                             ->options(fn () => Country::orderBy('sort_order')->get()
                                 ->mapWithKeys(fn (Country $country) => [$country->id => $country->flag().' '.$country->translate('name', 'en')]))
+                            ->searchable(),
+                        Select::make('journey_day_id')
+                            ->label('Journey day')
+                            ->options(fn () => Options::days())
                             ->searchable(),
                         FileUpload::make('cover_image')
                             ->image()

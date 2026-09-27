@@ -29,7 +29,20 @@ function initMap(figure) {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
 
-    const layer = L.geoJSON(data, { style: (feature) => styles[feature.properties.type] }).addTo(map);
+    const layer = L.geoJSON(data, {
+        style: (feature) => styles[feature.properties.type],
+        // Points: last (visible) location and journey events.
+        pointToLayer: (feature, latlng) => L.circleMarker(latlng, feature.properties.type === 'position'
+            ? { radius: 8, color: '#ffffff', weight: 3, fillColor: '#6a8a3c', fillOpacity: 1 }
+            : { radius: 5, color: '#5b4631', weight: 2, fillColor: '#eee8d8', fillOpacity: 1 }),
+        onEachFeature: (feature, marker) => {
+            if (feature.properties.label && interactive) {
+                const label = document.createElement('span');
+                label.textContent = feature.properties.label; // text only, never HTML
+                marker.bindPopup(label);
+            }
+        },
+    }).addTo(map);
 
     if (layer.getLayers().length) {
         map.fitBounds(layer.getBounds(), { padding: [24, 24] });
