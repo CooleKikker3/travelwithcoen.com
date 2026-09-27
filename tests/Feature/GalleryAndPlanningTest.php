@@ -12,7 +12,6 @@ use App\Models\GalleryItem;
 use App\Models\User;
 use App\Models\Video;
 use App\Services\YouTubeSync;
-use App\Support\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -69,6 +68,16 @@ class GalleryAndPlanningTest extends TestCase
         // Removing the image from the text removes it from the gallery.
         $article->update(['body' => ['en' => '<p>No images</p>']]);
         $this->assertSame(0, GalleryItem::count());
+    }
+
+    public function test_sensitive_images_are_blurred_with_a_warning(): void
+    {
+        $config = htmlspecialchars(json_encode(['path' => 'articles/images/sand.jpg', 'caption' => 'My foot', 'sensitive' => true]), ENT_QUOTES);
+        $this->article(['body' => ['en' => "<div data-type=\"customBlock\" data-config=\"{$config}\" data-id=\"image\"></div>"]]);
+
+        $this->assertTrue(GalleryItem::sole()->is_sensitive);
+        $this->get('/diary/sand-roads')->assertSee('data-sensitive', false)->assertSee('Show anyway');
+        $this->get('/gallery')->assertSee('wall-tile--sensitive', false)->assertSee('data-sensitive="1"', false);
     }
 
     public function test_images_of_draft_articles_stay_out_of_the_gallery(): void

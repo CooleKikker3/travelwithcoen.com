@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *  - kind "image" / "video": uploaded files (source "upload"), or images from an article's text (source "article")
  *  - kind "youtube": synced from the YouTube channel (source "youtube", see YouTubeSync)
  */
-#[Fillable(['path', 'width', 'height', 'youtube_id', 'youtube_channel_id', 'kind', 'source', 'caption', 'taken_at', 'country_id', 'article_id', 'journey_day_id', 'journey_event_id', 'is_public'])]
+#[Fillable(['path', 'width', 'height', 'youtube_id', 'youtube_channel_id', 'kind', 'source', 'caption', 'taken_at', 'country_id', 'article_id', 'journey_day_id', 'journey_event_id', 'is_public', 'is_sensitive'])]
 class GalleryItem extends Model
 {
     use HasTranslations;
@@ -33,6 +33,7 @@ class GalleryItem extends Model
         return [
             'taken_at' => 'datetime',
             'is_public' => 'boolean',
+            'is_sensitive' => 'boolean',
         ];
     }
 

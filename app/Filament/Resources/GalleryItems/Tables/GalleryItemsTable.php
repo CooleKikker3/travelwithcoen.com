@@ -38,6 +38,7 @@ class GalleryItemsTable
                     ->placeholder('—'),
                 TextColumn::make('taken_at')->label('Date')->dateTime('j M Y')->sortable(),
                 IconColumn::make('is_public')->label('Public')->boolean(),
+                IconColumn::make('is_sensitive')->label('Sensitive')->boolean()->trueIcon('heroicon-o-eye-slash')->trueColor('warning')->falseColor('gray'),
             ])
             ->filters([
                 SelectFilter::make('kind')->options(['image' => 'Photos', 'video' => 'Uploaded videos', 'youtube' => 'YouTube']),

@@ -304,3 +304,77 @@
     .js .wall-tile:not(.is-in) { transform: none; transition: opacity 0.3s ease; }
     .wall-lightbox[open] { animation: none; }
 }
+
+/*
+ * Sensitive images (injuries etc.): blurred with a warning until revealed.
+ * Used in articles (.article-image.sensitive), the lightbox media and wall tiles.
+ */
+.sensitive:not(.is-revealed) img,
+.sensitive:not(.is-revealed) video,
+.sensitive:not(.is-revealed) iframe,
+.sensitive:not(.is-revealed) .wall-lightbox__poster {
+    filter: blur(28px) saturate(0.6);
+    transform: scale(1.1);
+    pointer-events: none;
+}
+
+.sensitive { position: relative; overflow: hidden; }
+
+.sensitive-overlay {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 1.5rem;
+    background: rgb(14 28 19 / 0.45);
+    color: white;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.sensitive-overlay strong { font-size: 1.05rem; }
+
+.sensitive-overlay button {
+    margin-top: 0.5rem;
+    padding: 0.45rem 1.1rem;
+    border-radius: 999px;
+    background: white;
+    color: var(--color-forest-900);
+    font-weight: 700;
+}
+
+.sensitive-overlay button:hover { background: var(--color-sage-100); }
+
+.sensitive.is-revealed .sensitive-overlay { display: none; }
+
+/* On the wall the tile stays blurred; the lightbox is where it can be revealed. */
+.wall-tile--sensitive img,
+.wall-tile--sensitive video {
+    filter: blur(22px) saturate(0.6);
+    transform: scale(1.15);
+}
+
+.wall-tile--sensitive:hover img,
+.wall-tile--sensitive:hover video {
+    transform: scale(1.15);
+}
+
+.wall-sensitive {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    background: rgb(14 28 19 / 0.35);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: center;
+}

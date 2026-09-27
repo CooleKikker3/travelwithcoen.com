@@ -74,6 +74,9 @@ class GalleryItemForm
             Select::make('article_id')->label('Article')->options(fn () => Options::articles())->searchable(),
             Select::make('journey_day_id')->label('Journey day')->options(fn () => Options::days())->searchable(),
             Toggle::make('is_public')->label('Public')->default(true),
+            Toggle::make('is_sensitive')
+                ->label('Sensitive content')
+                ->helperText('E.g. an injury: blurred with a warning until the visitor chooses to see it.'),
         ];
     }
 }

@@ -22,8 +22,9 @@
                 // Sharp 16:9 YouTube thumbnail; falls back to the smaller one if a video has no HD version.
                 $hd = $item->isYoutube() ? "https://i.ytimg.com/vi/{$item->youtube_id}/maxresdefault.jpg" : null;
             @endphp
-            <a href="{{ $item->url() }}" id="wall-item-{{ $item->id }}" data-wall-item @class(['wall-tile', $shape, 'wall-tile--video' => $item->isVideo() || $item->isYoutube()])
+            <a href="{{ $item->url() }}" id="wall-item-{{ $item->id }}" data-wall-item @class(['wall-tile', $shape, 'wall-tile--video' => $item->isVideo() || $item->isYoutube(), 'wall-tile--sensitive' => $item->is_sensitive])
                 data-kind="{{ $item->kind }}"
+                data-sensitive="{{ $item->is_sensitive ? 1 : 0 }}"
                 data-ratio="{{ $item->ratio() }}"
                 data-src="{{ $item->isYoutube() ? $item->youtube_id : $item->url() }}"
                 data-thumb="{{ $item->isYoutube() ? $hd : $item->thumbnailUrl() }}"
@@ -41,7 +42,9 @@
                     <img src="{{ $item->isYoutube() ? $hd : $item->thumbnailUrl() }}" alt="{{ $caption ?? '' }}" loading="lazy"
                         @if ($item->isYoutube()) onerror="this.onerror=null;this.src='{{ $item->thumbnailUrl() }}'" @endif>
                 @endif
-                @if ($item->isVideo() || $item->isYoutube())
+                @if ($item->is_sensitive)
+                    <span class="wall-sensitive"><x-icons.eye-off class="size-6" />{{ __('site.media.sensitive_label') }}</span>
+                @elseif ($item->isVideo() || $item->isYoutube())
                     <span class="wall-play" aria-hidden="true"><x-icons.play /></span>
                 @endif
             </a>
@@ -59,6 +62,8 @@
     <dialog data-wall-lightbox class="wall-lightbox" aria-label="{{ __('site.media.title') }}">
         <div class="wall-lightbox__inner">
             <div data-lightbox-media class="wall-lightbox__media"></div>
+            {{-- Copied into the media area for sensitive items (wall.js). --}}
+            <template data-lightbox-sensitive><x-sensitive-overlay /></template>
             <aside class="wall-lightbox__info">
                 <p data-lightbox-caption class="text-lg text-forest-900"></p>
                 <p data-lightbox-meta class="mt-3 text-sm text-moss-600"></p>

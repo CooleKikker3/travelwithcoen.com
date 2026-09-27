@@ -7,6 +7,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor\RichContentCustomBlock;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Support\Icons\Heroicon;
 
 /**
@@ -54,12 +55,15 @@ class ImageBlock extends RichContentCustomBlock
                 TextInput::make('alt')
                     ->label('Description for screen readers (optional)')
                     ->maxLength(300),
+                Toggle::make('sensitive')
+                    ->label('Sensitive content')
+                    ->helperText('E.g. an injury: shown blurred with a warning until the reader chooses to see it.'),
             ]);
     }
 
     public static function getPreviewLabel(array $config): string
     {
-        return 'Image'.(filled($config['caption'] ?? null) ? ': '.$config['caption'] : '');
+        return (empty($config['sensitive']) ? 'Image' : 'Image (sensitive)').(filled($config['caption'] ?? null) ? ': '.$config['caption'] : '');
     }
 
     public static function toPreviewHtml(array $config): ?string
@@ -91,6 +95,8 @@ class ImageBlock extends RichContentCustomBlock
             'caption' => $config['caption'] ?? null,
             'alt' => $config['alt'] ?? $config['caption'] ?? '',
             'imageStyle' => $imageStyle,
+            // Blurred in the editor preview too, so it is clear which images carry a warning.
+            'sensitive' => ! empty($config['sensitive']),
         ])->render();
     }
 }

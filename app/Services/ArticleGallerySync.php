@@ -15,11 +15,13 @@ class ArticleGallerySync
     public function sync(Article $article): void
     {
         $images = [];
+        $sensitive = [];
 
         foreach ($article->body ?? [] as $locale => $html) {
             foreach ($this->imageBlocks((string) $html) as $config) {
                 if ($path = ImageBlock::path($config)) {
                     $images[$path][$locale] = $config['caption'] ?? null;
+                    $sensitive[$path] = ($sensitive[$path] ?? false) || ! empty($config['sensitive']);
                 }
             }
         }
@@ -27,7 +29,7 @@ class ArticleGallerySync
         foreach ($images as $path => $captions) {
             GalleryItem::updateOrCreate(
                 ['article_id' => $article->id, 'source' => 'article', 'path' => $path],
-                ['caption' => array_filter($captions), 'country_id' => $article->country_id, 'journey_day_id' => $article->journey_day_id],
+                ['caption' => array_filter($captions), 'is_sensitive' => $sensitive[$path] ?? false, 'country_id' => $article->country_id, 'journey_day_id' => $article->journey_day_id],
             );
         }
 

@@ -175,6 +175,7 @@ function initLightbox(wall, grid, tiles, loadMore) {
 
     function play() {
         const media = $('media');
+        media.classList.add('is-revealed'); // starting a sensitive video also shows it
         const video = media.querySelector('video');
         if (video) return video.play();
 
@@ -220,6 +221,14 @@ function initLightbox(wall, grid, tiles, loadMore) {
             poster.append(image, icon);
             poster.addEventListener('click', play);
             media.append(poster);
+        }
+
+        // Sensitive items: blurred with a warning until "Show anyway" (handled in app.js).
+        media.classList.remove('is-revealed');
+        media.classList.toggle('sensitive', d.sensitive === '1');
+        media.toggleAttribute('data-sensitive', d.sensitive === '1');
+        if (d.sensitive === '1') {
+            media.append(dialog.querySelector('[data-lightbox-sensitive]').content.cloneNode(true));
         }
 
         $('caption').textContent = d.caption || '';
