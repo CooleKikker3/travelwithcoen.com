@@ -133,7 +133,7 @@
                 <h2 class="text-3xl font-semibold">{{ __('site.home.photos_title') }}</h2>
                 <a href="{{ lroute('gallery') }}" class="font-semibold text-moss-600 hover:text-forest-700">{{ __('site.media.title') }} →</a>
             </div>
-            <x-media-grid :items="$gallery" />
+            <x-gallery-wall :items="$gallery" />
         </section>
     @endif
 </x-layouts.app>

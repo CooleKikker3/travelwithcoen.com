@@ -196,6 +196,7 @@ return [
         'all' => 'All',
         'youtube' => 'On YouTube',
         'from_article' => 'From: :title',
+        'more' => 'Show older',
         'empty' => 'No photos or videos yet.',
     ],
 

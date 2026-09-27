@@ -70,7 +70,8 @@ class ContentTest extends TestCase
         imagejpeg($image);
         Storage::disk('public')->put('photos/big.jpg', ob_get_clean());
 
-        GalleryItem::create(['path' => 'photos/big.jpg']);
+        $item = GalleryItem::create(['path' => 'photos/big.jpg']);
+        $this->assertSame([2400, 1200], [$item->width, $item->height]);
 
         [$width] = getimagesize(Storage::disk('public')->path('photos/big.jpg'));
         $this->assertSame(2400, $width);

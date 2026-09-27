@@ -46,7 +46,7 @@
             </div>
 
             @if ($article->gallery->isNotEmpty())
-                <div class="mt-10"><x-media-grid :items="$article->gallery" /></div>
+                <div class="mt-10"><x-gallery-wall :items="$article->gallery" :columns="3" /></div>
             @endif
 
             @if ($article->tags)

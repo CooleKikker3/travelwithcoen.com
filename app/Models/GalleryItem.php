@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Storage;
  *  - kind "image" / "video": uploaded files (source "upload"), or images from an article's text (source "article")
  *  - kind "youtube": synced from the YouTube channel (source "youtube", see YouTubeSync)
  */
-#[Fillable(['path', 'youtube_id', 'kind', 'source', 'caption', 'taken_at', 'country_id', 'article_id', 'journey_day_id', 'journey_event_id', 'is_public'])]
+#[Fillable(['path', 'width', 'height', 'youtube_id', 'kind', 'source', 'caption', 'taken_at', 'country_id', 'article_id', 'journey_day_id', 'journey_event_id', 'is_public'])]
 class GalleryItem extends Model
 {
     use HasTranslations;
@@ -46,6 +46,10 @@ class GalleryItem extends Model
                     ? app(VideoProcessor::class)->stripMetadata($item->path)
                     : app(ImageProcessor::class)->process($item->path);
                 $item->taken_at ??= $takenAt ?? now();
+
+                if ($item->kind === 'image' && $size = @getimagesize(Storage::disk('public')->path($item->path))) {
+                    [$item->width, $item->height] = [$size[0], $size[1]];
+                }
             }
         });
     }
@@ -105,6 +109,12 @@ class GalleryItem extends Model
             'image' => $this->url(),
             default => null,
         };
+    }
+
+    /** Width / height, so the wall can reserve space before loading. Videos default to 16:9. */
+    public function ratio(): float
+    {
+        return round($this->width && $this->height ? $this->width / $this->height : ($this->kind === 'image' ? 4 / 3 : 16 / 9), 4);
     }
 
     protected function fillMissingSlugs(): void {}

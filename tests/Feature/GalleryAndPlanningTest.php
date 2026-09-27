@@ -117,6 +117,16 @@ class GalleryAndPlanningTest extends TestCase
         $this->get('/gallery?kind=image')->assertDontSee('dQw4w9WgXcQ');
     }
 
+    public function test_the_wall_links_to_older_items_for_infinite_scroll(): void
+    {
+        foreach (range(1, 30) as $i) {
+            GalleryItem::create(['kind' => 'youtube', 'source' => 'youtube', 'youtube_id' => sprintf('vid%08d', $i), 'taken_at' => now()->subDays($i), 'caption' => ['en' => "Video {$i}"]]);
+        }
+
+        $this->get('/gallery')->assertOk()->assertSee('data-wall-next', false)->assertSee('?page=2', false)->assertSee('data-ratio="1.7778"', false);
+        $this->get('/nl/galerij?page=2')->assertOk()->assertSee('Video 30')->assertDontSee('data-wall-next', false);
+    }
+
     public function test_a_route_can_be_drawn_in_the_planner(): void
     {
         $this->actingAs(User::factory()->create(['role' => Role::Admin]));

@@ -11,8 +11,7 @@
         @if ($items->isEmpty())
             <p class="rounded-2xl border border-dashed border-sage-200 p-8 text-center text-moss-600">{{ __('site.media.empty') }}</p>
         @else
-            <x-media-grid :items="$items" />
-            <div class="mt-8">{{ $items->links() }}</div>
+            <x-gallery-wall :items="$items" :next="$items->nextPageUrl()" />
         @endif
     </div>
 </x-layouts.app>

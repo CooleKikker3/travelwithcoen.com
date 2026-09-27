@@ -48,7 +48,7 @@
     @if ($gallery->isNotEmpty())
         <section class="container-page mt-14">
             <h2 class="mb-6 text-2xl font-semibold">{{ __('site.media.title') }}</h2>
-            <x-media-grid :items="$gallery" />
+            <x-gallery-wall :items="$gallery" />
         </section>
     @endif
 

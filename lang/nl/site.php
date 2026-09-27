@@ -196,6 +196,7 @@ return [
         'all' => 'Alles',
         'youtube' => 'Op YouTube',
         'from_article' => 'Uit: :title',
+        'more' => 'Oudere tonen',
         'empty' => 'Nog geen foto’s of video’s.',
     ],
 

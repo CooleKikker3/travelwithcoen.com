@@ -74,3 +74,91 @@
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%23a6cf92' stroke-opacity='.09' stroke-width='1.2'%3E%3Cpath d='M-20 60c40-30 90-30 130 0s90 30 150 0'/%3E%3Cpath d='M-20 100c50-35 100-20 140 5s80 25 140-5'/%3E%3Cpath d='M-20 140c40-25 110-35 150-5s70 30 130 0'/%3E%3Cpath d='M-20 180c60-30 100-15 140 10s90 20 140-10'/%3E%3Cpath d='M-20 220c40-20 100-30 140 0s80 25 140 0'/%3E%3Cpath d='M-20 20c50-20 90-10 130 10s100 15 150-10'/%3E%3C/g%3E%3C/svg%3E");
     }
 }
+
+/* Gallery wall (components/gallery-wall.blade.php + js/wall.js). Without JS: plain CSS columns. */
+.wall-source {
+    column-count: 2;
+    column-gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    .wall-source { column-count: 3; }
+}
+
+@media (min-width: 1024px) {
+    .wall-source { column-count: 4; }
+}
+
+.wall-source.is-arranged {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    column-count: auto;
+}
+
+.wall-column {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.wall-item {
+    position: relative;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    break-inside: avoid;
+    border-radius: 1rem;
+    background: white;
+    box-shadow: 0 1px 2px rgb(20 42 28 / 0.08), 0 8px 24px -12px rgb(20 42 28 / 0.25);
+}
+
+.is-arranged .wall-item {
+    margin-bottom: 0;
+}
+
+/* Pop-in: tiles start small, low and tilted, then bounce into place with a slight playful tilt. */
+.js .wall-item {
+    transition:
+        opacity 0.5s ease var(--delay, 0ms),
+        transform 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) var(--delay, 0ms),
+        box-shadow 0.3s ease;
+}
+
+.js .wall-item:not(.is-in) {
+    opacity: 0;
+    transform: translateY(48px) scale(0.88) rotate(calc(var(--tilt, 0deg) * 3));
+    /* Safety net: show the tile anyway if the script never runs. */
+    animation: wall-fallback 0.4s ease 4s forwards;
+}
+
+@keyframes wall-fallback {
+    to { opacity: 1; transform: none; }
+}
+
+.js .wall-item.is-in {
+    transform: rotate(calc(var(--tilt, 0deg) * 0.35));
+}
+
+.js .wall-item.is-in:hover {
+    z-index: 1;
+    transform: rotate(0deg) scale(1.03);
+    transition-delay: 0ms;
+    box-shadow: 0 2px 4px rgb(20 42 28 / 0.1), 0 20px 40px -16px rgb(20 42 28 / 0.4);
+}
+
+[data-wall-next].is-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .js .wall-item,
+    .js .wall-item:not(.is-in),
+    .js .wall-item.is-in,
+    .js .wall-item.is-in:hover {
+        transform: none;
+        transition: opacity 0.3s ease;
+    }
+}

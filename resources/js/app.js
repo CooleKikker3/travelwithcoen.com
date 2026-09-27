@@ -1,5 +1,6 @@
 //
 import './map';
+import './wall';
 
 // Gallery: replace a YouTube thumbnail with the (privacy-friendly) player only when clicked.
 document.addEventListener('click', (event) => {
@@ -11,6 +12,6 @@ document.addEventListener('click', (event) => {
     player.title = link.getAttribute('aria-label') ?? 'YouTube video';
     player.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
     player.allowFullscreen = true;
-    player.className = 'aspect-square w-full rounded-xl';
+    player.className = 'block aspect-video w-full';
     link.replaceWith(player);
 });
