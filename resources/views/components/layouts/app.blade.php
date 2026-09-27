@@ -48,6 +48,8 @@
     <meta property="og:url" content="{{ $canonical }}">
     <meta property="og:locale" content="{{ $locale === 'nl' ? 'nl_NL' : 'en_GB' }}">
     <meta name="theme-color" content="#142a1c">
+    <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/brand/icon-512.png">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=bricolage-grotesque:500,700,800|caveat:600,700|nunito:400,400i,600,700,800&display=swap" rel="stylesheet">
     <script>document.documentElement.classList.add('js')</script>

@@ -460,3 +460,11 @@ main > section:first-child, main > article > header:first-child { padding-top: 5
 .logo-trail { width: 1.6rem; height: 2px; background: radial-gradient(circle, var(--color-olive-300) 1px, transparent 1.3px) 0 50% / 5px 2px repeat-x; }
 .group:hover .logo-trail { animation: trail .6s linear infinite; }
 @keyframes trail { to { background-position: 5px 50%; } }
+
+/* Home "rough plan" card: olive wave pattern on sand, numbered stamps. */
+.topo-sand { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%238a8a3e' stroke-opacity='.14' stroke-width='1.2'%3E%3Cpath d='M-120 20 q60 -14 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-60 60 q60 -20 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-120 100 q60 -12 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-30 140 q60 -22 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-90 180 q60 -16 120 0 t120 0 t120 0 t120 0'/%3E%3Cpath d='M-120 220 q60 -20 120 0 t120 0 t120 0 t120 0'/%3E%3C/g%3E%3C/svg%3E"); }
+.stamp { display: inline-flex; align-items: center; gap: .5rem; }
+.stamp__nr { display: inline-grid; place-items: center; width: 1.4rem; height: 1.4rem; border-radius: 9999px; background: currentColor; font: 800 .7rem/1 var(--font-sans); }
+.stamp .stamp__nr { background: var(--color-olive-300); color: var(--color-forest-900); }
+.stamp--edge { background: var(--color-forest-800) !important; color: var(--color-fern-300) !important; font-size: 1.6rem; }
+.stamp--link:hover { background: var(--color-fern-300) !important; color: var(--color-forest-950) !important; }

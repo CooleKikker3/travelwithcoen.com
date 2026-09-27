@@ -49,29 +49,42 @@
     </section>
 
     @if ($preparing)
-        {{-- Rough direction: deliberately static text, not route data. --}}
-        <section class="relative -mt-10 pt-10">
-            <div class="container-page py-10">
-                <div class="flex flex-wrap items-baseline justify-between gap-2">
-                    <h2 class="text-3xl font-bold" data-reveal>{{ __('site.home.direction_title') }}</h2>
-                    <span class="badge bg-sand-100 text-bark-700">{{ __('site.status.not_final') }}</span>
+        {{-- The rough plan: a sand-coloured "map page" with passport stamps; deliberately static text, not route data. --}}
+        <section class="container-page relative mt-16">
+            <div class="topo-sand relative overflow-hidden rounded-[2rem] bg-sand-100 px-6 py-10 shadow-xl shadow-forest-900/10 ring-1 ring-olive-300/40 sm:px-12 sm:py-14" data-reveal>
+                {{-- Compass in the corner. --}}
+                <svg class="pointer-events-none absolute -top-10 -right-10 size-48 rotate-[40deg] text-olive-300/60 sm:size-64" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+                    <circle cx="50" cy="50" r="46" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 4"/>
+                    <circle cx="50" cy="50" r="34" stroke="currentColor" stroke-width="1"/>
+                    <path d="M50 10 57 50 50 90 43 50Z" fill="currentColor" opacity=".5"/>
+                    <path d="M10 50 50 44 90 50 50 56Z" fill="currentColor" opacity=".3"/>
+                    <path d="M50 10 57 50H43Z" fill="var(--color-bark-700)" opacity=".35"/>
+                </svg>
+
+                <div class="relative flex flex-wrap items-end gap-x-4 gap-y-1">
+                    <h2 class="text-4xl font-extrabold sm:text-5xl">{{ __('site.home.direction_title') }}</h2>
+                    <span class="-rotate-3 pb-1 font-hand text-3xl text-moss-600">{{ __('site.home.direction_hand') }}</span>
                 </div>
-                <ol class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-4">
+
+                <ol class="relative mt-8 flex flex-wrap items-center gap-x-3 gap-y-8">
                     @foreach (preg_split('/\R+/', trim(__('site.home.direction'))) as $stop)
-                        <li class="flex items-center gap-3" data-reveal style="--i: {{ $loop->index }}; --tilt: {{ [-3, 2, -1, 3, -2][$loop->index % 5] }}deg">
-                            {{-- Stops that match a country on the site link to its page. --}}
-                            @if ($link = $countryLinks[mb_strtolower(trim($stop))] ?? null)
-                                <a href="{{ $link }}" @class(['stamp hover:bg-fern-300 hover:text-forest-950', 'bg-forest-800 text-fern-300' => $loop->first || $loop->last, 'bg-white text-moss-600' => ! ($loop->first || $loop->last)])>{{ $stop }}</a>
+                        @php
+                            // Stops that match a country on the site link to its page.
+                            $link = $countryLinks[mb_strtolower(trim($stop))] ?? null;
+                            $classes = 'stamp relative bg-white/80 text-moss-600'.($loop->first || $loop->last ? ' stamp--edge' : '').($link ? ' stamp--link' : '');
+                        @endphp
+                        <li class="relative flex items-center gap-3" data-reveal style="--i: {{ $loop->index }}; --tilt: {{ [-3, 2, -1, 3, -2][$loop->index % 5] }}deg">
+                            @if ($link)
+                                <a href="{{ $link }}" class="{{ $classes }}"><span class="stamp__nr">{{ $loop->iteration }}</span>{{ $stop }}</a>
                             @else
-                                <span @class(['stamp', 'bg-forest-800 text-fern-300' => $loop->first || $loop->last, 'bg-white text-moss-600' => ! ($loop->first || $loop->last)])>{{ $stop }}</span>
+                                <span class="{{ $classes }}"><span class="stamp__nr">{{ $loop->iteration }}</span>{{ $stop }}</span>
                             @endif
                             @unless ($loop->last)
-                                <svg class="h-3 w-8 text-moss-400" viewBox="0 0 32 12" fill="none" aria-hidden="true"><path d="M1 8c8-6 16-6 24-2" stroke="currentColor" stroke-width="2" stroke-dasharray="3 4" stroke-linecap="round"/><path d="M24 2l5 4-6 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                <svg class="h-4 w-10 text-olive-500" viewBox="0 0 40 16" fill="none" aria-hidden="true"><path d="M1 11c9-9 20-9 30-3" stroke="currentColor" stroke-width="2" stroke-dasharray="3 4" stroke-linecap="round"/><path d="M29 2l6 6-8 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             @endunless
                         </li>
                     @endforeach
                 </ol>
-                <p class="mt-4 max-w-3xl text-sm text-moss-600">{{ __('site.home.direction_note') }}</p>
             </div>
         </section>
     @endif

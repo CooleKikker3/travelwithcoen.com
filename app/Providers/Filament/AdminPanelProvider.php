@@ -27,6 +27,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
+            ->favicon(asset('brand/favicon.svg'))
             ->path('admin')
             ->login()
             ->brandName('Travel with Coen')
