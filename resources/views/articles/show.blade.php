@@ -14,7 +14,7 @@
                 <div class="flex flex-wrap items-center gap-2 text-sm">
                     <span class="badge bg-forest-700 text-fern-300">{{ $article->type->getLabel() }}</span>
                     @if ($article->country)
-                        <a href="{{ $article->country->url() }}" class="badge bg-forest-700 text-fern-300 hover:text-white">{{ $article->country->flag() }} {{ $article->country->translate('name') }}</a>
+                        <a href="{{ $article->country->url() }}" class="badge bg-forest-700 text-fern-300 hover:text-white"><x-flag :country="$article->country" /> {{ $article->country->translate('name') }}</a>
                     @endif
                 </div>
                 <h1 class="mt-4 text-4xl font-semibold text-white sm:text-5xl" lang="{{ $contentLocale }}">{{ $article->translate('title') }}</h1>

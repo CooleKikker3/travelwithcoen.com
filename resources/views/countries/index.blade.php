@@ -59,7 +59,7 @@
                         <article class="grid overflow-hidden rounded-2xl bg-white ring-1 ring-sage-200 md:grid-cols-[1fr_1.2fr]">
                             <div class="flex flex-col gap-3 p-6">
                                 <div class="flex flex-wrap items-center gap-3">
-                                    <span class="text-4xl" aria-hidden="true">{{ $country->flag() }}</span>
+                                    <x-flag :country="$country" class="text-3xl" />
                                     <h3 class="font-display text-2xl font-semibold">
                                         <a href="{{ $country->url() }}" class="hover:text-moss-600">{{ $country->translate('name') }}</a>
                                     </h3>

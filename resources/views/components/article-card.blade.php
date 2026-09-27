@@ -14,7 +14,7 @@
                 <span class="badge">#{{ $tag }}</span>
             @endforeach
             @if ($article->country)
-                <span class="badge">{{ $article->country->flag() }} {{ $article->country->translate('name') }}</span>
+                <span class="badge"><x-flag :country="$article->country" /> {{ $article->country->translate('name') }}</span>
             @endif
             @unless ($article->isTranslated(app()->getLocale()))
                 <span class="badge bg-sand-100 text-bark-700">EN</span>

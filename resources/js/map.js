@@ -1,16 +1,16 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Planned = dashed olive, actual = solid forest green. Keep in sync with the legend in route-map.blade.php.
+// Planned = dashed sand, actual = solid light fern (readable on satellite imagery). Keep in sync with the legend in route-map.blade.php.
 const styles = {
-    planned: { color: '#8a8a3e', weight: 3, dashArray: '6 8', opacity: 0.9 },
-    actual: { color: '#264d33', weight: 5, opacity: 0.95 },
+    planned: { color: '#eee8d8', weight: 3, dashArray: '6 8', opacity: 0.95 },
+    actual: { color: '#a6cf92', weight: 5, opacity: 1 },
 };
 
 // Rough view of the whole direction (Netherlands → Vietnam) for maps without data.
 const fallbackView = { center: [40, 60], zoom: 3 };
 
-// Satellite imagery without labels, for the single-country maps. Check the terms before going live.
+// Satellite imagery without labels, for all maps. Check the terms before going live.
 const satellite = {
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics',
@@ -36,10 +36,7 @@ function initMap(figure) {
     const borderData = figure.querySelector('script[data-border]');
 
     if (!borderData) {
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 18,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        }).addTo(map);
+        L.tileLayer(satellite.url, { maxZoom: 18, attribution: satellite.attribution }).addTo(map);
     }
 
     const layer = L.geoJSON(data, {

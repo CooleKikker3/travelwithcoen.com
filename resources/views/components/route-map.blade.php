@@ -13,9 +13,9 @@
             <span class="rounded-full bg-white/90 px-3 py-1.5 shadow-sm">{{ __('site.map.no_route') }}</span>
         </figcaption>
     @elseif ($legend)
-        <figcaption class="absolute bottom-2 left-2 z-[500] flex flex-wrap gap-3 rounded-xl bg-white/90 px-3 py-2 text-xs font-semibold text-forest-800 shadow-sm">
-            <span class="flex items-center gap-1.5"><span class="w-6 border-t-[3px] border-dashed border-olive-500"></span>{{ __('site.map.planned') }}</span>
-            <span class="flex items-center gap-1.5"><span class="w-6 border-t-4 border-forest-700"></span>{{ __('site.map.actual') }}</span>
+        <figcaption class="absolute bottom-2 left-2 z-[500] flex flex-wrap gap-3 rounded-xl bg-forest-900/80 px-3 py-2 text-xs font-semibold text-white shadow-sm">
+            <span class="flex items-center gap-1.5"><span class="w-6 border-t-[3px] border-dashed border-sand-100"></span>{{ __('site.map.planned') }}</span>
+            <span class="flex items-center gap-1.5"><span class="w-6 border-t-4 border-fern-300"></span>{{ __('site.map.actual') }}</span>
         </figcaption>
     @endif
 </figure>
