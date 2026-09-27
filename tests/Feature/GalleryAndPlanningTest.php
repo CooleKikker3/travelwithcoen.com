@@ -146,6 +146,29 @@ class GalleryAndPlanningTest extends TestCase
         $this->get('/nl/galerij?page=2')->assertOk()->assertSee('Video 30')->assertDontSee('data-wall-next', false);
     }
 
+    public function test_unused_media_files_are_pruned_after_a_week(): void
+    {
+        $this->article(['cover_image' => 'articles/covers/cover.jpg']); // body uses articles/images/sand.jpg
+        $disk = Storage::disk('public');
+        foreach (['articles/covers/cover.jpg', 'articles/covers/old.jpg', 'gallery/removed.jpg', 'gallery/fresh.jpg', 'site/hero.jpg'] as $path) {
+            $disk->put($path, 'x');
+            touch($disk->path($path), now()->subDays(8)->getTimestamp());
+        }
+        touch($disk->path('articles/images/sand.jpg'), now()->subDays(8)->getTimestamp());
+        touch($disk->path('gallery/fresh.jpg')); // uploaded just now: kept for a week
+        \App\Support\Settings::set(['home_image' => 'site/hero.jpg']);
+
+        $this->artisan('media:prune --dry-run')->assertSuccessful();
+        $this->assertTrue($disk->exists('gallery/removed.jpg'));
+
+        $this->artisan('media:prune')->expectsOutput('2 unused file(s) deleted.')->assertSuccessful();
+        $this->assertFalse($disk->exists('gallery/removed.jpg'));
+        $this->assertFalse($disk->exists('articles/covers/old.jpg'));
+        foreach (['articles/images/sand.jpg', 'articles/covers/cover.jpg', 'site/hero.jpg', 'gallery/fresh.jpg'] as $path) {
+            $this->assertTrue($disk->exists($path), $path);
+        }
+    }
+
     public function test_country_maps_on_the_journey_page_only_show_that_country(): void
     {
         Country::create(['iso_code' => 'NL', 'name' => ['en' => 'Netherlands']]);

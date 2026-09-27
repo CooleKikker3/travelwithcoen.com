@@ -1,11 +1,15 @@
 <?php
 
+use App\Models\Article;
 use App\Models\GalleryItem;
 use App\Services\YouTubeSync;
 use App\Support\MediaStorage;
+use App\Support\Settings;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Str;
 
 Artisan::command('inspire', function () {
@@ -72,3 +76,35 @@ Artisan::command('media:cors {origins?* : Extra allowed origins, e.g. https://tr
     }
     $this->info('R2 allows the CMS to load media from: '.implode(', ', $origins));
 })->purpose('Allow the site (CMS previews) to load media from the R2 bucket');
+
+// Files removed or replaced on the site stay in storage; this deletes the ones nothing refers to any more.
+// Only files older than a week: time to undo mistakes, and uploads that were never saved are cleaned up too.
+Artisan::command('media:prune {--dry-run : Only list what would be deleted} {--days=7}', function () {
+    $disk = MediaStorage::disk();
+    $cutoff = now()->subDays((int) $this->option('days'))->getTimestamp();
+
+    $used = collect([
+        ...GalleryItem::whereNotNull('path')->pluck('path'),
+        ...Article::whereNotNull('cover_image')->pluck('cover_image'),
+        Settings::get('home_image'),
+    ])->filter()->flip();
+    // Images placed in article text are referenced inside the (JSON) body.
+    $bodies = Article::pluck('body')->map(fn ($body) => json_encode($body, JSON_UNESCAPED_SLASHES))->join("\n");
+
+    $orphans = collect(['articles/images', 'articles/covers', 'gallery', 'site'])
+        ->flatMap(fn ($directory) => $disk->allFiles($directory))
+        ->reject(fn ($path) => $used->has($path) || str_contains($bodies, $path))
+        ->filter(fn ($path) => $disk->lastModified($path) < $cutoff)
+        ->values();
+
+    foreach ($orphans as $path) {
+        $this->line(($this->option('dry-run') ? 'Would delete: ' : 'Deleted: ').$path);
+    }
+    if (! $this->option('dry-run')) {
+        $disk->delete($orphans->all());
+        Log::info('Unused media deleted', ['files' => $orphans->all()]);
+    }
+    $this->info($orphans->count().' unused file(s)'.($this->option('dry-run') ? ' found.' : ' deleted.'));
+})->purpose('Delete media files that are no longer used anywhere on the site');
+
+Schedule::command('media:prune')->weeklyOn(1, '04:00')->withoutOverlapping();
