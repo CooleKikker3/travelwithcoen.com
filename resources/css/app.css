@@ -358,8 +358,10 @@
     transform: scale(1.15);
 }
 
-.wall-tile--sensitive:hover img,
-.wall-tile--sensitive:hover video {
+/* Must also win over the hover/focus effect of normal tiles (which sets its own filter). */
+.wall-tile--sensitive:is(:hover, :focus-visible) img,
+.wall-tile--sensitive:is(:hover, :focus-visible) video {
+    filter: blur(22px) saturate(0.6);
     transform: scale(1.15);
 }
 
