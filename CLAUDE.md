@@ -8,12 +8,14 @@ Website + CMS for Coen's walk from the Netherlands to Hanoi. Full requirements: 
 - CMS: Filament 5 at `/admin`, admins only (`User::canAccessPanel`).
 
 ## Conventions
-- **i18n**: English is default (no prefix), Dutch under `/nl`. Public routes are registered once per locale in `routes/web.php`; link with `lroute('name', $params)`. All UI text lives in `lang/{en,nl}/*.php` — never hardcode strings.
+- **i18n**: English is default (no prefix), Dutch under `/nl`. Public routes are registered once per locale in `routes/web.php`; link with `lroute('name', $params)`. All UI text lives in `lang/{en,nl}/*.php` — never hardcode strings. URL segments are translated in `lang/{locale}/routes.php` (/nl/dagboek).
+- **Editable texts**: every text in the `site`, `articles`, `countries` lang groups can be overridden in the CMS ("Website texts", `App\Support\SiteTexts` + `DatabaseOverridesLoader`). New keys appear there automatically; keep texts as strings, not arrays.
 - **Translatable content**: JSON columns keyed by locale via `App\Models\Concerns\HasTranslations` (`$model->translate('title')`, fallback to English; `isTranslated('nl')`). Slugs are generated per locale on save. In Filament use `TranslatableTabs::make(fn ($locale, $isDefault) => [...])` with fields named `title.{$locale}`.
+- **Routes/maps**: `CountryRoute` (planned|actual, per country) with `RoutePoint`s imported from GPX (`GpxImporter`). Global map, journey timeline and country pages all read these via `RouteGeometry::featureCollection()`. Leaflet in `resources/js/map.js`.
 - **Roles**: `App\Enums\Role` = admin | trusted_viewer. Visitors without an account are guests.
 - Never invent route, visa, border or Garmin facts; mark uncertain things as not final.
 - Keep it simple; build in small, working steps. Run `php artisan test` after changes.
 
 ## Roadmap
-- Done: phase 0 (skeleton, i18n, layout, home/about) and phase 1 (CMS: countries, articles, users; diary, preparation, journey/country pages).
-- Next: route data (planned vs actual, per country) + map; then tracking with server-side 14-day public delay (`public_tracking_delay_hours`, default 336).
+- Done: phase 0 (skeleton, i18n, layout), phase 1 (CMS: countries, articles, users, website texts), phase 2 (route data per country, GPX import, maps, journey timeline).
+- Next: tracking with server-side 14-day public delay (`public_tracking_delay_hours`, default 336) and trusted-viewer live access. Design polish is postponed by Coen.

@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Filament\Resources\CountryRoutes\Tables;
+
+use App\Enums\RouteType;
+use App\Models\Country;
+use App\Models\CountryRoute;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+
+class CountryRoutesTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('country')->withCount('points'))
+            ->defaultSort('country_id')
+            ->columns([
+                TextColumn::make('country')
+                    ->state(fn (CountryRoute $record) => $record->country->flag().' '.$record->country->translate('name', 'en')),
+                TextColumn::make('type')->badge(),
+                TextColumn::make('name')->placeholder('—')->searchable(),
+                TextColumn::make('points_count')->label('Points')->numeric(),
+                TextColumn::make('distance_km')->label('Distance')->suffix(' km')->numeric(1)->sortable(),
+                TextColumn::make('updated_at')->label('Updated')->since(),
+            ])
+            ->filters([
+                SelectFilter::make('type')->options(RouteType::class),
+                SelectFilter::make('country_id')
+                    ->label('Country')
+                    ->options(fn () => Country::orderBy('sort_order')->get()->mapWithKeys(fn (Country $c) => [$c->id => $c->translate('name', 'en')])),
+            ])
+            ->recordActions([
+                EditAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+}

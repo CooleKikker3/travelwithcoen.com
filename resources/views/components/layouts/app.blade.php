@@ -8,7 +8,7 @@
     if ($alternates === null) {
         $route = request()->route();
         $name = $route?->getName() ? preg_replace('/^('.implode('|', array_keys($locales)).')\./', '', $route->getName()) : 'home';
-        $params = $route ? array_diff_key($route->parameters(), ['type' => true]) : [];
+        $params = $route ? array_intersect_key($route->parameters(), array_flip($route->parameterNames())) : [];
         $alternates = collect($locales)->mapWithKeys(fn ($label, $l) => [$l => lroute($name, $params, $l)])->all();
     }
 

@@ -38,7 +38,7 @@
                 <span class="badge bg-sand-100 text-bark-700">{{ __('site.status.not_final') }}</span>
             </div>
             <ol class="mt-5 flex flex-wrap items-center gap-x-2 gap-y-3 text-sm font-semibold">
-                @foreach (__('site.home.direction') as $i => $stop)
+                @foreach (preg_split('/\R+/', trim(__('site.home.direction'))) as $stop)
                     <li class="flex items-center gap-2">
                         <span @class(['rounded-full px-3 py-1.5', 'bg-forest-800 text-white' => $loop->first || $loop->last, 'bg-white text-forest-700 ring-1 ring-sage-200' => ! ($loop->first || $loop->last)])>{{ $stop }}</span>
                         @unless ($loop->last)
@@ -49,6 +49,14 @@
             </ol>
             <p class="mt-4 max-w-3xl text-sm text-moss-600">{{ __('site.home.direction_note') }}</p>
         </div>
+    </section>
+
+    <section class="container-page mt-16">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <h2 class="text-3xl font-semibold">{{ __('site.home.map_title') }}</h2>
+            <a href="{{ lroute('journey') }}" class="font-semibold text-moss-600 hover:text-forest-700">{{ __('site.journey.title') }} →</a>
+        </div>
+        <x-route-map :geojson="$overview" class="mt-6 h-80 sm:h-[26rem]" />
     </section>
 
     <section class="container-page mt-16">

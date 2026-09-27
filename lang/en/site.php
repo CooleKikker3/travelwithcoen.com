@@ -40,19 +40,21 @@ return [
         ],
         'direction_title' => 'The rough direction',
         'direction_note' => 'This is a direction, not a fixed route. Visas, borders, safety, weather and my own body will shape the real one.',
-        'direction' => ['Netherlands', 'Germany', 'Eastern Europe / Balkans', 'Turkey', 'Iran / Central Asia', 'China', 'Vietnam', 'Hanoi'],
+        'direction' => "Netherlands\nGermany\nEastern Europe / Balkans\nTurkey\nIran / Central Asia\nChina\nVietnam\nHanoi",
         'preparation_title' => 'Road to Hanoi',
         'preparation_lead' => 'Training walks, gear tests, first nights in the tent and route research — the journey before the journey.',
         'diary_title' => 'Latest from the diary',
         'all_preparation' => 'All preparation',
         'all_diary' => 'Whole diary',
         'empty' => 'Nothing published yet. The first stories are on their way.',
+        'map_title' => 'The route',
     ],
 
     'journey' => [
         'title' => 'The journey',
         'lead' => 'Every country on the way gets its own page. The list below follows the current plan and will change as the route becomes clearer.',
-        'map_soon' => 'The interactive map with planned and actual route is coming in a later version.',
+        'overview' => 'The whole journey',
+        'timeline' => 'Country by country',
         'empty' => 'No countries added yet.',
         'stories' => '{0} No stories yet|{1} 1 story|[2,*] :count stories',
     ],
@@ -90,15 +92,24 @@ return [
     'about' => [
         'title' => 'About the project',
         'lead' => 'Why walk from the Netherlands to Hanoi?',
-        'body' => [
-            'I’m Coen, from Lisse in the Netherlands. In :departure I plan to leave home and walk to Hanoi, Vietnam: as much as possible on foot and over land, using transport only when a border, visa, safety or geography really requires it.',
-            'It isn’t about ticking off tourist sights. I want countryside, nature, quiet roads, dirt tracks and small villages. I’ll camp a lot, cook for myself and keep the trip as cheap as it can be without making it unsafe.',
-            'I’ve walked the Nijmegen Four Days Marches and finished an 80 km Kennedymars — and learned from my knees afterwards that walking far is one thing, and walking far day after day is another. That’s what the preparation is for.',
-            'This website is the home of the project: preparation first, then the journey itself, and afterwards the complete archive of the walk.',
-        ],
+        'body' => "I’m Coen, from Lisse in the Netherlands. In :departure I plan to leave home and walk to Hanoi, Vietnam: as much as possible on foot and over land, using transport only when a border, visa, safety or geography really requires it.\n\nIt isn’t about ticking off tourist sights. I want countryside, nature, quiet roads, dirt tracks and small villages. I’ll camp a lot, cook for myself and keep the trip as cheap as it can be without making it unsafe.\n\nI’ve walked the Nijmegen Four Days Marches and finished an 80 km Kennedymars — and learned from my knees afterwards that walking far is one thing, and walking far day after day is another. That’s what the preparation is for.\n\nThis website is the home of the project: preparation first, then the journey itself, and afterwards the complete archive of the walk.",
         'uncertain' => 'Route, countries, distances and dates are plans, not promises. Where something is uncertain, this site says so.',
     ],
 
+    'map' => [
+        'label' => 'Map of the route',
+        'planned' => 'Planned route',
+        'actual' => 'Walked route',
+        'planned_note' => 'Planned routes are not final.',
+        'no_route' => 'No route data yet.',
+    ],
+
+    'stats' => [
+        'planned' => 'Planned',
+        'walked' => 'Walked',
+        'km' => ':km km',
+        'countries' => 'Countries',
+    ],
     'footer' => [
         'note' => 'A walk from the Netherlands to Hanoi.',
     ],

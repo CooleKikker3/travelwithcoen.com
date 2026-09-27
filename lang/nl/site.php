@@ -40,19 +40,21 @@ return [
         ],
         'direction_title' => 'De globale richting',
         'direction_note' => 'Dit is een richting, geen vaste route. Visa, grenzen, veiligheid, weer en mijn eigen lichaam bepalen de echte route.',
-        'direction' => ['Nederland', 'Duitsland', 'Oost-Europa / Balkan', 'Turkije', 'Iran / Centraal-Azië', 'China', 'Vietnam', 'Hanoi'],
+        'direction' => "Nederland\nDuitsland\nOost-Europa / Balkan\nTurkije\nIran / Centraal-Azië\nChina\nVietnam\nHanoi",
         'preparation_title' => 'Road to Hanoi',
         'preparation_lead' => 'Trainingswandelingen, gear tests, de eerste nachten in de tent en routeonderzoek — de reis vóór de reis.',
         'diary_title' => 'Nieuw in het dagboek',
         'all_preparation' => 'Alle voorbereiding',
         'all_diary' => 'Heel het dagboek',
         'empty' => 'Nog niets gepubliceerd. De eerste verhalen komen eraan.',
+        'map_title' => 'De route',
     ],
 
     'journey' => [
         'title' => 'De reis',
         'lead' => 'Elk land onderweg krijgt een eigen pagina. De lijst hieronder volgt het huidige plan en verandert naarmate de route duidelijker wordt.',
-        'map_soon' => 'De interactieve kaart met geplande en gelopen route komt in een volgende versie.',
+        'overview' => 'De hele reis',
+        'timeline' => 'Land voor land',
         'empty' => 'Nog geen landen toegevoegd.',
         'stories' => '{0} Nog geen verhalen|{1} 1 verhaal|[2,*] :count verhalen',
     ],
@@ -90,15 +92,24 @@ return [
     'about' => [
         'title' => 'Over het project',
         'lead' => 'Waarom van Nederland naar Hanoi lopen?',
-        'body' => [
-            'Ik ben Coen, uit Lisse. :Departure wil ik van huis vertrekken en naar Hanoi, Vietnam lopen: zoveel mogelijk te voet en over land, en alleen vervoer gebruiken als een grens, visum, veiligheid of geografie dat echt nodig maakt.',
-            'Het gaat me niet om toeristische hoogtepunten. Ik zoek platteland, natuur, rustige wegen, onverharde paden en kleine dorpen. Ik ga veel kamperen, zelf koken en de reis zo goedkoop houden als kan zonder hem onveilig te maken.',
-            'Ik heb de Nijmeegse Vierdaagse gelopen en een Kennedymars van 80 km uitgelopen — en daarna van mijn knieën geleerd dat één keer ver lopen iets anders is dan dag na dag ver lopen. Daar is de voorbereiding voor.',
-            'Deze website is de thuisbasis van het project: eerst de voorbereiding, dan de reis zelf, en daarna het complete archief van de tocht.',
-        ],
+        'body' => "Ik ben Coen, uit Lisse. :Departure wil ik van huis vertrekken en naar Hanoi, Vietnam lopen: zoveel mogelijk te voet en over land, en alleen vervoer gebruiken als een grens, visum, veiligheid of geografie dat echt nodig maakt.\n\nHet gaat me niet om toeristische hoogtepunten. Ik zoek platteland, natuur, rustige wegen, onverharde paden en kleine dorpen. Ik ga veel kamperen, zelf koken en de reis zo goedkoop houden als kan zonder hem onveilig te maken.\n\nIk heb de Nijmeegse Vierdaagse gelopen en een Kennedymars van 80 km uitgelopen — en daarna van mijn knieën geleerd dat één keer ver lopen iets anders is dan dag na dag ver lopen. Daar is de voorbereiding voor.\n\nDeze website is de thuisbasis van het project: eerst de voorbereiding, dan de reis zelf, en daarna het complete archief van de tocht.",
         'uncertain' => 'Route, landen, afstanden en data zijn plannen, geen beloftes. Waar iets onzeker is, staat dat erbij.',
     ],
 
+    'map' => [
+        'label' => 'Kaart van de route',
+        'planned' => 'Geplande route',
+        'actual' => 'Gelopen route',
+        'planned_note' => 'Geplande routes zijn niet definitief.',
+        'no_route' => 'Nog geen routegegevens.',
+    ],
+
+    'stats' => [
+        'planned' => 'Gepland',
+        'walked' => 'Gelopen',
+        'km' => ':km km',
+        'countries' => 'Landen',
+    ],
     'footer' => [
         'note' => 'Een wandeltocht van Nederland naar Hanoi.',
     ],
