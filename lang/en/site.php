@@ -44,6 +44,7 @@ return [
         'lead_archive' => 'The complete walk: the route, the stories and the numbers.',
         'latest_location' => 'Latest public location',
         'photos_title' => 'Latest from the gallery',
+        'photos_hand' => 'snapshots from the road',
         'video_title' => 'Latest video',
         'direction_title' => 'The rough plan',
         'direction_hand' => 'more or less...',
@@ -258,5 +259,8 @@ return [
 
     'footer' => [
         'note' => 'A walk from the Netherlands to Hanoi.',
+        'hand' => 'see you on the road!',
+        'made_by' => 'Made by',
+        'sitemap' => 'Sitemap',
     ],
 ];

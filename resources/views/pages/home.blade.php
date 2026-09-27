@@ -129,12 +129,18 @@
     </section>
 
     @if ($gallery->isNotEmpty())
-        <section class="container-page mt-16">
-            <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-                <h2 class="text-3xl font-bold sm:text-4xl" data-reveal>{{ __('site.home.photos_title') }}</h2>
-                <a href="{{ lroute('gallery') }}" class="font-semibold text-moss-600 hover:text-forest-700">{{ __('site.media.title') }} →</a>
+        {{-- Newest photos and videos: light sage band with waves, pinned-up prints. --}}
+        <section class="topo-sand wave-top blend-footer mt-20 bg-sage-100 pt-24 pb-40">
+            <div class="container-page">
+                <div class="mb-8 flex flex-wrap items-end justify-between gap-4" data-reveal>
+                    <div class="flex flex-wrap items-end gap-x-4">
+                        <h2 class="text-4xl font-extrabold sm:text-5xl">{{ __('site.home.photos_title') }}</h2>
+                        <span class="-rotate-3 pb-1 font-hand text-3xl text-moss-600">{{ __('site.home.photos_hand') }}</span>
+                    </div>
+                    <a href="{{ lroute('gallery') }}" class="btn-outline">{{ __('site.media.title') }} →</a>
+                </div>
+                <x-gallery-wall :items="$gallery" />
             </div>
-            <x-gallery-wall :items="$gallery" />
         </section>
     @endif
 </x-layouts.app>

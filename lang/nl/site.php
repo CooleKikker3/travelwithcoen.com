@@ -44,6 +44,7 @@ return [
         'lead_archive' => 'De complete tocht: de route, de verhalen en de cijfers.',
         'latest_location' => 'Laatste publieke locatie',
         'photos_title' => 'Nieuw in de galerij',
+        'photos_hand' => 'kiekjes van onderweg',
         'video_title' => 'Nieuwste video',
         'direction_title' => 'Het globale plan',
         'direction_hand' => 'zo ongeveer...',
@@ -258,5 +259,8 @@ return [
 
     'footer' => [
         'note' => 'Een wandeltocht van Nederland naar Hanoi.',
+        'hand' => 'tot ziens onderweg!',
+        'made_by' => 'Gemaakt door',
+        'sitemap' => 'Sitemap',
     ],
 ];

@@ -48,6 +48,10 @@ foreach (array_keys(config('travel.locales')) as $locale) {
 }
 
 Route::get('sitemap.xml', SitemapController::class)->middleware('locale:en')->name('sitemap');
+// robots.txt as a route, so it can point search engines to the sitemap with the full (environment) URL.
+Route::get('robots.txt', fn () => response(
+    "User-agent: *\nDisallow: /admin\nDisallow: /api/\n\nSitemap: ".route('sitemap')."\n", 200, ['Content-Type' => 'text/plain'],
+));
 
 // Tracking API. Privacy is enforced here on the server, never in the browser.
 Route::prefix('api')->name('api.')->group(function () {

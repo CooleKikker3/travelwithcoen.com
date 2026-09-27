@@ -106,7 +106,7 @@
     /* Positioned, so the bricks' offsetLeft/offsetTop are relative to the grid (see wall.js). */
     position: relative;
     --cols: 2;
-    --gap: 6px;
+    --gap: 8px;
     display: grid;
     grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
     grid-auto-rows: calc((100cqw - (var(--cols) - 1) * var(--gap)) / var(--cols));
@@ -114,7 +114,7 @@
     gap: var(--gap);
 }
 
-@container (min-width: 480px) { .wall-grid { --cols: 3; --gap: 8px; } }
+@container (min-width: 480px) { .wall-grid { --cols: 3; --gap: 12px; } }
 @container (min-width: 720px) { .wall-grid { --cols: 4; } }
 @container (min-width: 960px) { .wall-grid { --cols: 5; } }
 @container (min-width: 1200px) { .wall-grid { --cols: 6; } }
@@ -123,11 +123,19 @@
     position: relative;
     display: block;
     overflow: hidden;
-    border-radius: 0.6rem;
+    border: 4px solid #fff;
+    border-radius: 0.5rem;
     background: var(--color-forest-800);
     box-shadow: 0 6px 18px -10px rgb(14 28 19 / 0.5);
     cursor: pointer;
+    transition: transform 0.35s cubic-bezier(.2, .9, .3, 1.5), box-shadow 0.35s;
 }
+
+/* Framed prints lift and tilt a little on hover (alternating direction). */
+.wall-tile:hover,
+.wall-tile:focus-visible { z-index: 2; transform: translateY(-4px) rotate(-1.5deg) scale(1.03); box-shadow: 0 18px 34px -14px rgb(14 28 19 / 0.55); }
+.wall-tile:nth-child(even):hover,
+.wall-tile:nth-child(even):focus-visible { transform: translateY(-4px) rotate(1.5deg) scale(1.03); }
 
 .wall-tile--wide { grid-column: span 2; }
 .wall-tile--tall { grid-row: span 2; }
@@ -506,7 +514,13 @@ main > section:first-child, main > article > header:first-child { padding-top: 5
 @media (prefers-reduced-motion: reduce) { .map-position span::after { animation: none; } }
 
 /* Wavy top and bottom edge (same wave as .wave-bottom, mirrored at the top). */
-.wave-both { --wave-top: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 80' preserveAspectRatio='none'%3E%3Cpath transform='matrix(1 0 0 -1 0 80)' d='M0 0h1200v40c-80 30-160 38-240 18S800 0 700 20 540 78 420 64 260 10 160 24 50 70 0 52z'/%3E%3C/svg%3E");
+.wave-both, .wave-top { --wave-top: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 80' preserveAspectRatio='none'%3E%3Cpath transform='matrix(1 0 0 -1 0 80)' d='M0 0h1200v40c-80 30-160 38-240 18S800 0 700 20 540 78 420 64 260 10 160 24 50 70 0 52z'/%3E%3C/svg%3E");
     --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 80' preserveAspectRatio='none'%3E%3Cpath d='M0 0h1200v40c-80 30-160 38-240 18S800 0 700 20 540 78 420 64 260 10 160 24 50 70 0 52z'/%3E%3C/svg%3E");
     -webkit-mask: var(--wave-top) top / 100% 80px no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 156px) no-repeat, var(--wave) bottom / 100% 80px no-repeat;
     mask: var(--wave-top) top / 100% 80px no-repeat, linear-gradient(#000 0 0) center / 100% calc(100% - 156px) no-repeat, var(--wave) bottom / 100% 80px no-repeat; }
+
+/* Wavy top edge only (footer). */
+.wave-top { -webkit-mask: var(--wave-top) top / 100% 80px no-repeat, linear-gradient(#000 0 0) bottom / 100% calc(100% - 79px) no-repeat;
+    mask: var(--wave-top) top / 100% 80px no-repeat, linear-gradient(#000 0 0) bottom / 100% calc(100% - 79px) no-repeat; }
+/* When a section with .blend-footer ends the page, the footer's wave falls into it (no gap, colours flow into each other). */
+main:has(> .blend-footer:last-child) + footer { margin-top: -80px; position: relative; }

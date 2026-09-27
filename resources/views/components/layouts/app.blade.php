@@ -109,17 +109,44 @@
         {{ $slot }}
     </main>
 
-    <footer class="topo mt-20 bg-forest-950 text-sage-200">
-        <div class="container-page flex flex-col gap-4 py-10 text-sm sm:flex-row sm:items-center sm:justify-between">
-            <p><span class="font-display text-base text-white">{{ __('site.name') }}</span> — {{ __('site.footer.note') }}</p>
-            <div class="flex flex-wrap items-center gap-4">
+    {{-- Footer: wavy top edge, logo with a handwritten goodbye, the menu, family login, copyright. --}}
+    <footer class="topo wave-top mt-24 bg-forest-950 pt-32 text-sage-200">
+        <div class="container-page grid gap-10 pb-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr] lg:items-center">
+            <div>
+                <a href="{{ lroute('home') }}" class="group inline-flex items-center gap-3">
+                    <svg class="size-12 shrink-0 text-fern-300 transition duration-500 group-hover:-rotate-12" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+                        <path d="M3 28 L13 12 L19 21 L23 16 L33 28 Z" fill="currentColor" opacity=".25"/>
+                        <path d="M3 28 L13 12 L19 21 L23 16 L33 28" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M6 33 C12 30, 16 31, 20 29 S29 26, 32 23" stroke="#c2c07a" stroke-width="1.6" stroke-dasharray="2 2.5" stroke-linecap="round"/>
+                    </svg>
+                    <span class="font-display text-2xl font-extrabold text-white">{{ __('site.name') }}</span>
+                </a>
+                <p class="mt-3 max-w-xs">{{ __('site.footer.note') }}</p>
+                <p class="mt-4 -rotate-2 font-hand text-3xl text-olive-300">{{ __('site.footer.hand') }}</p>
+            </div>
+
+            <nav aria-label="Footer">
+                <ul class="grid grid-cols-2 gap-x-6 gap-y-2 font-bold">
+                    @foreach ($nav as $name => $label)
+                        <li><a href="{{ lroute($name) }}" class="inline-block transition hover:translate-x-1 hover:text-white">{{ $label }}</a></li>
+                    @endforeach
+                </ul>
+            </nav>
+
+            <div class="flex flex-col items-start gap-3 text-sm lg:items-end">
                 @auth
                     <span>{{ __('site.login.logged_in_as', ['name' => auth()->user()->name]) }}</span>
-                    <form method="POST" action="{{ lroute('logout') }}">@csrf<button class="font-semibold text-fern-300 hover:text-white">{{ __('site.login.logout') }}</button></form>
+                    <form method="POST" action="{{ lroute('logout') }}">@csrf<button class="btn-ghost">{{ __('site.login.logout') }}</button></form>
                 @else
-                    <a href="{{ lroute('login') }}" class="font-semibold text-fern-300 hover:text-white">{{ __('site.live.family') }}</a>
+                    <a href="{{ lroute('login') }}" class="btn-ghost">{{ __('site.live.family') }}</a>
                 @endauth
-                <span class="text-fern-300">© {{ date('Y') }} Coen</span>
+            </div>
+        </div>
+
+        <div class="border-t border-dashed border-forest-700">
+            <div class="container-page flex flex-col gap-2 py-5 text-xs sm:flex-row sm:items-center sm:justify-between">
+                <p>&copy; {{ now()->year > 2026 ? '2026–'.now()->year : '2026' }} {{ __('site.name') }} · <a href="{{ route('sitemap') }}" class="hover:text-white">{{ __('site.footer.sitemap') }}</a></p>
+                <p>{{ __('site.footer.made_by') }} <a href="https://coenvink.com" class="font-bold text-fern-300 hover:text-white">coenvink.com</a></p>
             </div>
         </div>
     </footer>
