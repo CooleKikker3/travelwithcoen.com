@@ -22,7 +22,6 @@
         'live' => __('site.nav.live'),
         'gallery' => __('site.nav.media'),
         'equipment' => __('site.nav.equipment'),
-        'statistics' => __('site.nav.statistics'),
         'about' => __('site.nav.about'),
     ];
     $current = preg_replace('/^[a-z]{2}\./', '', request()->route()?->getName() ?? '');

@@ -14,7 +14,6 @@ return [
         'journey' => 'Journey',
         'about' => 'About',
         'live' => 'Live',
-        'statistics' => 'Statistics',
         'equipment' => 'Gear',
         'media' => 'Gallery',
     ],

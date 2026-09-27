@@ -23,7 +23,7 @@ class ContentTest extends TestCase
 
     public function test_new_pages_render_in_both_languages(): void
     {
-        $pages = ['/live' => '/nl/live', '/statistics' => '/nl/statistieken', '/gear' => '/nl/uitrusting', '/gallery' => '/nl/galerij', '/login' => '/nl/inloggen'];
+        $pages = ['/live' => '/nl/live', '/gear' => '/nl/uitrusting', '/gallery' => '/nl/galerij', '/login' => '/nl/inloggen'];
 
         foreach ($pages as $en => $nl) {
             $this->get($en)->assertOk();

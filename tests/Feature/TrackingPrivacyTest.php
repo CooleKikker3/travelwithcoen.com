@@ -100,6 +100,7 @@ class TrackingPrivacyTest extends TestCase
 
         $this->assertSame(25.0, JourneyStats::for(null)['distance_km']);
         $this->assertSame(55.0, JourneyStats::for($this->trusted())['distance_km']);
-        $this->get('/statistics')->assertOk()->assertSee('25 km')->assertDontSee('55 km');
+        $this->get('/journey')->assertOk()->assertSee('25 km')->assertDontSee('55 km');
+        $this->get('/nl/statistieken')->assertRedirect(url('/nl/reis'));
     }
 }

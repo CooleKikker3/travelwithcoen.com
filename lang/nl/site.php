@@ -14,7 +14,6 @@ return [
         'journey' => 'Reis',
         'about' => 'Over',
         'live' => 'Live',
-        'statistics' => 'Statistieken',
         'equipment' => 'Uitrusting',
         'media' => 'Galerij',
     ],

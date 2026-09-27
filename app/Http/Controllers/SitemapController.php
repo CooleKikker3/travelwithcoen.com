@@ -13,7 +13,7 @@ class SitemapController extends Controller
         $locales = array_keys(config('travel.locales'));
         $urls = [];
 
-        foreach (['home', 'journey', 'live', 'statistics', 'equipment', 'gallery', 'about'] as $name) {
+        foreach (['home', 'journey', 'live', 'equipment', 'gallery', 'about'] as $name) {
             foreach ($locales as $locale) {
                 $urls[] = ['loc' => lroute($name, [], $locale), 'lastmod' => null];
             }
