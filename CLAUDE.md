@@ -31,4 +31,5 @@ Website + CMS for Coen's walk from the Netherlands to Hanoi. Full requirements: 
 
 ## Open notes (for next session)
 - Maps: NASA Blue Marble (no credit). Interactive maps switch to Esri imagery + place names beyond zoom 8 and faded road/street names from zoom 14 (`sharpWhenZoomed()` in map.js), credit shown only then — not yet visually checked. Check the Esri terms before going live.
+- Overview, Live and the Dutch country map start at Lisse (`start-home` on `x-route-map`) until there is a visible location.
 - Country widget still blurs the surroundings (`.map-surroundings` in app.css).

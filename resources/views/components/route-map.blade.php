@@ -1,7 +1,7 @@
-@props(['geojson', 'interactive' => true, 'legend' => true, 'border' => null])
+@props(['geojson', 'interactive' => true, 'legend' => true, 'border' => null, 'startHome' => false])
 {{-- Map of planned (dashed) and actual (solid) routes. With a border (MultiPolygon coordinates) only that country is shown. Initialised lazily by resources/js/map.js. --}}
 <figure {{ $attributes->class('relative overflow-hidden rounded-2xl bg-sage-100 ring-1 ring-sage-200') }}
-    data-route-map data-interactive="{{ $interactive ? 'true' : 'false' }}">
+    data-route-map data-interactive="{{ $interactive ? 'true' : 'false' }}" data-start-home="{{ $startHome ? 'true' : 'false' }}">
     <script type="application/json">@json($geojson)</script>
     @if ($border)
         <script type="application/json" data-border>@json($border)</script>

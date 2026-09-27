@@ -10,6 +10,9 @@ const styles = {
 // Rough view of the whole direction (Netherlands → Vietnam) for maps without data.
 const fallbackView = { center: [40, 60], zoom: 3 };
 
+// Starting point of the walk (Lisse), shown on the overview and Dutch maps until there is a location.
+const home = [52.2575, 4.5570];
+
 // NASA Blue Marble satellite imagery (public domain: no credit needed), no place names.
 // Native detail up to zoom 8 (~500 m/pixel); closer zoom levels are upscaled.
 const satellite = {
@@ -103,7 +106,11 @@ function initMap(figure) {
         // Zoom to the mainland (largest part), so overseas territories don't shrink the country.
         const mainland = polygons.map((p) => L.latLngBounds(p)).sort((a, b) => area(b) - area(a))[0];
         map.fitBounds(mainland, { padding: [12, 12], animate: false });
-        clip();    } else if (layer.getLayers().length) {
+        clip();
+    } else if (figure.dataset.startHome === 'true' && !data.features.some((f) => f.properties.type === 'position')) {
+        // No (visible) location yet: start at home, Lisse.
+        map.setView(home, 8);
+    } else if (layer.getLayers().length) {
         map.fitBounds(layer.getBounds(), { padding: [24, 24] });
     } else {
         map.setView(fallbackView.center, fallbackView.zoom);

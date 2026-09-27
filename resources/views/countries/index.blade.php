@@ -20,7 +20,7 @@
 
     <section class="container-page mt-10">
         <h2 class="sr-only">{{ __('site.journey.overview') }}</h2>
-        <x-route-map :geojson="$overview" class="h-[28rem] sm:h-[34rem]" />
+        <x-route-map :geojson="$overview" start-home class="h-[28rem] sm:h-[34rem]" />
         <p class="mt-3 text-sm text-moss-600">{{ __('site.map.planned_note') }}</p>
     </section>
 

@@ -13,7 +13,7 @@
     </x-page-header>
 
     <section class="container-page mt-10 grid gap-6 lg:grid-cols-[1fr_20rem]">
-        <x-route-map :geojson="$map" class="h-[28rem] sm:h-[36rem]" />
+        <x-route-map :geojson="$map" start-home class="h-[28rem] sm:h-[36rem]" />
 
         <aside class="space-y-4">
             @if ($last)

@@ -89,7 +89,7 @@
             <h2 class="text-3xl font-semibold">{{ __('site.home.map_title') }}</h2>
             <a href="{{ lroute('journey') }}" class="font-semibold text-moss-600 hover:text-forest-700">{{ __('site.journey.title') }} →</a>
         </div>
-        <x-route-map :geojson="$overview" class="mt-6 h-80 sm:h-[26rem]" />
+        <x-route-map :geojson="$overview" start-home class="mt-6 h-80 sm:h-[26rem]" />
     </section>
 
     @php

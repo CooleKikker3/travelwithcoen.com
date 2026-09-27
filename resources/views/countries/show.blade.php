@@ -11,7 +11,7 @@
     </x-page-header>
 
     <section class="container-page mt-10">
-        <x-route-map :geojson="$map" class="h-[26rem] sm:h-[32rem]" />
+        <x-route-map :geojson="$map" :start-home="$country->iso_code === 'NL'" class="h-[26rem] sm:h-[32rem]" />
         <p class="mt-3 text-sm text-moss-600">{{ __('site.map.planned_note') }}</p>
     </section>
 
