@@ -154,11 +154,11 @@
     transition: transform 0.3s ease, background 0.3s ease;
 }
 
-/* The triangle sits slightly right of centre so it looks optically centred. */
+/* The icon path is already drawn with its visual centre (centroid) in the middle. */
 .wall-play svg {
-    width: 42%;
-    height: 42%;
-    margin-left: 8%;
+    display: block;
+    width: 44%;
+    height: 44%;
 }
 
 /* Videos: a light dark overlay so the play button stands out. */
