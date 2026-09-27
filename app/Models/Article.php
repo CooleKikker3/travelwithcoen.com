@@ -44,6 +44,19 @@ class Article extends Model
             }
         });
 
+        // Upload details as metadata on the cover file in R2.
+        static::saved(function (Article $article) {
+            if ($article->cover_image && ($article->wasRecentlyCreated || $article->wasChanged('cover_image'))) {
+                MediaStorage::describe($article->cover_image, [
+                    'uploaded-at' => now()->toIso8601String(),
+                    'uploaded-by' => auth()->user()?->name,
+                    'kind' => 'article-cover',
+                    'article-id' => $article->id,
+                    'article' => $article->translate('title', 'en'),
+                ]);
+            }
+        });
+
         // Images in the text also appear in the gallery.
         static::saved(fn (Article $article) => app(ArticleGallerySync::class)->sync($article));
     }

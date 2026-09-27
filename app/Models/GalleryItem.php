@@ -52,6 +52,31 @@ class GalleryItem extends Model
                 $item->taken_at ??= now();
             }
         });
+
+        // Upload details as metadata on the file in R2.
+        static::saved(function (GalleryItem $item) {
+            if ($item->path && ($item->wasRecentlyCreated || $item->wasChanged('path'))) {
+                MediaStorage::describe($item->path, $item->storageMetadata());
+            }
+        });
+    }
+
+    /** @return array<string, scalar|null> */
+    public function storageMetadata(): array
+    {
+        return [
+            'uploaded-at' => ($this->created_at ?? now())->toIso8601String(),
+            'uploaded-by' => auth()->user()?->name,
+            'gallery-item-id' => $this->id,
+            'kind' => $this->kind,
+            'source' => $this->source,
+            'taken-at' => $this->taken_at?->toIso8601String(),
+            'width' => $this->width,
+            'height' => $this->height,
+            'country' => $this->country?->iso_code,
+            'article-id' => $this->article_id,
+            'caption' => $this->translate('caption', 'en'),
+        ];
     }
 
     public function country(): BelongsTo
@@ -105,7 +130,8 @@ class GalleryItem extends Model
     public function thumbnailUrl(): ?string
     {
         return match ($this->kind) {
-            'youtube' => "https://i.ytimg.com/vi/{$this->youtube_id}/hqdefault.jpg",
+            // mqdefault is 16:9 without the black bars of hqdefault.
+            'youtube' => "https://i.ytimg.com/vi/{$this->youtube_id}/mqdefault.jpg",
             'image' => $this->url(),
             default => null,
         };

@@ -90,21 +90,27 @@
  * bricks of different sizes packed into a dense grid that always fills the full width;
  * later bricks fill the gaps, and bricks slide to their new place when the width changes.
  */
+/* Square cells that grow with the wall's width: 2–6 columns depending on the space. */
+.wall-body {
+    container-type: inline-size;
+}
+
 .wall-grid {
+    /* Positioned, so the bricks' offsetLeft/offsetTop are relative to the grid (see wall.js). */
+    position: relative;
+    --cols: 2;
+    --gap: 6px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    grid-auto-rows: 110px;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    grid-auto-rows: calc((100cqw - (var(--cols) - 1) * var(--gap)) / var(--cols));
     grid-auto-flow: row dense;
-    gap: 8px;
+    gap: var(--gap);
 }
 
-@media (min-width: 640px) {
-    .wall-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); grid-auto-rows: 140px; }
-}
-
-@media (min-width: 1024px) {
-    .wall-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); grid-auto-rows: 160px; }
-}
+@container (min-width: 480px) { .wall-grid { --cols: 3; --gap: 8px; } }
+@container (min-width: 720px) { .wall-grid { --cols: 4; } }
+@container (min-width: 960px) { .wall-grid { --cols: 5; } }
+@container (min-width: 1200px) { .wall-grid { --cols: 6; } }
 
 .wall-tile {
     position: relative;
@@ -201,10 +207,14 @@
 [data-wall-next].is-loading { opacity: 0.6; pointer-events: none; }
 
 /* Lightbox: large media left, description right (stacked on small screens). */
+/* The lightbox wraps the media: as large as the screen allows, info panel on the right. */
 .wall-lightbox {
-    width: min(1200px, 94vw);
-    max-width: none;
-    max-height: 92vh;
+    --info: 20rem;
+    --media-w: calc(96vw - var(--info));
+    --media-h: 92vh;
+    width: fit-content;
+    max-width: 96vw;
+    max-height: 94vh;
     margin: auto;
     padding: 0;
     overflow: hidden;
@@ -222,17 +232,22 @@
 
 .wall-lightbox__inner {
     display: grid;
-    max-height: 92vh;
+    max-height: 94vh;
     grid-template-rows: minmax(0, 1fr) auto;
 }
 
 @media (min-width: 768px) {
-    .wall-lightbox__inner { grid-template-columns: minmax(0, 1fr) 20rem; grid-template-rows: none; }
+    .wall-lightbox__inner { grid-template-columns: auto var(--info); grid-template-rows: none; }
+    .wall-lightbox__media { min-height: 40vh; }
+}
+
+/* Small screens: media on top (max 65% of the height), info below. */
+@media (max-width: 767px) {
+    .wall-lightbox { --media-w: 96vw; --media-h: 65vh; }
 }
 
 .wall-lightbox__media {
     display: flex;
-    min-height: 40vh;
     align-items: center;
     justify-content: center;
     background: var(--color-forest-950);
@@ -240,15 +255,20 @@
 
 .wall-lightbox__media img,
 .wall-lightbox__media video {
-    max-width: 100%;
-    max-height: 92vh;
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: var(--media-w);
+    max-height: var(--media-h);
     object-fit: contain;
 }
 
+/* 16:9 players: as wide as fits both the width and the height. */
 .wall-lightbox__media iframe,
 .wall-lightbox__poster {
     position: relative;
-    width: 100%;
+    display: block;
+    width: min(var(--media-w), calc(var(--media-h) * 16 / 9), 1400px);
     aspect-ratio: 16 / 9;
     border: 0;
 }
@@ -258,6 +278,7 @@
 
 .wall-lightbox__info {
     display: flex;
+    max-height: var(--media-h);
     flex-direction: column;
     overflow-y: auto;
     padding: 1.5rem;

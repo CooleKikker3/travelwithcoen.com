@@ -4,6 +4,7 @@ namespace App\Support;
 
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Where uploaded photos and videos live: the local "public" disk in development,
@@ -19,6 +20,37 @@ class MediaStorage
     public static function disk(): Filesystem
     {
         return Storage::disk(self::diskName());
+    }
+
+    /**
+     * Attach metadata to a stored file (only on R2/S3; the local disk has no metadata). Done with an
+     * in-place copy inside the bucket, so large videos are not downloaded again. Also sets a long
+     * browser cache, as uploaded files never change under the same name.
+     *
+     * @param  array<string, scalar|null>  $metadata
+     */
+    public static function describe(string $path, array $metadata): void
+    {
+        $disk = self::disk();
+        $config = config('filesystems.disks.'.self::diskName());
+
+        if (($config['driver'] ?? null) !== 's3' || ! method_exists($disk, 'getClient')) {
+            return;
+        }
+
+        rescue(fn () => $disk->getClient()->copyObject([
+            'Bucket' => $config['bucket'],
+            'Key' => $path,
+            'CopySource' => $config['bucket'].'/'.str_replace('%2F', '/', rawurlencode($path)),
+            'MetadataDirective' => 'REPLACE',
+            // S3 metadata must be ASCII and is limited in size.
+            'Metadata' => collect($metadata)
+                ->filter(fn ($value) => filled($value))
+                ->map(fn ($value) => Str::limit(Str::ascii((string) $value), 200, ''))
+                ->all(),
+            'ContentType' => $disk->mimeType($path) ?: 'application/octet-stream',
+            'CacheControl' => 'public, max-age=31536000, immutable',
+        ]));
     }
 
     public static function url(string $path): string

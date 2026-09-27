@@ -28,26 +28,83 @@ function initWall(wall) {
         popIn.observe(tile);
     };
     tiles().forEach(prepare);
-    slideOnResize(grid, tiles);
 
-    const loadMore = initInfiniteScroll(wall, grid, prepare);
+    const relayout = () => fillGaps(grid, tiles());
+    relayout();
+    slideOnResize(grid, tiles, relayout);
+
+    const loadMore = initInfiniteScroll(wall, grid, prepare, relayout);
     initLightbox(wall, grid, tiles, loadMore);
 }
 
+/**
+ * Freewall-style gap filling: the dense grid can't fill a hole with a brick that is too big, so a
+ * brick left of a hole grows into it (or the brick above grows down). Repeats until the wall is
+ * closed; only the last row may stay open. Extra spans are reset first, so it adapts to every width.
+ */
+function fillGaps(grid, tiles) {
+    tiles.forEach((tile) => { tile.style.gridColumnStart = ''; tile.style.gridRowStart = ''; });
+
+    const style = getComputedStyle(grid);
+    const cols = style.gridTemplateColumns.split(' ').length;
+    const gap = parseFloat(style.columnGap) || 0;
+
+    for (let pass = 0; pass < 200; pass++) {
+        const cellW = (grid.clientWidth + gap) / cols;
+        const cellH = (parseFloat(getComputedStyle(grid).gridAutoRows) || cellW - gap) + gap;
+        const cells = new Map();
+        let rows = 0;
+
+        const bricks = tiles.map((tile) => {
+            // offset* = layout position, unaffected by the pop-in/slide transforms.
+            const brick = {
+                tile,
+                col: Math.round(tile.offsetLeft / cellW),
+                row: Math.round(tile.offsetTop / cellH),
+                cs: Math.max(1, Math.round((tile.offsetWidth + gap) / cellW)),
+                rs: Math.max(1, Math.round((tile.offsetHeight + gap) / cellH)),
+            };
+            for (let r = brick.row; r < brick.row + brick.rs; r++) {
+                for (let c = brick.col; c < brick.col + brick.cs; c++) cells.set(`${r},${c}`, brick);
+            }
+            rows = Math.max(rows, brick.row + brick.rs);
+            return brick;
+        });
+        if (!bricks.length) return;
+
+        const free = (r, c) => c >= 0 && c < cols && !cells.has(`${r},${c}`);
+        const hole = (() => {
+            for (let r = 0; r < rows - 1; r++) for (let c = 0; c < cols; c++) if (free(r, c)) return [r, c];
+            return null;
+        })();
+        if (!hole) return;
+
+        const [r, c] = hole;
+        const left = cells.get(`${r},${c - 1}`);
+        const above = cells.get(`${r - 1},${c}`);
+        const range = (from, length) => Array.from({ length }, (_, i) => from + i);
+
+        if (left && range(left.row, left.rs).every((row) => free(row, c))) {
+            left.tile.style.gridColumnStart = `span ${left.cs + 1}`;
+        } else if (above && range(above.col, above.cs).every((col) => free(r, col))) {
+            above.tile.style.gridRowStart = `span ${above.rs + 1}`;
+        } else if (left) {
+            left.tile.style.gridColumnStart = `span ${left.cs + 1}`; // may push things around; the next pass re-measures
+        } else {
+            return;
+        }
+    }
+}
+
 // When the width changes the grid repacks; bricks then slide from their old to their new place (FLIP).
-function slideOnResize(grid, tiles) {
-    const measure = () => {
-        const origin = grid.getBoundingClientRect();
-        return new Map(tiles().map((tile) => {
-            const rect = tile.getBoundingClientRect();
-            return [tile, { x: rect.left - origin.left, y: rect.top - origin.top }];
-        }));
-    };
+function slideOnResize(grid, tiles, relayout) {
+    const measure = () => new Map(tiles().map((tile) => [tile, { x: tile.offsetLeft, y: tile.offsetTop }]));
 
     let positions = measure();
     let width = grid.clientWidth;
 
     new ResizeObserver(() => {
+        if (grid.clientWidth !== width) relayout();
         const next = measure();
         if (!reduceMotion && grid.clientWidth !== width) {
             next.forEach((position, tile) => {
@@ -64,7 +121,7 @@ function slideOnResize(grid, tiles) {
     }).observe(grid);
 }
 
-function initInfiniteScroll(wall, grid, prepare) {
+function initInfiniteScroll(wall, grid, prepare, relayout) {
     const more = wall.querySelector('[data-wall-next]');
     if (!more) return null;
 
@@ -85,6 +142,7 @@ function initInfiniteScroll(wall, grid, prepare) {
                     grid.appendChild(tile);
                     prepare(tile);
                 });
+                relayout();
                 const next = page.querySelector('[data-wall-next]');
                 next ? more.setAttribute('href', next.getAttribute('href')) : more.parentElement.remove();
             })
@@ -139,17 +197,24 @@ function initLightbox(wall, grid, tiles, loadMore) {
         const media = $('media');
         media.replaceChildren();
 
+        // Photos and videos always fill the available space (also small photos), keeping their shape.
+        const fill = (node) => {
+            node.style.width = `min(var(--media-w), calc(var(--media-h) * ${Number(d.ratio) || 1.5}))`;
+            node.style.aspectRatio = d.ratio;
+            return node;
+        };
+
         if (d.kind === 'image') {
-            media.append(el('img', { src: d.src, alt: d.caption || '' }));
+            media.append(fill(el('img', { src: d.src, alt: d.caption || '' })));
         } else if (d.kind === 'video') {
-            media.append(el('video', { src: d.src, controls: true, playsInline: true, preload: 'metadata' }));
+            media.append(fill(el('video', { src: d.src, controls: true, playsInline: true, preload: 'metadata' })));
         } else {
             // YouTube: a poster first; the player only loads when started.
             const poster = el('button', { type: 'button', className: 'wall-lightbox__poster' });
             poster.setAttribute('aria-label', $('play').textContent.trim());
             poster.dataset.youtubePoster = d.src;
-            const image = el('img', { src: d.thumb.replace('hqdefault', 'maxresdefault'), alt: '' });
-            image.addEventListener('error', () => { image.src = d.thumb; }, { once: true });
+            const image = el('img', { src: d.thumb, alt: '' });
+            image.addEventListener('error', () => { image.src = d.thumbFallback; }, { once: true });
             const icon = el('span', { className: 'wall-play' });
             icon.innerHTML = PLAY_ICON;
             poster.append(image, icon);
@@ -164,6 +229,9 @@ function initLightbox(wall, grid, tiles, loadMore) {
         $('play').hidden = d.kind === 'image';
         $('prev').disabled = current === 0;
         $('next').disabled = current === list.length - 1 && !wall.querySelector('[data-wall-next]');
+
+        // Shareable link to this item (#item-12, not the element id, so the page doesn't jump); removed on close.
+        history.replaceState(null, '', `#${list[current].id.replace('wall-', '')}`);
     }
 
     async function step(direction) {
@@ -184,7 +252,17 @@ function initLightbox(wall, grid, tiles, loadMore) {
     $('next').addEventListener('click', () => step(1));
     $('close').addEventListener('click', () => dialog.close());
     dialog.addEventListener('click', (event) => event.target === dialog && dialog.close()); // click on the backdrop
-    dialog.addEventListener('close', () => $('media').replaceChildren()); // stops a playing video
+    dialog.addEventListener('close', () => {
+        $('media').replaceChildren(); // stops a playing video
+        history.replaceState(null, '', location.pathname + location.search);
+    });
+
+    // Opened via a shared link: /gallery#item-12
+    const linked = location.hash.startsWith('#item-') && grid.querySelector(`#wall-${CSS.escape(location.hash.slice(1))}`);
+    if (linked) {
+        show(tiles().indexOf(linked));
+        dialog.showModal();
+    }
     dialog.addEventListener('keydown', (event) => {
         if (event.key === 'ArrowLeft') step(-1);
         if (event.key === 'ArrowRight') step(1);

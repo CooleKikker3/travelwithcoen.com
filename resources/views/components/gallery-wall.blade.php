@@ -5,6 +5,8 @@
     large version and its description; videos only play when started there. See resources/js/wall.js.
 --}}
 <div data-wall {{ $attributes->class('wall') }}>
+    {{-- Container for the square cell size (100cqw); the lightbox must stay outside it. --}}
+    <div class="wall-body">
     <div data-wall-grid class="wall-grid">
         @foreach ($items as $item)
             @php
@@ -17,11 +19,15 @@
                     default => '',
                 };
                 $caption = $item->translate('caption');
+                // Sharp 16:9 YouTube thumbnail; falls back to the smaller one if a video has no HD version.
+                $hd = $item->isYoutube() ? "https://i.ytimg.com/vi/{$item->youtube_id}/maxresdefault.jpg" : null;
             @endphp
-            <a href="{{ $item->url() }}" data-wall-item @class(['wall-tile', $shape, 'wall-tile--video' => $item->isVideo() || $item->isYoutube()])
+            <a href="{{ $item->url() }}" id="wall-item-{{ $item->id }}" data-wall-item @class(['wall-tile', $shape, 'wall-tile--video' => $item->isVideo() || $item->isYoutube()])
                 data-kind="{{ $item->kind }}"
+                data-ratio="{{ $item->ratio() }}"
                 data-src="{{ $item->isYoutube() ? $item->youtube_id : $item->url() }}"
-                data-thumb="{{ $item->thumbnailUrl() }}"
+                data-thumb="{{ $item->isYoutube() ? $hd : $item->thumbnailUrl() }}"
+                data-thumb-fallback="{{ $item->thumbnailUrl() }}"
                 data-caption="{{ $caption }}"
                 data-date="{{ $item->taken_at?->translatedFormat('j F Y') }}"
                 data-country="{{ $item->country ? $item->country->flag().' '.$item->country->translate('name') : '' }}"
@@ -32,13 +38,15 @@
                 @if ($item->isVideo())
                     <video src="{{ $item->url() }}#t=0.5" preload="metadata" muted playsinline tabindex="-1" aria-hidden="true"></video>
                 @else
-                    <img src="{{ $item->thumbnailUrl() }}" alt="{{ $caption ?? '' }}" loading="lazy">
+                    <img src="{{ $item->isYoutube() ? $hd : $item->thumbnailUrl() }}" alt="{{ $caption ?? '' }}" loading="lazy"
+                        @if ($item->isYoutube()) onerror="this.onerror=null;this.src='{{ $item->thumbnailUrl() }}'" @endif>
                 @endif
                 @if ($item->isVideo() || $item->isYoutube())
                     <span class="wall-play" aria-hidden="true"><x-icons.play /></span>
                 @endif
             </a>
         @endforeach
+    </div>
     </div>
 
     @if ($next)
@@ -59,7 +67,7 @@
                 <div class="mt-auto flex items-center gap-2 pt-6">
                     <button type="button" data-lightbox-prev class="wall-lightbox__nav" aria-label="{{ __('site.media.previous') }}">←</button>
                     <button type="button" data-lightbox-next class="wall-lightbox__nav" aria-label="{{ __('site.media.next') }}">→</button>
-                    <button type="button" data-lightbox-close class="wall-lightbox__nav ms-auto" aria-label="{{ __('site.media.close') }}">✕</button>
+                    <button type="button" data-lightbox-close autofocus class="wall-lightbox__nav ms-auto" aria-label="{{ __('site.media.close') }}">✕</button>
                 </div>
             </aside>
         </div>
