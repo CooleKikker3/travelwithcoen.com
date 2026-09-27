@@ -56,12 +56,13 @@
                     @php(['planned' => $planned, 'actual' => $actual] = $distances[$country->id])
                     <li class="relative">
                         <span class="absolute top-7 -left-[33px] size-4 rounded-full border-4 border-mist-50 bg-moss-500 sm:-left-[49px]" aria-hidden="true"></span>
-                        <article class="grid overflow-hidden rounded-2xl bg-white ring-1 ring-sage-200 md:grid-cols-[1fr_1.2fr]">
+                        <article class="group relative grid overflow-hidden rounded-2xl bg-white ring-1 ring-sage-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-forest-900/10 hover:ring-moss-400 focus-within:ring-2 focus-within:ring-moss-500 md:grid-cols-[1fr_1.2fr]">
                             <div class="flex flex-col gap-3 p-6">
                                 <div class="flex flex-wrap items-center gap-3">
                                     <x-flag :country="$country" class="text-3xl" />
                                     <h3 class="font-display text-2xl font-semibold">
-                                        <a href="{{ $country->url() }}" class="hover:text-moss-600">{{ $country->translate('name') }}</a>
+                                        {{-- The link covers the whole card (after:inset-0, above the map). --}}
+                                        <a href="{{ $country->url() }}" class="transition group-hover:text-moss-600 focus:outline-none after:absolute after:inset-0 after:z-[600]">{{ $country->translate('name') }}</a>
                                     </h3>
                                 </div>
                                 <div><span class="badge">{{ $country->status->getLabel() }}</span></div>
@@ -72,11 +73,12 @@
                                     <div><dt class="inline text-moss-600">{{ __('site.stats.planned') }}:</dt> <dd class="inline font-semibold">{{ $km($planned) }}</dd></div>
                                     <div><dt class="inline text-moss-600">{{ __('site.stats.walked') }}:</dt> <dd class="inline font-semibold">{{ $km($actual) }}</dd></div>
                                     <div class="text-moss-600">{{ trans_choice('site.journey.stories', $country->articles_count) }}</div>
+                                    <div class="ml-auto font-semibold text-moss-600 transition duration-300 group-hover:translate-x-1" aria-hidden="true">→</div>
                                 </dl>
                             </div>
-                            <a href="{{ $country->url() }}" class="block" tabindex="-1" aria-hidden="true">
-                                <x-route-map :geojson="$maps[$country->id]" :border="\App\Support\RouteGeometry::border($country->iso_code)" :interactive="false" :legend="false" class="h-56 rounded-none ring-0 md:h-full md:min-h-56" />
-                            </a>
+                            <div class="overflow-hidden">
+                                <x-route-map :geojson="$maps[$country->id]" :border="\App\Support\RouteGeometry::border($country->iso_code)" :interactive="false" :legend="false" class="h-56 rounded-none ring-0 transition duration-500 group-hover:scale-105 md:h-full md:min-h-56" />
+                            </div>
                         </article>
                     </li>
                 @endforeach
