@@ -17,6 +17,19 @@ const satellite = {
     options: { maxZoom: 18, maxNativeZoom: 8 },
 };
 
+// Zoomed in far (beyond NASA detail): switch to sharp Esri imagery, which requires a credit, shown only then.
+function sharpWhenZoomed(map) {
+    const esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 });
+    const credit = L.control.attribution({ prefix: false }).addAttribution('Imagery &copy; Esri, Maxar, Earthstar Geographics');
+    const update = () => {
+        const sharp = map.getZoom() > 8;
+        if (sharp && !map.hasLayer(esri)) { esri.addTo(map); credit.addTo(map); }
+        if (!sharp && map.hasLayer(esri)) { esri.remove(); credit.remove(); }
+    };
+    map.on('zoomend', update);
+    map.whenReady(update);
+}
+
 const area = (bounds) => (bounds.getNorth() - bounds.getSouth()) * (bounds.getEast() - bounds.getWest());
 
 function initMap(figure) {
@@ -25,7 +38,7 @@ function initMap(figure) {
 
     const map = L.map(figure.querySelector('[data-map-canvas]'), {
         scrollWheelZoom: false,
-        attributionControl: false, // Leaflet and NASA imagery need no credit on the map
+        attributionControl: false, // Leaflet and NASA imagery need no credit; see sharpWhenZoomed()
         zoomSnap: 0.25, // lets a country fill its map instead of jumping a whole zoom level
         zoomControl: interactive,
         dragging: interactive,
@@ -40,6 +53,7 @@ function initMap(figure) {
 
     if (!borderData) {
         L.tileLayer(satellite.url, satellite.options).addTo(map);
+        if (interactive) sharpWhenZoomed(map);
     }
 
     const layer = L.geoJSON(data, {

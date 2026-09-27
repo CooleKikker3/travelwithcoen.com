@@ -28,3 +28,7 @@ Website + CMS for Coen's walk from the Netherlands to Hanoi. Full requirements: 
 ## Roadmap
 - Done: phases 0–6 — i18n, CMS, website texts, routes/maps, tracking + privacy + family login, journey days/events/statistics, equipment, media, private budget, dashboard, settings, sitemap, security headers.
 - Open: Garmin integration (after research), deployment + backups + map tile provider, 2FA, design polish (postponed by Coen).
+
+## Open notes (for next session)
+- Maps: NASA Blue Marble (no credit). Interactive maps switch to Esri imagery beyond zoom 8 (`sharpWhenZoomed()` in map.js), credit shown only then — not yet visually checked. Check the Esri terms before going live.
+- Country widget still blurs the surroundings (`.map-surroundings` in app.css).
