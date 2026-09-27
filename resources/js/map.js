@@ -17,14 +17,19 @@ const satellite = {
     options: { maxZoom: 18, maxNativeZoom: 8 },
 };
 
-// Zoomed in far (beyond NASA detail): switch to sharp Esri imagery, which requires a credit, shown only then.
+// Zoomed in far (beyond NASA detail): switch to sharp Esri imagery with place names, and roads/street
+// names when zoomed in further. Esri requires a credit, shown only then.
 function sharpWhenZoomed(map) {
-    const esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 });
-    const credit = L.control.attribution({ prefix: false }).addAttribution('Imagery &copy; Esri, Maxar, Earthstar Geographics');
+    const esri = (service) => L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/${service}/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 18 });
+    const sharp = L.layerGroup([esri('World_Imagery'), esri('Reference/World_Boundaries_and_Places')]);
+    const streets = esri('Reference/World_Transportation');
+    const credit = L.control.attribution({ prefix: false }).addAttribution('Imagery &amp; labels &copy; Esri, Maxar, Earthstar Geographics');
+    const show = (layer, visible) => (visible ? !map.hasLayer(layer) && layer.addTo(map) : layer.remove());
     const update = () => {
-        const sharp = map.getZoom() > 8;
-        if (sharp && !map.hasLayer(esri)) { esri.addTo(map); credit.addTo(map); }
-        if (!sharp && map.hasLayer(esri)) { esri.remove(); credit.remove(); }
+        const zoom = map.getZoom();
+        show(sharp, zoom > 8);
+        show(streets, zoom > 11);
+        zoom > 8 ? credit.addTo(map) : credit.remove();
     };
     map.on('zoomend', update);
     map.whenReady(update);
