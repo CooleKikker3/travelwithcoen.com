@@ -27,10 +27,31 @@
     <section class="container-page mt-16">
         <h2 class="text-3xl font-semibold">{{ __('site.journey.timeline') }}</h2>
 
-        @if ($countries->isEmpty())
-            <p class="mt-6 rounded-2xl border border-dashed border-sage-200 p-8 text-center text-moss-600">{{ __('site.journey.empty') }}</p>
-        @else
-            <ol class="relative mt-8 space-y-8 border-l-2 border-dashed border-moss-400 pl-6 sm:pl-10">
+        <ol class="relative mt-8 space-y-8 border-l-2 border-dashed border-moss-400 pl-6 sm:pl-10">
+            {{-- First stop on the timeline: the preparation, before the first country. --}}
+            <li class="relative">
+                <span class="absolute top-7 -left-[33px] size-4 rounded-full border-4 border-mist-50 bg-olive-500 sm:-left-[49px]" aria-hidden="true"></span>
+                <article class="topo rounded-2xl bg-forest-800 p-6 text-sage-100">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h3 class="font-display text-2xl font-semibold text-white">
+                            <a href="{{ stories_url('preparation') }}" class="hover:text-fern-300">{{ __('site.preparation.title') }}</a>
+                        </h3>
+                        <span class="badge bg-forest-700 text-fern-300">{{ trans_choice('site.journey.stories', $preparationCount) }}</span>
+                    </div>
+                    <p class="mt-2 max-w-2xl text-sage-200">{{ __('site.preparation.lead') }}</p>
+                    @if ($preparation->isNotEmpty())
+                        <ul class="mt-4 space-y-1">
+                            @foreach ($preparation as $story)
+                                <li><a href="{{ $story->url() }}" class="font-semibold text-fern-300 hover:text-white">{{ $story->translate('title') }} →</a></li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </article>
+            </li>
+
+            @if ($countries->isEmpty())
+                <li><p class="rounded-2xl border border-dashed border-sage-200 p-8 text-center text-moss-600">{{ __('site.journey.empty') }}</p></li>
+            @endif
                 @foreach ($countries as $country)
                     @php(['planned' => $planned, 'actual' => $actual] = $distances[$country->id])
                     <li class="relative">
@@ -59,7 +80,33 @@
                         </article>
                     </li>
                 @endforeach
-            </ol>
+        </ol>
+    </section>
+
+    {{-- All stories (preparation and on the road), filterable by type and tag. --}}
+    <section id="stories" class="container-page mt-20 scroll-mt-6">
+        <h2 class="text-3xl font-semibold">{{ __('site.journey.stories_title') }}</h2>
+
+        <nav class="mt-6 flex flex-wrap gap-2" aria-label="{{ __('site.journey.stories_title') }}">
+            @php($chip = fn (bool $active) => $active ? 'bg-forest-800 text-white' : 'bg-sage-100 text-forest-700 hover:bg-sage-200')
+            <a href="{{ stories_url() }}" class="rounded-full px-3 py-1.5 text-sm font-semibold {{ $chip(! $type && ! $tag) }}">{{ __('site.articles.all_tags') }}</a>
+            @foreach (\App\Enums\ArticleType::cases() as $case)
+                <a href="{{ stories_url($case->value) }}" class="rounded-full px-3 py-1.5 text-sm font-semibold {{ $chip($type === $case && ! $tag) }}">{{ $case->getLabel() }}</a>
+            @endforeach
+            @foreach ($tags as $t)
+                <a href="{{ stories_url($type?->value, $t) }}" class="rounded-full px-3 py-1.5 text-sm font-semibold {{ $chip($tag === $t) }}">#{{ $t }}</a>
+            @endforeach
+        </nav>
+
+        @if ($articles->isEmpty())
+            <p class="mt-8 rounded-2xl border border-dashed border-sage-200 p-8 text-center text-moss-600">{{ __('site.articles.empty') }}</p>
+        @else
+            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($articles as $article)
+                    <x-article-card :article="$article" />
+                @endforeach
+            </div>
+            <div class="mt-10">{{ $articles->links() }}</div>
         @endif
     </section>
 </x-layouts.app>

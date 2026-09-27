@@ -42,7 +42,7 @@
                 @endif
                 <div class="mt-8 flex flex-wrap gap-3">
                     @if ($preparing)
-                        <a href="{{ lroute('preparation.index') }}" class="btn-primary">{{ __('site.home.cta_preparation') }} →</a>
+                        <a href="{{ stories_url('preparation') }}" class="btn-primary">{{ __('site.home.cta_preparation') }} →</a>
                     @else
                         <a href="{{ lroute('journey') }}" class="btn-primary">{{ __('site.journey.title') }} →</a>
                     @endif
@@ -94,8 +94,8 @@
 
     @php
         $sections = [
-            ['articles' => $diary, 'title' => __('site.home.diary_title'), 'link' => lroute('diary.index'), 'more' => __('site.home.all_diary'), 'lead' => null],
-            ['articles' => $preparation, 'title' => __('site.home.preparation_title'), 'link' => lroute('preparation.index'), 'more' => __('site.home.all_preparation'), 'lead' => __('site.home.preparation_lead')],
+            ['articles' => $diary, 'title' => __('site.home.diary_title'), 'link' => stories_url('diary'), 'more' => __('site.home.all_diary'), 'lead' => null],
+            ['articles' => $preparation, 'title' => __('site.home.preparation_title'), 'link' => stories_url('preparation'), 'more' => __('site.home.all_preparation'), 'lead' => __('site.home.preparation_lead')],
         ];
         if ($preparing) {
             $sections = array_reverse($sections);

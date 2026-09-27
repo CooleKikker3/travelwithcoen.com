@@ -10,21 +10,10 @@ use Illuminate\View\View;
 
 class ArticleController extends Controller
 {
-    /** Diary or preparation list, optionally filtered on a tag (?tag=gear). */
-    public function index(Request $request, string $type): View
+    /** The old diary/preparation lists now live on the Journey page; keep old links working. */
+    public function index(Request $request, string $type): RedirectResponse
     {
-        $tag = $request->string('tag')->trim()->value() ?: null;
-        $articles = Article::published()->where('type', $type);
-
-        return view('articles.index', [
-            'type' => ArticleType::from($type),
-            'tag' => $tag,
-            'tags' => (clone $articles)->pluck('tags')->flatten()->filter()->unique()->sort()->values(),
-            'articles' => $articles->when($tag, fn ($q) => $q->whereJsonContains('tags', $tag))
-                ->with('country')
-                ->paginate(12)
-                ->withQueryString(),
-        ]);
+        return redirect(stories_url($type, $request->string('tag')->trim()->value() ?: null), 301);
     }
 
     public function show(Request $request, string $slug): View|RedirectResponse

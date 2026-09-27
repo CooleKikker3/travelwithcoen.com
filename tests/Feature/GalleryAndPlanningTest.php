@@ -84,8 +84,13 @@ class GalleryAndPlanningTest extends TestCase
         $this->article();
         Article::create(['type' => ArticleType::Diary, 'title' => ['en' => 'Other'], 'status' => ArticleStatus::Published, 'published_at' => now()->subHour(), 'tags' => ['food']]);
 
-        $this->get('/diary?tag=camping')->assertSee('Sand roads')->assertDontSee('>Other<', false);
-        $this->get('/diary')->assertSee('#camping')->assertSee('#food');
+        $this->get('/journey?tag=camping')->assertSee('Sand roads')->assertDontSee('>Other<', false);
+        $this->get('/journey')->assertSee('#camping')->assertSee('#food');
+
+        // Preparation is the first stop on the timeline; old list URLs redirect to the stories on Journey.
+        $this->get('/journey')->assertSeeInOrder([__('site.preparation.title'), __('site.journey.stories_title')]);
+        $this->get('/diary?tag=camping')->assertRedirect(url('/journey?type=diary&tag=camping').'#stories');
+        $this->get('/nl/voorbereiding')->assertRedirect(url('/nl/reis?type=preparation').'#stories');
     }
 
     public function test_youtube_videos_are_synced_from_the_channel_feed(): void

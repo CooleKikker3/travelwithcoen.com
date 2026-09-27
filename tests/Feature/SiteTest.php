@@ -34,7 +34,7 @@ class SiteTest extends TestCase
 
     public function test_public_pages_render_in_both_languages(): void
     {
-        $pages = ['/' => '/nl', '/about' => '/nl/over', '/journey' => '/nl/reis', '/diary' => '/nl/dagboek', '/preparation' => '/nl/voorbereiding'];
+        $pages = ['/' => '/nl', '/about' => '/nl/over', '/journey' => '/nl/reis'];
 
         foreach ($pages as $en => $nl) {
             $this->get($en)->assertOk()->assertSee('<html lang="en">', false)->assertSee('hreflang="nl" href="'.url($nl).'"', false);

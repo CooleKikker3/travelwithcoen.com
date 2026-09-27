@@ -1,7 +1,6 @@
 @php
     $default = config('app.fallback_locale');
     $contentLocale = $isTranslated ? app()->getLocale() : $default;
-    $isDiary = $article->type === \App\Enums\ArticleType::Diary;
 @endphp
 <x-layouts.app
     :title="$article->translate('title')"
@@ -52,13 +51,13 @@
             @if ($article->tags)
                 <ul class="mt-10 flex flex-wrap gap-2" aria-label="{{ __('site.articles.tags') }}">
                     @foreach ($article->tags as $tag)
-                        <li><a href="{{ lroute($isDiary ? 'diary.index' : 'preparation.index') }}?tag={{ urlencode($tag) }}" class="badge hover:bg-sage-200">#{{ $tag }}</a></li>
+                        <li><a href="{{ stories_url(null, $tag) }}" class="badge hover:bg-sage-200">#{{ $tag }}</a></li>
                     @endforeach
                 </ul>
             @endif
 
-            <a href="{{ lroute($isDiary ? 'diary.index' : 'preparation.index') }}" class="mt-12 inline-block font-semibold text-moss-600 hover:text-forest-700">
-                ← {{ $isDiary ? __('site.articles.back_diary') : __('site.articles.back_preparation') }}
+            <a href="{{ stories_url() }}" class="mt-12 inline-block font-semibold text-moss-600 hover:text-forest-700">
+                ← {{ __('site.articles.back') }}
             </a>
         </div>
     </article>

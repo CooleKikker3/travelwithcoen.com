@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ArticleType;
 use App\Enums\RouteType;
+use App\Models\Article;
 use App\Models\Country;
 use App\Support\JourneyStats;
 use App\Support\RouteGeometry;
@@ -13,10 +15,12 @@ use Illuminate\View\View;
 
 class CountryController extends Controller
 {
-    /** Global overview: one map of all routes plus a timeline with a map per country. */
+    /** Global overview: map of all routes, a timeline with a map per country, and all stories. */
     public function index(Request $request): View
     {
         $user = $request->user();
+        $type = ArticleType::tryFrom((string) $request->query('type'));
+        $tag = $request->string('tag')->trim()->value() ?: null;
         $countries = Country::published()
             ->with('routes')
             ->withCount(['articles' => fn ($query) => $query->published()])
@@ -35,6 +39,19 @@ class CountryController extends Controller
                 $country->id => $this->distances($country->routes, JourneyStats::for($user, $country)),
             ]),
             'totals' => $this->distances($routes, $stats) + ['countries' => $stats['countries']],
+            // First timeline item: the preparation, before the first country.
+            'preparation' => Article::published()->where('type', ArticleType::Preparation)->limit(3)->get(),
+            'preparationCount' => Article::published()->where('type', ArticleType::Preparation)->count(),
+            'type' => $type,
+            'tag' => $tag,
+            'tags' => Article::published()->pluck('tags')->flatten()->filter()->unique()->sort()->values(),
+            'articles' => Article::published()
+                ->when($type, fn ($q) => $q->where('type', $type))
+                ->when($tag, fn ($q) => $q->whereJsonContains('tags', $tag))
+                ->with('country')
+                ->paginate(12)
+                ->withQueryString()
+                ->fragment('stories'),
         ]);
     }
 

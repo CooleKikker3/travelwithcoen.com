@@ -20,15 +20,13 @@
         'home' => __('site.nav.home'),
         'journey' => __('site.nav.journey'),
         'live' => __('site.nav.live'),
-        'diary.index' => __('site.nav.diary'),
-        'preparation.index' => __('site.nav.preparation'),
         'gallery' => __('site.nav.media'),
         'equipment' => __('site.nav.equipment'),
         'statistics' => __('site.nav.statistics'),
         'about' => __('site.nav.about'),
     ];
     $current = preg_replace('/^[a-z]{2}\./', '', request()->route()?->getName() ?? '');
-    $isActive = fn ($name) => $current === $name || str_starts_with($current, strtok($name, '.').'.') || ($name === 'journey' && str_starts_with($current, 'countries.'));
+    $isActive = fn ($name) => $current === $name || str_starts_with($current, strtok($name, '.').'.') || ($name === 'journey' && preg_match('/^(countries|diary|preparation)\./', $current));
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $locale }}">

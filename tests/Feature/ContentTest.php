@@ -30,7 +30,7 @@ class ContentTest extends TestCase
             $this->get($nl)->assertOk()->assertSee('<html lang="nl">', false);
         }
 
-        $this->get('/sitemap.xml')->assertOk()->assertSee(url('/nl/dagboek'));
+        $this->get('/sitemap.xml')->assertOk()->assertSee(url('/nl/reis'))->assertDontSee(url('/nl/dagboek'));
     }
 
     public function test_home_follows_the_journey_phase(): void
