@@ -55,7 +55,8 @@ class GalleryAndPlanningTest extends TestCase
 
     public function test_images_in_the_text_render_with_caption_and_appear_in_the_gallery(): void
     {
-        $article = $this->article();
+        // The cover image is not a gallery item; only images in the text are.
+        $article = $this->article(['cover_image' => 'articles/covers/cover.jpg']);
 
         $this->get('/diary/sand-roads')->assertOk()->assertSee('<figcaption>Walking on a sandy road near Berlin</figcaption>', false);
         $this->get('/nl/dagboek/zandwegen')->assertSee('Lopen over een zandweg bij Berlijn');
@@ -118,7 +119,6 @@ class GalleryAndPlanningTest extends TestCase
         // Mixed with uploads in one gallery, newest first.
         GalleryItem::create(['kind' => 'image', 'source' => 'upload', 'path' => 'gallery/old.jpg', 'taken_at' => '2027-07-01', 'caption' => ['en' => 'Older photo']]);
         $this->get('/gallery')->assertSeeInOrder(['data-src="dQw4w9WgXcQ"', 'Older photo'], false);
-        $this->get('/gallery?kind=image')->assertDontSee('dQw4w9WgXcQ');
     }
 
     public function test_the_wall_links_to_older_items_for_infinite_scroll(): void

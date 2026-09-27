@@ -39,14 +39,11 @@ class PageController extends Controller
         ]);
     }
 
-    /** Gallery: photos, uploaded videos and YouTube videos mixed, newest first (?kind=image|video). */
-    public function gallery(Request $request): View
+    /** Gallery: photos, uploaded videos and YouTube videos mixed, newest first. */
+    public function gallery(): View
     {
-        $kind = in_array($request->query('kind'), ['image', 'video'], true) ? $request->query('kind') : null;
-
         return view('pages.gallery', [
-            'kind' => $kind,
-            'items' => GalleryItem::public()->ofKind($kind)->with(['country', 'article'])->paginate(24)->withQueryString(),
+            'items' => GalleryItem::public()->with(['country', 'article'])->paginate(24),
         ]);
     }
 }

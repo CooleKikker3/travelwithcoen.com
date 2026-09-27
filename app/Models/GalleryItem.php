@@ -99,16 +99,6 @@ class GalleryItem extends Model
             ->latest('taken_at');
     }
 
-    /** Photos, or videos (uploaded and YouTube). */
-    public function scopeOfKind(Builder $query, ?string $kind): Builder
-    {
-        return match ($kind) {
-            'image' => $query->where('kind', 'image'),
-            'video' => $query->whereIn('kind', ['video', 'youtube']),
-            default => $query,
-        };
-    }
-
     public function isVideo(): bool
     {
         return $this->kind === 'video';

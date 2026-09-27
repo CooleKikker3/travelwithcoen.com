@@ -1,11 +1,5 @@
 <x-layouts.app :title="__('site.media.title')">
-    <x-page-header :title="__('site.media.title')" :lead="__('site.media.lead')">
-        <nav class="mt-8 flex flex-wrap gap-2" aria-label="{{ __('site.media.title') }}">
-            @foreach (['' => __('site.media.all'), 'image' => __('site.media.photos'), 'video' => __('site.media.videos')] as $value => $label)
-                <a href="{{ lroute('gallery') }}{{ $value ? '?kind='.$value : '' }}" @class(['rounded-full px-3 py-1.5 text-sm font-semibold', 'bg-fern-300 text-forest-950' => $kind === ($value ?: null), 'bg-forest-700 text-sage-100 hover:bg-forest-600' => $kind !== ($value ?: null)])>{{ $label }}</a>
-            @endforeach
-        </nav>
-    </x-page-header>
+    <x-page-header :title="__('site.media.title')" :lead="__('site.media.lead')" />
 
     <div class="container-page mt-12">
         @if ($items->isEmpty())
