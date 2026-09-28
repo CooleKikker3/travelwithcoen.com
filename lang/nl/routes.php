@@ -3,6 +3,7 @@
 // URL segments per locale. Not editable in the CMS: changing them breaks existing links.
 return [
     'journey' => 'reis',
+    'stories' => 'verhalen',
     'countries' => 'landen',
     'diary' => 'dagboek',
     'preparation' => 'voorbereiding',

@@ -30,6 +30,7 @@ $publicRoutes = fn (string $locale) => function () use ($locale) {
     Route::get($segment('equipment'), [PageController::class, 'equipment'])->name('equipment');
     Route::get($segment('gallery'), [PageController::class, 'gallery'])->name('gallery');
 
+    Route::get($segment('stories'), [ArticleController::class, 'stories'])->name('stories');
     Route::get($segment('diary'), [ArticleController::class, 'index'])->defaults('type', ArticleType::Diary->value)->name('diary.index');
     Route::get($segment('diary').'/{slug}', [ArticleController::class, 'show'])->defaults('type', ArticleType::Diary->value)->name('diary.show');
 

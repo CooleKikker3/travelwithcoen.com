@@ -16,7 +16,7 @@ class SitemapController extends Controller
         $latestStory = Article::published()->max('updated_at');
         $pages = [];
 
-        foreach (['home', 'journey', 'live', 'equipment', 'gallery', 'about'] as $name) {
+        foreach (['home', 'journey', 'stories', 'equipment', 'gallery', 'about'] as $name) {
             $pages[] = [
                 'urls' => collect($locales)->mapWithKeys(fn ($locale) => [$locale => lroute($name, [], $locale)])->all(),
                 'lastmod' => in_array($name, ['home', 'journey']) && $latestStory ? Carbon::parse($latestStory) : null,

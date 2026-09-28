@@ -15,6 +15,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Country outlines are loaded once per request.
+        $this->app->scoped(\App\Support\CountryLocator::class);
+
         // Website texts edited in the CMS override the defaults in lang/.
         $this->app->extend('translation.loader', fn (Loader $loader) => new DatabaseOverridesLoader($loader));
     }

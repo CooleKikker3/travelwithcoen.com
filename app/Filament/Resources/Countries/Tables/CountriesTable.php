@@ -16,9 +16,10 @@ class CountriesTable
     {
         return $table
             ->defaultSort('sort_order')
+            // Order of the countries on the route: drag and drop.
             ->reorderable('sort_order')
+            ->reorderRecordsTriggerAction(fn ($action, bool $isReordering) => $action->button()->label($isReordering ? 'Klaar' : 'Volgorde slepen'))
             ->columns([
-                TextColumn::make('sort_order')->label('#'),
                 TextColumn::make('name')->label('Naam')
                     ->state(fn (Country $record) => $record->flag().' '.$record->translate('name', 'en')),
                 TextColumn::make('iso_code')->label('ISO'),

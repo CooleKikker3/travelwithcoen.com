@@ -32,9 +32,9 @@ class JourneyStats
             ->selectRaw('max(altitude) as highest, min(altitude) as lowest')
             ->first();
 
-        $planned = CountryRoute::where('type', RouteType::Planned)
-            ->when($country, fn ($q) => $q->where('country_id', $country->id))
-            ->sum('distance_km');
+        $planned = $country
+            ? $country->routesThrough()->where('type', RouteType::Planned)->sum(fn ($route) => $route->kmIn($country->id))
+            : CountryRoute::where('type', RouteType::Planned)->sum('distance_km');
 
         $walked = (float) $days->sum('distance_km');
 

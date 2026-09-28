@@ -108,3 +108,20 @@ Artisan::command('media:prune {--dry-run : Only list what would be deleted} {--d
 })->purpose('Delete media files that are no longer used anywhere on the site');
 
 Schedule::command('media:prune')->weeklyOn(1, '04:00')->withoutOverlapping();
+
+// Assign every route point and GPS point to the country it lies in (CountryLocator); run after adding a country.
+Artisan::command('geo:countries', function () {
+    $locator = app(\App\Support\CountryLocator::class);
+
+    \App\Models\CountryRoute::with('points')->get()->each(fn ($route) => $route->replacePoints(
+        $route->points->map(fn ($p) => ['lat' => (float) $p->latitude, 'lng' => (float) $p->longitude, 'ele' => $p->elevation, 'time' => $p->recorded_at])->all()
+    ));
+
+    $points = \App\Models\TrackingPoint::orderBy('recorded_at')->get(['id', 'latitude', 'longitude', 'country_id']);
+    $countries = $locator->locateAll($points->map(fn ($p) => [(float) $p->latitude, (float) $p->longitude])->all(), $points->first()?->country_id);
+    $points->each(fn ($p, $i) => $p->country_id === $countries[$i] ?: \App\Models\TrackingPoint::whereKey($p->id)->update(['country_id' => $countries[$i]]));
+    app(\App\Services\TrackingRecorder::class)->updateCurrentCountry();
+
+    $this->info(\App\Models\CountryRoute::count().' route pieces and '.$points->count().' GPS points assigned to countries.');
+})->purpose('Assign route and GPS points to the country they lie in');
+Schedule::command('geo:countries')->weeklyOn(1, '04:30')->withoutOverlapping();

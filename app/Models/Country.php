@@ -31,11 +31,29 @@ class Country extends Model
         return $this->hasMany(Article::class);
     }
 
+    protected static function booted(): void
+    {
+        // A new country (or a changed country code) changes which points lie where: re-assign after the response.
+        static::saved(function (Country $country) {
+            if ($country->wasRecentlyCreated || $country->wasChanged('iso_code')) {
+                dispatch(fn () => \Illuminate\Support\Facades\Artisan::call('geo:countries'))->afterResponse();
+            }
+        });
+    }
+
+    /** Route pieces made for this country (route planner, admin tabs). */
     public function routes(): HasMany
     {
         return $this->hasMany(CountryRoute::class)->orderBy('sort_order');
     }
 
+    /** Every route piece with a part in this country (also pieces made for a neighbour that cross the border). */
+    public function routesThrough(): \Illuminate\Support\Collection
+    {
+        return CountryRoute::whereHas('points', fn ($q) => $q->where('country_id', $this->id))
+            ->orWhere(fn ($q) => $q->where('country_id', $this->id)->whereNull('country_km'))
+            ->orderBy('sort_order')->get();
+    }
     public function days(): HasMany
     {
         return $this->hasMany(JourneyDay::class);

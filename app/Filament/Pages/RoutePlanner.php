@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Enums\RouteType;
 use App\Filament\Support\Options;
 use App\Models\CountryRoute;
+use App\Support\Polyline;
 use App\Support\RouteGeometry;
 use BackedEnum;
 use Filament\Notifications\Notification;
@@ -12,13 +13,16 @@ use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Url;
 use Throwable;
 use UnitEnum;
 
 /**
- * Draw a (planned) route by clicking waypoints on a map. Between waypoints the line is either
- * straight or follows walking paths, calculated by the free BRouter service (brouter.de).
+ * Route editor. A route piece (e.g. "Nijmeegse Vierdaagse") has a title and a story, and is built from
+ * parts: GPX files (read in the browser, only a simplified line is sent) and drawn pieces (click points;
+ * straight or over walking paths via BRouter). All editing happens in the browser (resources/js/route-planner.js),
+ * with a draft on the device; only "Opslaan" needs a connection.
  */
 class RoutePlanner extends Page
 {
@@ -35,39 +39,36 @@ class RoutePlanner extends Page
     #[Url]
     public ?int $route = null;
 
-    public ?int $countryId = null;
-
-    public string $type = 'planned';
-
-    public ?string $name = null;
-
-    public string $routing = 'hiking';
-
-    public function mount(): void
-    {
-        if ($existing = CountryRoute::find($this->route)) {
-            $this->countryId = $existing->country_id;
-            $this->type = $existing->type->value;
-            $this->name = $existing->name;
-            $this->routing = $existing->routing ?? 'hiking';
-        }
-    }
-
-    /** Data for the map script: this route's waypoints and line, plus other routes for context. */
+    /** Everything the editor needs: this route piece, its parts, and the other routes for context. */
     public function initialData(): array
     {
-        $existing = CountryRoute::find($this->route);
-        $line = $existing?->points()->get(['latitude', 'longitude'])->map(fn ($p) => [$p->latitude, $p->longitude])->all() ?? [];
+        $existing = CountryRoute::with('segments')->find($this->route);
 
         return [
-            'waypoints' => $existing?->waypoints ?? [],
-            // Routes imported from GPX have no waypoints: show their line as a reference.
-            'line' => $existing?->waypoints ? $line : [],
-            'reference' => array_merge(RouteGeometry::featureCollection(
+            'routeId' => $existing?->id,
+            'updatedAt' => $existing?->updated_at?->getTimestampMs() ?? 0,
+            'meta' => [
+                'countryId' => $existing?->country_id,
+                'type' => $existing?->type->value ?? 'planned',
+                'titleNl' => $existing?->translate('title', 'nl', false) ?? $existing?->name,
+                'titleEn' => $existing?->translate('title', 'en', false),
+                'descriptionNl' => $existing?->translate('description', 'nl', false),
+                'descriptionEn' => $existing?->translate('description', 'en', false),
+            ],
+            'segments' => $existing ? $this->segmentsFor($existing) : [],
+            'reference' => RouteGeometry::featureCollection(
                 CountryRoute::when($existing, fn ($q) => $q->whereKeyNot($existing->id))->get(),
-                RouteGeometry::OVERVIEW / 5
-            )['features'], $existing && ! $existing->waypoints && $line ? [['type' => 'Feature', 'properties' => [], 'geometry' => ['type' => 'LineString', 'coordinates' => array_map(fn ($p) => [$p[1], $p[0]], $line)]]] : []),
+                RouteGeometry::OVERVIEW / 5,
+            )['features'],
         ];
+    }
+
+    /** Route pieces to switch between, newest first. */
+    public function routeOptions(): array
+    {
+        return CountryRoute::with('country')->orderBy('country_id')->orderBy('sort_order')->get()
+            ->mapWithKeys(fn (CountryRoute $route) => [$route->id => $route->country?->flag().' '.$route->label().' · '.number_format((float) $route->distance_km, 1).' km'])
+            ->all();
     }
 
     public function countryOptions(): array
@@ -76,15 +77,15 @@ class RoutePlanner extends Page
     }
 
     /**
-     * Line between two waypoints ([lat, lng]) following walking paths. Falls back to a straight line.
+     * Line between two points ([lat, lng]) over walking paths; straight when asked or when BRouter is unreachable.
      *
      * @return array<int, array{0: float, 1: float}>
      */
-    public function segment(array $from, array $to): array
+    public function segment(array $from, array $to, string $routing = 'hiking'): array
     {
         [$from, $to] = [array_map('floatval', array_slice($from, 0, 2)), array_map('floatval', array_slice($to, 0, 2))];
 
-        if ($this->routing !== 'hiking') {
+        if ($routing !== 'hiking') {
             return [$from, $to];
         }
 
@@ -108,28 +109,85 @@ class RoutePlanner extends Page
     }
 
     /**
-     * @param  array<int, array{0: float, 1: float, 2: int}>  $waypoints  [lat, lng, index in line]
-     * @param  array<int, array{0: float, 1: float}>  $line
+     * Save the route piece and its parts (lines as encoded polylines). Returns the new state for the editor.
+     *
+     * @return array{routeId: int, updatedAt: int, km: float}|null
      */
-    public function save(array $waypoints, array $line): void
+    public function save(array $payload): ?array
     {
-        if (! $this->countryId || count($line) < 2) {
-            Notification::make()->danger()->title('Kies een land en zet minstens twee punten.')->send();
+        $validator = Validator::make($payload, [
+            'meta.countryId' => ['required', 'exists:countries,id'],
+            'meta.type' => ['required', 'in:planned,actual'],
+            'meta.titleNl' => ['nullable', 'string', 'max:150'],
+            'meta.titleEn' => ['nullable', 'string', 'max:150'],
+            'meta.descriptionNl' => ['nullable', 'string', 'max:5000'],
+            'meta.descriptionEn' => ['nullable', 'string', 'max:5000'],
+            'segments' => ['required', 'array', 'min:1', 'max:100'],
+            'segments.*.kind' => ['required', 'in:gpx,drawn'],
+            'segments.*.label' => ['nullable', 'string', 'max:150'],
+            'segments.*.routing' => ['nullable', 'in:hiking,straight'],
+            'segments.*.waypoints' => ['nullable', 'array', 'max:500'],
+            'segments.*.line' => ['required', 'string', 'max:2000000'],
+        ], ['meta.countryId.required' => 'Kies een land.', 'segments.required' => 'Voeg minstens één stuk route toe.']);
 
-            return;
+        if ($validator->fails()) {
+            Notification::make()->danger()->title($validator->errors()->first())->send();
+
+            return null;
         }
 
-        $route = CountryRoute::updateOrCreate(['id' => $this->route], [
-            'country_id' => $this->countryId,
-            'type' => RouteType::from($this->type),
-            'name' => $this->name,
-            'routing' => $this->routing,
-            'waypoints' => $waypoints,
-            'gpx_path' => null,
+        $meta = $payload['meta'];
+        $route = CountryRoute::find($this->route) ?? new CountryRoute([
+            'sort_order' => (CountryRoute::where('country_id', $meta['countryId'])->max('sort_order') ?? 0) + 10,
         ]);
-        $route->replacePoints(array_map(fn ($p) => ['lat' => (float) $p[0], 'lng' => (float) $p[1]], $line));
+        $route->fill([
+            'country_id' => $meta['countryId'],
+            'type' => RouteType::from($meta['type']),
+            'name' => $meta['titleNl'] ?: ($meta['titleEn'] ?: $route->name),
+            'title' => array_filter(['nl' => $meta['titleNl'] ?? null, 'en' => $meta['titleEn'] ?? null]),
+            'description' => array_filter(['nl' => $meta['descriptionNl'] ?? null, 'en' => $meta['descriptionEn'] ?? null]),
+            'gpx_path' => null,
+            'waypoints' => null,
+        ])->save();
+
+        $route->replaceSegments(array_map(fn (array $segment) => [
+            'kind' => $segment['kind'],
+            'label' => $segment['label'] ?? null,
+            'routing' => $segment['kind'] === 'drawn' ? ($segment['routing'] ?? 'hiking') : null,
+            'waypoints' => $segment['kind'] === 'drawn' ? ($segment['waypoints'] ?? []) : null,
+            'line' => $segment['line'],
+        ], $payload['segments']));
+
+        $route->refresh();
         $this->route = $route->id;
 
-        Notification::make()->success()->title('Route opgeslagen: '.number_format($route->fresh()->distance_km, 1).' km')->send();
+        Notification::make()->success()->title('Route opgeslagen: '.number_format($route->distance_km, 1, ',', '.').' km')->send();
+
+        return ['routeId' => $route->id, 'updatedAt' => $route->updated_at->getTimestampMs(), 'km' => (float) $route->distance_km];
+    }
+
+    public function deleteRoute(): void
+    {
+        CountryRoute::find($this->route)?->delete();
+        Notification::make()->success()->title('Routestuk verwijderd')->send();
+        $this->redirect(self::getUrl());
+    }
+
+    /** Parts of a route for the editor; older routes without parts become one part. */
+    private function segmentsFor(CountryRoute $route): array
+    {
+        if ($route->segments->isNotEmpty()) {
+            return $route->segments->map(fn ($s) => $s->only(['kind', 'label', 'routing', 'waypoints', 'line']))->all();
+        }
+
+        $points = $route->points()->get(['latitude', 'longitude'])->map(fn ($p) => [(float) $p->latitude, (float) $p->longitude])->all();
+
+        return count($points) < 2 ? [] : [[
+            'kind' => $route->waypoints ? 'drawn' : 'gpx',
+            'label' => $route->name,
+            'routing' => $route->waypoints ? ($route->routing ?? 'hiking') : null,
+            'waypoints' => $route->waypoints,
+            'line' => Polyline::encode($points),
+        ]];
     }
 }

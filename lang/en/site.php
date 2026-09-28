@@ -10,6 +10,7 @@ return [
     'language' => 'Language',
 
     'nav' => [
+        'stories' => 'Stories',
         'home' => 'Home',
         'journey' => 'Journey',
         'about' => 'About',
@@ -64,6 +65,7 @@ return [
         'overview' => 'The whole journey',
         'timeline' => 'Country by country',
         'stories_title' => 'Stories',
+        'all_stories' => 'All stories',
         'empty' => 'No countries added yet.',
         'stories' => '{0} No stories yet|{1} 1 story|[2,*] :count stories',
     ],
@@ -105,6 +107,7 @@ return [
     ],
 
     'map' => [
+        'pieces_title' => 'The plan, piece by piece',
         'legend' => 'Legend',
         'open' => 'Still to be planned',
         'position' => 'Latest location',
@@ -258,6 +261,10 @@ return [
     ],
 
     'day_name' => 'Day :number',
+
+    'stories' => [
+        'lead' => 'Everything I write about the walk: the preparation and the journey itself.',
+    ],
 
     'coming_soon' => [
         'title' => 'Something is coming...',

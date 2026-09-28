@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Process;
  */
 class VideoProcessor
 {
-    /** Whether ffmpeg is installed; without it videos cannot be uploaded (see GalleryItemForm::upload()). */
+    /** Whether ffmpeg is installed. */
     public static function available(): bool
     {
         static $available;

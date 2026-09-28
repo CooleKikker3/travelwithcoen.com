@@ -46,10 +46,8 @@ class GalleryItem extends Model
             if ($item->isDirty('path') && $item->path) {
                 $item->kind = in_array(strtolower(pathinfo($item->path, PATHINFO_EXTENSION)), self::VIDEO_EXTENSIONS, true) ? 'video' : 'image';
                 if ($item->kind === 'video') {
-                    // Safety net: a video whose metadata (possibly GPS) could not be removed is never public.
-                    if (! app(VideoProcessor::class)->stripMetadata($item->path)) {
-                        $item->is_public = false;
-                    }
+                    // Removes metadata (incl. GPS) when ffmpeg is available; otherwise it stays (accepted: uploads are delayed).
+                    app(VideoProcessor::class)->stripMetadata($item->path);
                 } else {
                     $image = app(ImageProcessor::class)->process($item->path);
                     [$item->width, $item->height] = [$image['width'], $image['height']];

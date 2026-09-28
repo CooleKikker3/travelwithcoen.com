@@ -109,16 +109,6 @@ class TrackingPrivacyTest extends TestCase
         $this->assertSame(2, \App\Models\GalleryItem::public()->count());
     }
 
-    public function test_videos_are_refused_while_their_location_cannot_be_removed(): void
-    {
-        config(['travel.ffmpeg_path' => 'no-such-ffmpeg']);
-        \Illuminate\Support\Facades\Storage::fake('public');
-        \Illuminate\Support\Facades\Storage::disk('public')->put('gallery/walk.mp4', 'video');
-
-        $this->assertNotContains('video/mp4', \App\Filament\Resources\GalleryItems\Schemas\GalleryItemForm::upload()->getAcceptedFileTypes());
-        $this->assertFalse(\App\Models\GalleryItem::create(['source' => 'upload', 'path' => 'gallery/walk.mp4', 'is_public' => true])->is_public);
-    }
-
     public function test_recent_journey_days_are_hidden_from_guest_statistics(): void
     {
         $country = Country::create(['iso_code' => 'DE', 'name' => ['en' => 'Germany']]);

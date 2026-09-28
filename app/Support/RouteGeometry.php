@@ -33,6 +33,7 @@ class RouteGeometry
             ->join('countries', 'countries.id', '=', 'country_routes.country_id')
             ->where('countries.is_published', true)
             ->orderByDesc('countries.sort_order')
+            ->orderByDesc('country_routes.sort_order')
             ->select('country_routes.*')
             ->get()
             ->map(fn (CountryRoute $route) => $route->points()->reorder('sequence', 'desc')->first())
@@ -72,29 +73,38 @@ class RouteGeometry
      *
      * @param  Collection<int, CountryRoute>  $routes
      */
-    public static function featureCollection(Collection $routes, float $tolerance): array
+    public static function featureCollection(Collection $routes, float $tolerance, ?int $countryId = null): array
     {
-        $key = 'geojson:'.md5($routes->map(fn ($r) => $r->id.'@'.$r->updated_at?->timestamp)->join(',').":{$tolerance}");
+        $key = 'geojson:'.md5($routes->map(fn ($r) => $r->id.'@'.$r->updated_at?->timestamp)->join(',').":{$tolerance}:".app()->getLocale().':'.$countryId);
 
         return Cache::remember($key, now()->addDay(), fn () => [
             'type' => 'FeatureCollection',
-            'features' => $routes->map(function (CountryRoute $route) use ($tolerance) {
-                $points = $route->points()->get(['latitude', 'longitude'])
-                    ->map(fn ($p) => [$p->latitude, $p->longitude])
-                    ->all();
+            'features' => $routes->map(function (CountryRoute $route) use ($tolerance, $countryId) {
+                // For one country: only the stretches of the piece inside that country (a piece can cross borders).
+                $lines = [[]];
+                foreach ($route->points()->get(['latitude', 'longitude', 'country_id']) as $point) {
+                    if ($countryId && $point->country_id !== null && $point->country_id !== $countryId) {
+                        $lines[] = [];
 
-                if (count($points) < 2) {
+                        continue;
+                    }
+                    $lines[array_key_last($lines)][] = [$point->latitude, $point->longitude];
+                }
+                $lines = array_values(array_filter($lines, fn ($line) => count($line) > 1));
+
+                if (! $lines) {
                     return null;
                 }
 
+                // GeoJSON order is [lng, lat]; 5 decimals ≈ 1 m.
+                $coordinates = array_map(fn ($line) => array_map(fn ($p) => [round($p[1], 5), round($p[0], 5)], self::simplify($line, $tolerance)), $lines);
+
                 return [
                     'type' => 'Feature',
-                    'properties' => ['type' => $route->type->value, 'country' => $route->country_id],
-                    'geometry' => [
-                        'type' => 'LineString',
-                        // GeoJSON order is [lng, lat]; 5 decimals ≈ 1 m.
-                        'coordinates' => array_map(fn ($p) => [round($p[1], 5), round($p[0], 5)], self::simplify($points, $tolerance)),
-                    ],
+                    'properties' => array_filter(['type' => $route->type->value, 'country' => $route->country_id, 'label' => $route->translate('title')]),
+                    'geometry' => count($coordinates) === 1
+                        ? ['type' => 'LineString', 'coordinates' => $coordinates[0]]
+                        : ['type' => 'MultiLineString', 'coordinates' => $coordinates],
                 ];
             })->filter()->values()->all(),
         ]);

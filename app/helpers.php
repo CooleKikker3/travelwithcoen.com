@@ -21,6 +21,6 @@ if (! function_exists('stories_url')) {
      */
     function stories_url(?string $type = null, ?string $tag = null, ?string $locale = null): string
     {
-        return lroute('journey', array_filter(['type' => $type, 'tag' => $tag]), $locale).'#stories';
+        return lroute('stories', array_filter(['type' => $type, 'tag' => $tag]), $locale);
     }
 }

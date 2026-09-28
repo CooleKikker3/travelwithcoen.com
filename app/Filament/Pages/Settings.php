@@ -30,6 +30,10 @@ class Settings extends Page
 
     protected static ?int $navigationSort = 99;
 
+    protected static ?string $navigationLabel = 'Instellingen';
+
+    protected static ?string $title = 'Instellingen';
+
     public ?array $data = [];
 
     public function mount(): void

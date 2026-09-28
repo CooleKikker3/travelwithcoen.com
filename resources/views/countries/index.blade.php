@@ -86,29 +86,18 @@
     </section>
 
     {{-- All stories (preparation and on the road), filterable by type and tag. --}}
-    <section id="stories" class="container-page mt-20 scroll-mt-6">
-        <h2 class="text-3xl font-semibold">{{ __('site.journey.stories_title') }}</h2>
-
-        <nav class="mt-6 flex flex-wrap gap-2" aria-label="{{ __('site.journey.stories_title') }}">
-            @php($chip = fn (bool $active) => $active ? 'bg-forest-800 text-white' : 'bg-sage-100 text-forest-700 hover:bg-sage-200')
-            <a href="{{ stories_url() }}" class="rounded-full px-3 py-1.5 text-sm font-semibold {{ $chip(! $type && ! $tag) }}">{{ __('site.articles.all_tags') }}</a>
-            @foreach (\App\Enums\ArticleType::cases() as $case)
-                <a href="{{ stories_url($case->value) }}" class="rounded-full px-3 py-1.5 text-sm font-semibold {{ $chip($type === $case && ! $tag) }}">{{ $case->getLabel() }}</a>
-            @endforeach
-            @foreach ($tags as $t)
-                <a href="{{ stories_url($type?->value, $t) }}" class="rounded-full px-3 py-1.5 text-sm font-semibold {{ $chip($tag === $t) }}">#{{ $t }}</a>
-            @endforeach
-        </nav>
-
-        @if ($articles->isEmpty())
-            <p class="mt-8 rounded-2xl border border-dashed border-sage-200 p-8 text-center text-moss-600">{{ __('site.articles.empty') }}</p>
-        @else
-            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                @foreach ($articles as $article)
+    {{-- The latest stories; all stories have their own page. --}}
+    @if ($latest->isNotEmpty())
+        <section class="container-page mt-20">
+            <div class="flex flex-wrap items-end justify-between gap-4" data-reveal>
+                <h2 class="text-4xl font-extrabold sm:text-5xl">{{ __('site.journey.stories_title') }}</h2>
+                <a href="{{ stories_url() }}" class="btn-outline">{{ __('site.journey.all_stories') }} →</a>
+            </div>
+            <div class="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($latest as $article)
                     <x-article-card :article="$article" :index="$loop->index" />
                 @endforeach
             </div>
-            <div class="mt-10">{{ $articles->links() }}</div>
-        @endif
-    </section>
+        </section>
+    @endif
 </x-layouts.app>

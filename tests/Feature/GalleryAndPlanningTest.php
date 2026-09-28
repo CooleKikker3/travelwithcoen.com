@@ -94,13 +94,19 @@ class GalleryAndPlanningTest extends TestCase
         $this->article();
         Article::create(['type' => ArticleType::Diary, 'title' => ['en' => 'Other'], 'status' => ArticleStatus::Published, 'published_at' => now()->subDays(20), 'tags' => ['food']]);
 
-        $this->get('/journey?tag=camping')->assertSee('Sand roads')->assertDontSee('>Other<', false);
-        $this->get('/journey')->assertSee('#camping')->assertSee('#food');
+        // All stories on their own page, filterable on tags; the Journey page shows the latest with a link.
+        $this->get('/stories?tag=camping')->assertOk()->assertSee('Sand roads')->assertDontSee('>Other<', false);
+        $this->get('/nl/verhalen')->assertOk()->assertSee('#camping')->assertSee('#food');
+        $this->get('/journey')->assertSeeInOrder([__('site.preparation.title'), __('site.journey.stories_title')])->assertSee(url('/stories'));
 
-        // Preparation is the first stop on the timeline; old list URLs redirect to the stories on Journey.
-        $this->get('/journey')->assertSeeInOrder([__('site.preparation.title'), __('site.journey.stories_title')]);
-        $this->get('/diary?tag=camping')->assertRedirect(url('/journey?type=diary&tag=camping').'#stories');
-        $this->get('/nl/voorbereiding')->assertRedirect(url('/nl/reis?type=preparation').'#stories');
+        // Old addresses keep working.
+        $this->get('/journey?tag=camping')->assertRedirect(url('/stories?tag=camping'));
+        $this->get('/diary?tag=camping')->assertRedirect(url('/stories?type=diary&tag=camping'));
+        $this->get('/nl/voorbereiding')->assertRedirect(url('/nl/verhalen?type=preparation'));
+
+        // Menu: Stories in, Live out (the page itself still works, e.g. for family).
+        $this->get('/')->assertSee(url('/stories'))->assertDontSee('href="'.url('/live').'"', false);
+        $this->get('/live')->assertOk();
     }
 
     public function test_youtube_videos_are_synced_from_the_channel_feed(): void
@@ -177,20 +183,92 @@ class GalleryAndPlanningTest extends TestCase
         $this->get('/journey')->assertOk()->assertSee('data-border', false);
     }
 
-    public function test_a_route_can_be_drawn_in_the_planner(): void
+    public function test_a_route_piece_is_built_from_gpx_files_and_drawn_parts(): void
     {
         $this->actingAs(User::factory()->create(['role' => Role::Admin]));
-        $country = Country::create(['iso_code' => 'NL', 'name' => ['en' => 'Netherlands']]);
+        $country = Country::create(['iso_code' => 'NL', 'name' => ['en' => 'Netherlands', 'nl' => 'Nederland'], 'is_published' => true]);
+        $line = fn (array $points) => \App\Support\Polyline::encode($points);
 
-        Livewire::test(RoutePlanner::class)
-            ->set('countryId', $country->id)
-            ->set('routing', 'straight')
-            ->call('save', [[52.26, 4.56, 0], [52.96, 4.76, 1]], [[52.26, 4.56], [52.96, 4.76]])
-            ->assertSet('route', fn ($id) => $id !== null);
+        // Four days of the Vierdaagse as GPX parts (day 2 starts where day 1 ended), plus a drawn part to the start.
+        $payload = [
+            'meta' => ['countryId' => $country->id, 'type' => 'planned', 'titleNl' => 'Nijmeegse Vierdaagse', 'titleEn' => null, 'descriptionNl' => "Vier dagen rond Nijmegen.\n\nMet 40.000 anderen.", 'descriptionEn' => null],
+            'segments' => [
+                ['kind' => 'drawn', 'label' => 'Naar de start', 'routing' => 'straight', 'waypoints' => [[51.80, 5.80, 0], [51.84, 5.86, 1]], 'line' => $line([[51.80, 5.80], [51.84, 5.86]])],
+                ['kind' => 'gpx', 'label' => 'Dag 1', 'line' => $line([[51.84, 5.86], [51.90, 5.95], [51.84, 5.87]])],
+                ['kind' => 'gpx', 'label' => 'Dag 2', 'line' => $line([[51.84, 5.87], [51.78, 5.95]])],
+                ['kind' => 'gpx', 'label' => 'Dag 3', 'line' => $line([[51.78, 5.95], [51.75, 5.85]])],
+                ['kind' => 'gpx', 'label' => 'Dag 4', 'line' => $line([[51.75, 5.85], [51.84, 5.86]])],
+            ],
+        ];
+
+        $component = Livewire::test(RoutePlanner::class)->call('save', $payload);
 
         $route = $country->routes()->sole();
-        $this->assertSame(2, $route->points()->count());
-        $this->assertEqualsWithDelta(79, $route->distance_km, 3);
-        $this->get('/admin/route-planner?route='.$route->id)->assertOk()->assertSee('data-route-planner', false);
+        $component->assertSet('route', $route->id);
+        $this->assertSame(5, $route->segments()->count());
+        $this->assertSame(['Naar de start', 'Dag 1', 'Dag 2', 'Dag 3', 'Dag 4'], $route->segments->pluck('label')->all());
+        $this->assertSame(7, $route->points()->count()); // joins are not doubled
+        $this->assertSame('Nijmeegse Vierdaagse', $route->translate('title', 'nl'));
+
+        // Editing again restores the parts; the story shows on the country page.
+        $this->get('/admin/route-planner?route='.$route->id)->assertOk()->assertSee('data-route-editor', false);
+        $this->assertCount(5, Livewire::withQueryParams(['route' => $route->id])->test(RoutePlanner::class)->instance()->initialData()['segments']);
+        $this->get('/nl/landen/nederland')->assertOk()->assertSee('Nijmeegse Vierdaagse')->assertSee('Met 40.000 anderen.');
+    }
+
+    public function test_countries_and_route_pieces_are_ordered_by_dragging(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => Role::Admin]));
+        $nl = Country::create(['iso_code' => 'NL', 'name' => ['en' => 'Netherlands', 'nl' => 'Nederland'], 'sort_order' => 1]);
+        $de = Country::create(['iso_code' => 'DE', 'name' => ['en' => 'Germany', 'nl' => 'Duitsland'], 'sort_order' => 2]);
+        $first = $nl->routes()->create(['type' => 'planned', 'name' => 'Lisse → Nijmegen', 'sort_order' => 1]);
+        $second = $nl->routes()->create(['type' => 'planned', 'name' => 'Vierdaagse', 'sort_order' => 2]);
+        $de->routes()->create(['type' => 'planned', 'name' => 'Kleve → Köln', 'sort_order' => 1]);
+
+        $this->get('/admin/countries')->assertOk()->assertSee('Volgorde slepen');
+        Livewire::test(\App\Filament\Resources\Countries\Pages\ListCountries::class)->call('reorderTable', [$de->id, $nl->id]);
+        $this->assertSame([$de->id, $nl->id], Country::orderBy('sort_order')->pluck('id')->all());
+
+        // Route pieces: a tab per country, dragging within the country.
+        $this->get('/admin/country-routes')->assertOk()->assertSee('Nederland')->assertSee('Duitsland')->assertSee('Volgorde slepen');
+        Livewire::test(\App\Filament\Resources\CountryRoutes\Pages\ListCountryRoutes::class, ['activeTab' => 'NL'])
+            ->assertCanSeeTableRecords([$first, $second])->assertCanNotSeeTableRecords($de->routes)
+            ->call('reorderTable', [$second->id, $first->id]);
+        $this->assertSame([$second->id, $first->id], $nl->routes()->orderBy('sort_order')->pluck('id')->all());
+    }
+
+    public function test_routes_and_gps_points_get_the_country_they_lie_in(): void
+    {
+        $nl = Country::create(['iso_code' => 'NL', 'name' => ['en' => 'Netherlands', 'nl' => 'Nederland'], 'is_published' => true, 'sort_order' => 1, 'status' => \App\Enums\CountryStatus::Current]);
+        $de = Country::create(['iso_code' => 'DE', 'name' => ['en' => 'Germany', 'nl' => 'Duitsland'], 'is_published' => true, 'sort_order' => 2]);
+
+        // One piece, made for the Netherlands, from Nijmegen across the border to Kleve.
+        $route = $nl->routes()->create(['type' => 'planned', 'name' => 'Nijmegen → Kleve']);
+        $route->replacePoints([['lat' => 51.84, 'lng' => 5.86], ['lat' => 51.83, 'lng' => 5.95], ['lat' => 51.80, 'lng' => 6.05], ['lat' => 51.79, 'lng' => 6.14]]);
+
+        $this->assertSame([$nl->id, $nl->id, $de->id, $de->id], $route->points()->pluck('country_id')->all());
+        $this->assertGreaterThan(0, $route->kmIn($nl->id));
+        $this->assertGreaterThan(0, $route->kmIn($de->id));
+        $this->assertEqualsWithDelta($route->distance_km, $route->kmIn($nl->id) + $route->kmIn($de->id), 0.01);
+        $this->assertSame([$route->id], $de->routesThrough()->pluck('id')->all()); // shows on Germany's page too
+
+        // GPS points: the country from the location; the newest point's country is "walking here now".
+        app(\App\Services\TrackingRecorder::class)->store([
+            ['lat' => 51.84, 'lng' => 5.86, 'time' => now()->subHours(3)],
+            ['lat' => 51.79, 'lng' => 6.14, 'time' => now()->subHour()],
+        ], 'test');
+
+        $this->assertSame([$nl->id, $de->id], \App\Models\TrackingPoint::orderBy('recorded_at')->pluck('country_id')->all());
+        $this->assertSame(\App\Enums\CountryStatus::Current, $de->fresh()->status);
+        $this->assertSame(\App\Enums\CountryStatus::Visited, $nl->fresh()->status);
+    }
+
+    public function test_the_planner_refuses_a_route_without_country_or_parts(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => Role::Admin]));
+
+        Livewire::test(RoutePlanner::class)->call('save', ['meta' => ['countryId' => null, 'type' => 'planned'], 'segments' => []])->assertSet('route', null);
+
+        $this->assertSame(0, \App\Models\CountryRoute::count());
     }
 }

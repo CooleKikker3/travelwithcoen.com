@@ -524,3 +524,6 @@ main > section:first-child, main > article > header:first-child { padding-top: 5
     mask: var(--wave-top) top / 100% 80px no-repeat, linear-gradient(#000 0 0) bottom / 100% calc(100% - 79px) no-repeat; }
 /* When a section with .blend-footer ends the page, the footer's wave falls into it (no gap, colours flow into each other). */
 main:has(> .blend-footer:last-child) + footer { margin-top: -80px; position: relative; }
+
+/* Sharp (zoomed-in) satellite imagery is much brighter than NASA's: darken it a little so light route lines stay visible. */
+.map-sharp { filter: brightness(.78) saturate(1.1); }

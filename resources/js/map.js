@@ -22,20 +22,62 @@ const satellite = {
     options: { maxZoom: 18, maxNativeZoom: 8 },
 };
 
-// Zoomed in far (beyond NASA detail): switch to sharp Esri imagery with place names, and roads/street
-// names when zoomed in further. Esri requires a credit, shown only then.
+// Zoomed in far (beyond NASA detail): sharp Esri imagery, with place names (and street names close up)
+// from OpenFreeMap vector tiles. Being data instead of images, only the names are drawn: no municipal
+// borders, no road lines. The label code (MapLibre, ~250 kB) is only downloaded on the first zoom-in.
+const LABEL_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
+const LABEL_LAYERS = /^(label_(village|town|city|city_capital|state)|water_name_point_label|highway-name-(path|minor|major))$/;
+
+async function placeNames(map) {
+    const [style] = await Promise.all([
+        fetch(LABEL_STYLE).then((response) => response.json()),
+        import('maplibre-gl/dist/maplibre-gl.css'),
+    ]);
+    const { maplibreGL } = await import('@maplibre/maplibre-gl-leaflet');
+
+    // Only the vector source the names come from (no shaded relief), and only names;
+    // white with a dark halo so they read on satellite imagery. Street names from zoom 14.
+    style.sources = { openmaptiles: style.sources.openmaptiles };
+    style.layers = style.layers
+        .filter((layer) => LABEL_LAYERS.test(layer.id))
+        .map((layer) => ({
+            ...layer,
+            // Street names only close up (MapLibre zoom 13 = map zoom 14).
+            ...(layer.id.startsWith('highway-name') ? { minzoom: Math.max(layer.minzoom ?? 0, 13) } : {}),
+            // Names in the language of the page (Dutch/English), else the local name in Latin letters.
+            layout: { ...layer.layout, 'text-field': ['coalesce', ['get', `name:${document.documentElement.lang || 'en'}`], ['get', 'name:latin'], ['get', 'name']] },
+            paint: { ...layer.paint, 'text-color': '#ffffff', 'text-halo-color': 'rgba(14, 28, 19, 0.85)', 'text-halo-width': 1.6 },
+        }));
+
+    if (!map.getPane('labels')) {
+        map.createPane('labels').style.zIndex = 350; // above the imagery, below the route lines
+        map.getPane('labels').style.pointerEvents = 'none';
+    }
+
+    return maplibreGL({ style, pane: 'labels', interactive: false });
+}
+
 function sharpWhenZoomed(map) {
-    const esri = (service) => L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/${service}/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 18 });
-    const sharp = L.layerGroup([esri('World_Imagery'), esri('Reference/World_Boundaries_and_Places')]);
-    // Esri tiles are pre-rendered (highways and railways can't be switched off), so roads are faded and only shown close up.
-    const streets = esri('Reference/World_Transportation').setOpacity(0.35);
-    const credit = L.control.attribution({ prefix: false }).addAttribution('Imagery &amp; labels &copy; Esri, Maxar, Earthstar Geographics');
-    const show = (layer, visible) => (visible ? !map.hasLayer(layer) && layer.addTo(map) : layer.remove());
-    const update = () => {
-        const zoom = map.getZoom();
-        show(sharp, zoom > 8);
-        show(streets, zoom >= 14);
-        zoom > 8 ? credit.addTo(map) : credit.remove();
+    const imagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, className: 'map-sharp' });
+    const credit = L.control.attribution({ prefix: false })
+        // The names layer adds its own credit (OpenFreeMap, OpenMapTiles, OpenStreetMap).
+        .addAttribution('Imagery &copy; Esri, Maxar, Earthstar Geographics');
+    let labels = null;
+
+    const update = async () => {
+        const sharp = map.getZoom() > 8;
+        if (sharp && !map.hasLayer(imagery)) {
+            imagery.addTo(map);
+            credit.addTo(map);
+            // No names without a connection (or WebGL); the map still works.
+            labels ??= await placeNames(map).catch((error) => { console.warn('Place names unavailable', error); return null; });
+            if (labels && map.getZoom() > 8 && !map.hasLayer(labels)) labels.addTo(map);
+        }
+        if (!sharp && map.hasLayer(imagery)) {
+            imagery.remove();
+            credit.remove();
+            labels?.remove();
+        }
     };
     map.on('zoomend', update);
     map.whenReady(update);
@@ -90,7 +132,7 @@ function initMap(figure) {
                 marker.bindPopup(label);
             }
         },
-    }).addTo(map);
+    });
 
     // Only one country: satellite imagery without place names, sharp inside the border
     // and blurred/faded around it, zoomed to the country.
@@ -104,7 +146,6 @@ function initMap(figure) {
         L.tileLayer(satellite.url, { ...satellite.options, pane: 'countryPane' }).addTo(map);
 
         L.polygon(polygons, { color: '#ffffff', weight: 1.5, opacity: 0.8, fill: false, interactive: false }).addTo(map);
-        layer.bringToFront();
 
         const clip = () => {
             const path = polygons.map((ring) => 'M' + ring.map((latlng) => {
@@ -119,14 +160,31 @@ function initMap(figure) {
         const mainland = polygons.map((p) => L.latLngBounds(p)).sort((a, b) => area(b) - area(a))[0];
         map.fitBounds(mainland, { padding: [12, 12], animate: false });
         clip();
-    } else if (figure.dataset.startHome === 'true' && !data.features.some((f) => f.properties.type === 'position')) {
-        // No (visible) location yet: start at home, Lisse.
-        map.setView(home, 6.5);
+    } else if (figure.dataset.startHome === 'true') {
+        // Always centred on the latest (visible) GPS location, or on Lisse without one; zoomed in to
+        // region level, so a route is a clear line and not a blob.
+        const position = data.features.find((f) => f.properties.type === 'position');
+        map.setView(position ? [position.geometry.coordinates[1], position.geometry.coordinates[0]] : home, 8);
     } else if (layer.getLayers().length) {
-        map.fitBounds(layer.getBounds(), { padding: [24, 24] });
+        map.fitBounds(layer.getBounds(), { padding: [24, 24], maxZoom: 8 });
     } else {
         map.setView(fallbackView.center, fallbackView.zoom);
     }
+
+    // Lines and markers only once the map has a view: Leaflet cannot draw them on a map without one.
+    // Dark outline under every line, so light route colours stay visible on light fields and cities.
+    L.geoJSON(data, {
+        filter: (feature) => feature.geometry.type.endsWith('LineString'),
+        style: (feature) => ({ color: '#0e1c13', opacity: 0.55, weight: (styles[feature.properties.type]?.weight ?? 3) + 3, lineCap: 'round', lineJoin: 'round', interactive: false }),
+    }).addTo(map);
+    layer.addTo(map);
+
+    // Zoomed out, a dashed route turns into a blob: planned routes are a thin solid line until zoom 10.
+    const restyle = () => layer.setStyle((feature) => (feature.properties.type === 'planned' && map.getZoom() < 10
+        ? { ...styles.planned, dashArray: null, weight: 2 }
+        : styles[feature.properties.type]));
+    restyle();
+    map.on('zoomend', restyle);
 }
 
 // Only build maps when they scroll into view: the journey page can have many.

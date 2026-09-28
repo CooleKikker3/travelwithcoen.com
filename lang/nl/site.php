@@ -10,6 +10,7 @@ return [
     'language' => 'Taal',
 
     'nav' => [
+        'stories' => 'Verhalen',
         'home' => 'Home',
         'journey' => 'Reis',
         'about' => 'Over',
@@ -64,6 +65,7 @@ return [
         'overview' => 'De hele reis',
         'timeline' => 'Land voor land',
         'stories_title' => 'Verhalen',
+        'all_stories' => 'Alle verhalen',
         'empty' => 'Nog geen landen toegevoegd.',
         'stories' => '{0} Nog geen verhalen|{1} 1 verhaal|[2,*] :count verhalen',
     ],
@@ -105,6 +107,7 @@ return [
     ],
 
     'map' => [
+        'pieces_title' => 'Het plan, stuk voor stuk',
         'legend' => 'Legenda',
         'open' => 'Nog in te plannen',
         'position' => 'Laatste locatie',
@@ -258,6 +261,10 @@ return [
     ],
 
     'day_name' => 'Dag :number',
+
+    'stories' => [
+        'lead' => 'Alles wat ik over de tocht schrijf: de voorbereiding en de reis zelf.',
+    ],
 
     'coming_soon' => [
         'title' => 'Er komt iets aan...',

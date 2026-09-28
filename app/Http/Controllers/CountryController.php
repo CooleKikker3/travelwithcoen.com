@@ -15,12 +15,15 @@ use Illuminate\View\View;
 
 class CountryController extends Controller
 {
-    /** Global overview: map of all routes, a timeline with a map per country, and all stories. */
-    public function index(Request $request): View
+    /** Global overview: map of all routes, a timeline with a map per country, and the latest stories. */
+    public function index(Request $request): View|RedirectResponse
     {
+        // Stories used to be filtered here (?type=&tag=): they have their own page now.
+        if ($request->hasAny(['type', 'tag'])) {
+            return redirect(stories_url($request->query('type'), $request->query('tag')), 301);
+        }
+
         $user = $request->user();
-        $type = ArticleType::tryFrom((string) $request->query('type'));
-        $tag = $request->string('tag')->trim()->value() ?: null;
         $countries = Country::published()
             ->with('routes')
             ->withCount(['articles' => fn ($query) => $query->published()])
@@ -33,25 +36,21 @@ class CountryController extends Controller
             'countries' => $countries,
             'overview' => RouteGeometry::withTracking(RouteGeometry::featureCollection($routes, RouteGeometry::OVERVIEW), $user, null, RouteGeometry::OVERVIEW),
             'maps' => $countries->mapWithKeys(fn (Country $country) => [
-                $country->id => RouteGeometry::withTracking(RouteGeometry::featureCollection($country->routes, RouteGeometry::OVERVIEW / 2), $user, $country->id, RouteGeometry::OVERVIEW / 2),
+                $country->id => RouteGeometry::withTracking(RouteGeometry::featureCollection($country->routesThrough(), RouteGeometry::OVERVIEW / 2, $country->id), $user, $country->id, RouteGeometry::OVERVIEW / 2),
             ]),
             'distances' => $countries->mapWithKeys(fn (Country $country) => [
-                $country->id => $this->distances($country->routes, JourneyStats::for($user, $country)),
+                $country->id => $this->distances($country, JourneyStats::for($user, $country)),
             ]),
-            'totals' => $this->distances($routes, $stats) + ['countries' => $stats['countries']],
+            'totals' => [
+                'planned' => (float) $routes->where('type', RouteType::Planned)->sum('distance_km'),
+                'actual' => $stats['days'] ? $stats['distance_km'] : (float) $routes->where('type', RouteType::Actual)->sum('distance_km'),
+                'countries' => $stats['countries'],
+            ],
             // First timeline item: the preparation, before the first country.
             'preparation' => Article::published()->where('type', ArticleType::Preparation)->limit(3)->get(),
             'preparationCount' => Article::published()->where('type', ArticleType::Preparation)->count(),
-            'type' => $type,
-            'tag' => $tag,
-            'tags' => Article::published()->pluck('tags')->flatten()->filter()->unique()->sort()->values(),
-            'articles' => Article::published()
-                ->when($type, fn ($q) => $q->where('type', $type))
-                ->when($tag, fn ($q) => $q->whereJsonContains('tags', $tag))
-                ->with('country')
-                ->paginate(12)
-                ->withQueryString()
-                ->fragment('stories'),
+            'latest' => Article::published()->with('country')->limit(3)->get(),
+
         ]);
     }
 
@@ -73,8 +72,9 @@ class CountryController extends Controller
 
         return view('countries.show', [
             'country' => $country,
-            'map' => RouteGeometry::withTracking(RouteGeometry::featureCollection($country->routes, RouteGeometry::DETAILED), $user, $country->id, RouteGeometry::DETAILED),
-            'distances' => $this->distances($country->routes, $stats),
+            'map' => RouteGeometry::withTracking(RouteGeometry::featureCollection($country->routesThrough(), RouteGeometry::DETAILED, $country->id), $user, $country->id, RouteGeometry::DETAILED),
+            'distances' => $this->distances($country, $stats),
+            'pieces' => $country->routesThrough()->where('type', RouteType::Planned),
             'stats' => $stats,
             'articles' => $country->articles()->published()->get(),
             'gallery' => $country->gallery()->public()->limit(12)->get(),
@@ -90,11 +90,14 @@ class CountryController extends Controller
      *
      * @return array{planned: float, actual: float}
      */
-    private function distances(Collection $routes, array $stats): array
+    /** Kilometres within this country (route pieces can cross borders). */
+    private function distances(Country $country, array $stats): array
     {
+        $routes = $country->routesThrough();
+
         return [
-            'planned' => (float) $routes->where('type', RouteType::Planned)->sum('distance_km'),
-            'actual' => $stats['days'] ? $stats['distance_km'] : (float) $routes->where('type', RouteType::Actual)->sum('distance_km'),
+            'planned' => $routes->where('type', RouteType::Planned)->sum(fn ($route) => $route->kmIn($country->id)),
+            'actual' => $stats['days'] ? $stats['distance_km'] : $routes->where('type', RouteType::Actual)->sum(fn ($route) => $route->kmIn($country->id)),
         ];
     }
 }

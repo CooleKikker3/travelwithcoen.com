@@ -55,10 +55,6 @@ class CountryForm
                             ->options(CountryStatus::class)
                             ->default(CountryStatus::Tentative)
                             ->required(),
-                        TextInput::make('sort_order')
-                            ->label('Volgorde op de route')
-                            ->numeric()
-                            ->default(0),
                         Toggle::make('is_published')
                             ->label('Zichtbaar op de website')
                             ->default(true),

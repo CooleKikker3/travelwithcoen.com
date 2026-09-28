@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['country_route_id', 'sequence', 'latitude', 'longitude', 'elevation', 'recorded_at'])]
+#[Fillable(['country_route_id', 'country_id', 'sequence', 'latitude', 'longitude', 'elevation', 'recorded_at'])]
 class RoutePoint extends Model
 {
     public $timestamps = false;

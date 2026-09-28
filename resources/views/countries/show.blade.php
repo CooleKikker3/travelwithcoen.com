@@ -15,6 +15,33 @@
         <p class="mt-3 text-sm text-moss-600">{{ __('site.map.planned_note') }}</p>
     </section>
 
+    {{-- The plan per route piece (route planner), with its story. --}}
+    @php
+        $pieces = $pieces->filter(fn ($route) => $route->translate('title') || $route->translate('description') || $route->translate('description', 'nl'));
+    @endphp
+    @if ($pieces->isNotEmpty())
+        <section class="container-page mt-14">
+            <h2 class="text-3xl font-bold" data-reveal>{{ __('site.map.pieces_title') }}</h2>
+            <ol class="mt-6 grid gap-5 md:grid-cols-2">
+                @foreach ($pieces as $piece)
+                    <li class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-sage-200" data-reveal style="--i: {{ $loop->index }}">
+                        <div class="flex flex-wrap items-baseline justify-between gap-2">
+                            <h3 class="text-xl font-bold">{{ $piece->translate('title') ?? $piece->translate('title', 'nl') }}</h3>
+                            <span class="badge">{{ __('site.stats.km', ['km' => \Illuminate\Support\Number::format($piece->distance_km ?? 0, maxPrecision: 0, locale: app()->getLocale())]) }}</span>
+                        </div>
+                        @if ($story = $piece->translate('description') ?? $piece->translate('description', 'nl'))
+                            <div class="mt-3 space-y-3 text-forest-700">
+                                @foreach (preg_split('/\R\s*\R/', trim($story)) as $paragraph)
+                                    <p>{!! nl2br(e($paragraph)) !!}</p>
+                                @endforeach
+                            </div>
+                        @endif
+                    </li>
+                @endforeach
+            </ol>
+        </section>
+    @endif
+
     @if ($stats['days'])
         <dl class="container-page mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <x-stat :label="__('site.statistics.days')" :value="$stats['days']" :hint="$stats['first_day']->translatedFormat('j M').' – '.$stats['last_day']->translatedFormat('j M Y')" />

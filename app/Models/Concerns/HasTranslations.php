@@ -54,6 +54,11 @@ trait HasTranslations
 
     protected function fillMissingSlugs(): void
     {
+        // Models without their own page (e.g. route pieces) have no slug.
+        if (! property_exists($this, 'slugSource')) {
+            return;
+        }
+
         $slugs = $this->slug ?? [];
 
         foreach (array_keys(config('travel.locales')) as $locale) {

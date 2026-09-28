@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\GalleryItems\Schemas;
 
-use App\Services\VideoProcessor;
 use App\Filament\Support\Options;
 use App\Filament\Support\TranslatableTabs;
 use App\Models\GalleryItem;
@@ -42,9 +41,8 @@ class GalleryItemForm
     public static function upload(string $name = 'path'): FileUpload
     {
         return FileUpload::make($name)
-            ->label(VideoProcessor::available() ? 'Foto of video' : 'Foto')
-            // Videos can contain your GPS location: only accepted when the server can remove it.
-            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', ...(VideoProcessor::available() ? ['video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v'] : [])])
+            ->label('Foto of video')
+            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v'])
             ->disk(MediaStorage::diskName())
             // Resize in the browser first: much smaller uploads on a weak connection.
             ->imageResizeTargetWidth('2400')
@@ -53,9 +51,7 @@ class GalleryItemForm
             ->imageResizeUpscale(false)
             ->directory('gallery')
             ->maxSize(512000)
-            ->helperText(VideoProcessor::available()
-                ? 'Foto\'s worden verkleind en locatiegegevens (GPS) worden verwijderd.'
-                : 'Video\'s uploaden kan nog niet: de locatie in video\'s kan op deze server nog niet worden verwijderd.');
+            ->helperText('Foto\'s worden verkleind en locatiegegevens (GPS) worden verwijderd.');
     }
 
     /** One or two sentences about the photo or video, per language. */
