@@ -18,7 +18,6 @@
                     ['Nieuw artikel', \App\Filament\Resources\Articles\ArticleResource::getUrl('create'), 'heroicon-o-document-plus'],
                     ["Foto's uploaden", \App\Filament\Resources\GalleryItems\GalleryItemResource::getUrl('index'), 'heroicon-o-photo'],
                     ['Gebeurtenis toevoegen', \App\Filament\Resources\JourneyEvents\JourneyEventResource::getUrl('create'), 'heroicon-o-flag'],
-                    ['Uitgave toevoegen', \App\Filament\Resources\Expenses\ExpenseResource::getUrl('create'), 'heroicon-o-banknotes'],
                     ['Reisdag toevoegen', \App\Filament\Resources\JourneyDays\JourneyDayResource::getUrl('create'), 'heroicon-o-calendar-days'],
                     ['Route tekenen', \App\Filament\Pages\RoutePlanner::getUrl(), 'heroicon-o-map'],
                 ] as [$label, $url, $icon])

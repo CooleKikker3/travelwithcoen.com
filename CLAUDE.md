@@ -26,11 +26,12 @@ Website + CMS for Coen's walk from the Netherlands to Hanoi. Full requirements: 
 - **Website access**: Settings `site_open` off → `ComingSoon` middleware (alias `coming-soon`, on all public routes + sitemap) shows `pages.coming-soon` (503) to everyone except logged-in admins and `PREVIEW_IPS` (.env, config travel.preview_ips; not editable in the CMS). Behind a proxy/Cloudflare, configure trusted proxies so `request()->ip()` is the visitor IP.
 - **Journey days** can be started/ended from the dashboard (`QuickActions`: `started_at`/`ended_at`, times can be set back because of weak signal; several open days possible). Days are named "Dag N" by position (walk, rest and transport days alike): `JourneyDay::name()`, computed; lists use `withNumber()` (one subquery). CMS times use the device time zone (`tz` cookie from admin-drafts.js → FilamentTimezone); the app stores UTC.
 - **Roles**: `App\Enums\Role` = admin | trusted_viewer. Visitors without an account are guests.
+- **No budget/expenses** in the system (removed on Coen's request): ignore the budget sections in project_context.md.
 - Never invent route, visa, border or Garmin facts; mark uncertain things as not final.
 - Keep it simple; build in small, working steps. Run `php artisan test` after changes.
 
 ## Roadmap
-- Done: phases 0–6 — i18n, CMS, website texts, routes/maps, tracking + privacy + family login, journey days/events/statistics, equipment, media, private budget, dashboard, settings, sitemap, security headers.
+- Done: phases 0–6 — i18n, CMS, website texts, routes/maps, tracking + privacy + family login, journey days/events/statistics, equipment, media, dashboard, settings, sitemap, security headers.
 - Open: Garmin integration (after research), deployment + backups + map tile provider, 2FA, design polish (postponed by Coen).
 
 ## Open notes (for next session)

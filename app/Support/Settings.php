@@ -14,8 +14,6 @@ class Settings
     public const DEFAULTS = [
         'public_tracking_delay_hours' => 336, // 14 days
         'journey_phase' => 'preparation',
-        'budget_total_eur' => 35000,
-        'budget_reserve_eur' => 5000,
         // Closed = visitors see a "coming soon" page; admins and PREVIEW_IPS (.env) see the site.
         'site_open' => true,
     ];

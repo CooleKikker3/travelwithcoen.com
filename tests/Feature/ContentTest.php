@@ -103,16 +103,16 @@ class ContentTest extends TestCase
         $this->get('/admin')->assertOk()->assertSee('Snel naar')->assertSee('admin-drafts', false);
         $this->get('/admin/settings')->assertOk()->assertSee('Bezoekers zien je locatie van');
 
-        $this->get('/admin')->assertDontSee('Uitgegeven');
+        $this->get('/admin')->assertDontSee('Laatste locatie-update');
         $this->get('/admin/statistics')->assertOk()->assertSee('Statistieken');
-        Livewire::test(JourneyOverview::class)->assertOk()->assertSee('Uitgegeven');
+        Livewire::test(JourneyOverview::class)->assertOk()->assertSee('Laatste locatie-update');
         Livewire::test(SettingsPage::class)
             ->set('data.public_tracking_delay_hours', 168)
             ->call('save')
             ->assertHasNoErrors();
         $this->assertSame(168, Settings::get('public_tracking_delay_hours'));
 
-        foreach (['tracking-points', 'journey-days', 'journey-events', 'equipment-items', 'gallery-items', 'expenses'] as $resource) {
+        foreach (['tracking-points', 'journey-days', 'journey-events', 'equipment-items', 'gallery-items'] as $resource) {
             $this->get("/admin/{$resource}")->assertOk();
             $this->get("/admin/{$resource}/create")->assertOk();
         }

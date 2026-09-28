@@ -7,7 +7,7 @@ use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 
-/** Journey numbers (distance, tracking, articles, gallery, budget), only loaded when opened. */
+/** Journey numbers (distance, tracking, articles, gallery), only loaded when opened. */
 class Statistics extends Page
 {
     protected string $view = 'filament.pages.statistics';

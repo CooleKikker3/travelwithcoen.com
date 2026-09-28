@@ -7,7 +7,6 @@ use App\Enums\CountryStatus;
 use App\Enums\JourneyPhase;
 use App\Models\Article;
 use App\Models\Country;
-use App\Models\Expense;
 use App\Models\GalleryItem;
 use App\Models\JourneyDay;
 use App\Models\TrackingPoint;
@@ -29,8 +28,6 @@ class JourneyOverview extends StatsOverviewWidget
         $stats = JourneyStats::for(auth()->user());
         $lastPoint = TrackingPoint::latest('recorded_at')->first();
 
-        $spent = Expense::sum('amount_eur');
-        $available = Settings::get('budget_total_eur') - Settings::get('budget_reserve_eur');
         $current = Country::where('status', CountryStatus::Current)->first();
 
         return [
@@ -50,10 +47,7 @@ class JourneyOverview extends StatsOverviewWidget
                     ? 'Nieuwste: '.$latest->taken_at->format('j M Y')
                     : (filled(config('travel.youtube_channel')) ? 'Nog niet opgehaald' : 'Geen kanaal ingesteld'))
                 ->color('danger'),
-            Stat::make('Uitgegeven (privé)', Number::currency($spent, 'EUR'))
-                ->description(Number::currency($available - $spent, 'EUR').' over (zonder reserve)'
-                    .($stats['walking_days'] ? ' · '.Number::currency($spent / max(1, $stats['days']), 'EUR').'/dag' : ''))
-                ->color($spent > $available ? 'danger' : 'success'),
+
         ];
     }
 }

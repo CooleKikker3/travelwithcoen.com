@@ -77,10 +77,6 @@ class Settings extends Page
                         ->required()
                         ->helperText('Familie (ingelogd) ziet je locatie altijd live.'),
                 ]),
-                Section::make('Budget (privé)')->columns(2)->schema([
-                    TextInput::make('budget_total_eur')->label('Totaalbudget')->numeric()->prefix('€')->required(),
-                    TextInput::make('budget_reserve_eur')->label('Waarvan noodreserve')->numeric()->prefix('€')->required(),
-                ]),
             ]);
     }
 
