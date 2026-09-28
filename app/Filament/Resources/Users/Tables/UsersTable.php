@@ -12,10 +12,10 @@ class UsersTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')->searchable(),
-                TextColumn::make('email')->searchable(),
-                TextColumn::make('role')->badge(),
-                TextColumn::make('created_at')->date('j M Y'),
+                TextColumn::make('name')->label('Naam')->searchable(),
+                TextColumn::make('email')->label('E-mail')->searchable(),
+                TextColumn::make('role')->label('Rol')->badge(),
+                TextColumn::make('created_at')->label('Aangemaakt')->date('j M Y'),
             ])
             ->recordActions([
                 EditAction::make(),

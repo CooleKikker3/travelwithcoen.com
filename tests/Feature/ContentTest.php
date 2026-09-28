@@ -100,10 +100,12 @@ class ContentTest extends TestCase
     {
         $this->actingAs(User::factory()->create(['role' => Role::Admin]));
 
-        $this->get('/admin')->assertOk()->assertSee('Quick actions')->assertSee('admin-drafts', false);
-        $this->get('/admin/settings')->assertOk()->assertSee('Public tracking delay');
+        $this->get('/admin')->assertOk()->assertSee('Snel naar')->assertSee('admin-drafts', false);
+        $this->get('/admin/settings')->assertOk()->assertSee('Bezoekers zien je locatie van');
 
-        Livewire::test(JourneyOverview::class)->assertOk()->assertSee('Budget spent');
+        $this->get('/admin')->assertDontSee('Uitgegeven');
+        $this->get('/admin/statistics')->assertOk()->assertSee('Statistieken');
+        Livewire::test(JourneyOverview::class)->assertOk()->assertSee('Uitgegeven');
         Livewire::test(SettingsPage::class)
             ->set('data.public_tracking_delay_hours', 168)
             ->call('save')

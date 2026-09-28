@@ -21,7 +21,16 @@ class JourneyDayResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Journey';
+    public static function getRecordTitle(?\Illuminate\Database\Eloquent\Model $record): ?string
+    {
+        return $record?->name();
+    }
+
+    protected static string|UnitEnum|null $navigationGroup = 'Reis';
+
+    protected static ?string $modelLabel = 'reisdag';
+
+    protected static ?string $pluralModelLabel = 'Reisdagen';
 
     protected static ?int $navigationSort = 3;
 

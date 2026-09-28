@@ -93,6 +93,79 @@ class SiteTest extends TestCase
         $this->get('/about')->assertOk();
     }
 
+    public function test_journey_days_can_be_started_and_ended_later_from_the_dashboard(): void
+    {
+        Storage::fake('public');
+        $this->actingAs(User::factory()->create(['role' => Role::Admin]));
+        $widget = \App\Filament\Widgets\QuickActions::class;
+
+        // GPS locations: the latest is chosen by default, and only the newest 5 are loaded.
+        foreach (range(1, 7) as $i) {
+            \App\Models\TrackingPoint::create(['latitude' => 52 + $i / 100, 'longitude' => 4.5, 'source' => 'test', 'recorded_at' => now()->subDays(2)->addMinutes($i), 'received_at' => now()]);
+        }
+        $latest = \App\Models\TrackingPoint::latest('recorded_at')->first();
+        $select = \App\Filament\Support\TrackingPointSelect::make('p', 'P');
+        $this->assertSame($latest->id, $select->getDefaultState());
+
+        // No signal yesterday: started afterwards, with yesterday's time.
+        Livewire::test($widget)->mountAction('startDay')->assertActionDataSet(['start_point_id' => $latest->id]);
+        Livewire::test($widget)
+            ->assertActionHidden('endDay')
+            ->callAction('startDay', ['started_at_other' => true, 'started_at' => now()->subDay()->setTime(8, 30), 'start_location' => 'Lisse']);
+        $day = \App\Models\JourneyDay::sole();
+        $this->assertSame(now()->subDay()->toDateString(), $day->date->toDateString());
+        $this->assertSame($latest->id, $day->start_point_id);
+
+        // Today started too, before yesterday was ended: choose which day to end.
+        Livewire::test($widget)->callAction('startDay', ['started_at_other' => true, 'started_at' => now()->startOfDay()]);
+        Livewire::test($widget)->assertActionDisabled('startDay')->assertActionDisabled('restDay'); // today is set
+        Livewire::test($widget)
+            ->assertActionVisible('endDay')
+            ->callAction('endDay', ['day_id' => $day->id, 'ended_at_other' => true, 'ended_at' => now()->subDay()->setTime(16, 0), 'end_location' => 'Haarlem', 'distance_km' => 21.5, 'sleep_photo' => \Illuminate\Http\UploadedFile::fake()->image('tent.jpg', 400, 300)]);
+
+        $day->refresh();
+        $this->assertSame('Haarlem', $day->end_location);
+        $this->assertSame(450, $day->walking_minutes);
+        $this->assertSame(1, \App\Models\JourneyDay::whereNull('ended_at')->count()); // today is still open
+
+        // Photo of the sleeping spot: in the gallery, but for visitors only after the tracking delay.
+        auth()->logout();
+        $photo = \App\Models\GalleryItem::sole();
+        $this->assertSame([$day->id, 'Waar ik sliep: Haarlem', true], [$photo->journey_day_id, $photo->translate('caption', 'nl'), $photo->is_sleeping_spot]);
+        $this->assertSame(0, \App\Models\GalleryItem::public()->count());
+        $this->travel(15)->days();
+        $this->assertSame(1, \App\Models\GalleryItem::public()->count());
+    }
+
+    public function test_a_journey_day_gets_the_local_date(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => Role::Admin]));
+        \Filament\Support\Facades\FilamentTimezone::set('Asia/Ho_Chi_Minh');
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2027-11-02 23:30', 'UTC')); // 06:30 on 3 November in Hanoi
+
+        Livewire::test(\App\Filament\Widgets\QuickActions::class)->callAction('startDay');
+
+        $this->assertSame('2027-11-03', \App\Models\JourneyDay::sole()->date->toDateString());
+    }
+
+    public function test_a_day_can_be_marked_as_rest_day(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => Role::Admin]));
+        $widget = \App\Filament\Widgets\QuickActions::class;
+
+        Livewire::test($widget)->assertActionEnabled('restDay')->callAction('restDay', ['date' => today()->toDateString()]);
+
+        $this->assertSame(\App\Enums\DayType::Rest, \App\Models\JourneyDay::sole()->type);
+        Livewire::test($widget)->assertActionDisabled('restDay')->assertActionDisabled('startDay');
+
+        // Days are numbered in order, rest days included: walk, rest (today), walk.
+        \App\Models\JourneyDay::create(['date' => today()->subDay(), 'type' => \App\Enums\DayType::Walk]);
+        \App\Models\JourneyDay::create(['date' => today()->addDay(), 'type' => \App\Enums\DayType::Walk]);
+        $names = \App\Models\JourneyDay::select('journey_days.*')->withNumber()->orderBy('date')->get()->map->name()->all();
+        $this->assertSame(['Day 1', 'Day 2', 'Day 3'], $names);
+        $this->get('/admin/journey-days')->assertOk()->assertSeeInOrder(['Dag 3', 'Dag 2', 'Dag 1']);
+    }
+
     public function test_stops_in_the_rough_direction_link_to_their_country(): void
     {
         Country::create(['iso_code' => 'NL', 'name' => ['en' => 'Netherlands', 'nl' => 'Nederland'], 'is_published' => true]);
@@ -188,7 +261,7 @@ class SiteTest extends TestCase
     public function test_country_page_lists_its_articles(): void
     {
         $country = Country::create(['iso_code' => 'DE', 'name' => ['en' => 'Germany', 'nl' => 'Duitsland']]);
-        $this->article(['type' => ArticleType::Diary, 'title' => ['en' => 'First week in Germany'], 'country_id' => $country->id]);
+        $this->article(['type' => ArticleType::Diary, 'title' => ['en' => 'First week in Germany'], 'country_id' => $country->id, 'published_at' => now()->subDays(20)]);
 
         $this->get('/nl/landen/duitsland')->assertOk()->assertSee('First week in Germany');
     }

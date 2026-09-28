@@ -21,7 +21,11 @@ class CountryRouteResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMap;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Journey';
+    protected static string|UnitEnum|null $navigationGroup = 'Reis';
+
+    protected static ?string $modelLabel = 'route';
+
+    protected static ?string $pluralModelLabel = 'Routes';
 
     protected static ?int $navigationSort = 2;
 

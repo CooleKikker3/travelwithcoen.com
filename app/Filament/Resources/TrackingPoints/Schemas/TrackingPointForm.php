@@ -15,13 +15,13 @@ class TrackingPointForm
     {
         return $schema
             ->components([
-                TextInput::make('latitude')->numeric()->required()->minValue(-90)->maxValue(90),
-                TextInput::make('longitude')->numeric()->required()->minValue(-180)->maxValue(180),
-                DateTimePicker::make('recorded_at')->required()->seconds(),
-                DateTimePicker::make('received_at')->required()->default(now())->seconds(),
-                TextInput::make('altitude')->numeric()->suffix('m'),
-                TextInput::make('source')->required()->default('manual')->maxLength(30),
-                Select::make('country_id')->label('Country')->options(fn () => Options::countries())->searchable(),
+                TextInput::make('latitude')->label('Breedtegraad')->numeric()->required()->minValue(-90)->maxValue(90),
+                TextInput::make('longitude')->label('Lengtegraad')->numeric()->required()->minValue(-180)->maxValue(180),
+                DateTimePicker::make('recorded_at')->label('Tijdstip')->required()->seconds(),
+                DateTimePicker::make('received_at')->label('Ontvangen')->required()->default(now())->seconds(),
+                TextInput::make('altitude')->label('Hoogte')->numeric()->suffix('m'),
+                TextInput::make('source')->label('Bron')->required()->default('manual')->maxLength(30),
+                Select::make('country_id')->label('Land')->options(fn () => Options::countries())->searchable(),
             ]);
     }
 }

@@ -6,12 +6,11 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
+use App\Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
-use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -27,6 +26,16 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
+            // The admin panel is Dutch only.
+            ->bootUsing(function () {
+                app()->setLocale('nl');
+                \Illuminate\Support\Carbon::setLocale('nl');
+                // Show and enter times in the time zone of the device (set by admin-drafts.js), which changes along the route.
+                $timezone = request()->cookie('tz');
+                if (is_string($timezone) && in_array($timezone, timezone_identifiers_list(), true)) {
+                    \Filament\Support\Facades\FilamentTimezone::set($timezone);
+                }
+            })
             ->favicon(asset('brand/favicon.svg'))
             ->path('admin')
             ->login()
@@ -42,9 +51,6 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
-            ->widgets([
-                AccountWidget::class,
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

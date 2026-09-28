@@ -42,22 +42,21 @@ class Settings extends Page
         return $schema
             ->statePath('data')
             ->components([
-                Section::make('Website access')->schema([
+                Section::make('Toegang tot de website')->schema([
                     Toggle::make('site_open')
-                        ->label('Website is open')
-                        ->helperText('When off, visitors only see a "coming soon" page. Logged-in admins (and the IP addresses in PREVIEW_IPS in .env) still see the full site.'),
+                        ->label('Website is open'),
                 ]),
-                Section::make('Journey')->columns(2)->schema([
+                Section::make('Reis')->columns(2)->schema([
                     Select::make('journey_phase')
-                        ->label('Phase of the project')
+                        ->label('Fase van het project')
                         ->options(JourneyPhase::class)
                         ->required()
-                        ->helperText('Changes the focus of the home page.'),
+                        ->helperText('Bepaalt waar de homepagina de nadruk op legt.'),
                 ]),
-                Section::make('Home page')->schema([
+                Section::make('Homepagina')->schema([
                     FileUpload::make('home_image')
-                        ->label('Main image')
-                        ->helperText('Large photo at the top of the home page. Landscape works best. Without an image the green pattern is shown.')
+                        ->label('Hoofdfoto')
+                        ->helperText('Grote foto bovenaan de homepagina. Liggend werkt het best.')
                         ->image()
                         ->disk(MediaStorage::diskName())
                         ->imageResizeTargetWidth('2400')
@@ -67,19 +66,16 @@ class Settings extends Page
                         ->directory('site')
                         ->maxSize(8192),
                 ]),
-                Section::make('Tracking privacy')->columns(2)->schema([
-                    TextInput::make('public_tracking_delay_hours')
-                        ->label('Public tracking delay')
-                        ->numeric()
-                        ->integer()
-                        ->minValue(0)
-                        ->suffix('hours')
+                Section::make('Privacy van je locatie')->columns(2)->schema([
+                    Select::make('public_tracking_delay_hours')
+                        ->label('Bezoekers zien je locatie van')
+                        ->options([0 => 'Nu (geen vertraging)', 168 => '1 week geleden', 336 => '2 weken geleden', 504 => '3 weken geleden', 720 => '1 maand geleden'])
                         ->required()
-                        ->helperText('Visitors only see locations older than this. 336 = 14 days, 168 = 7, 504 = 21, 720 = 30. Family sees everything live.'),
+                        ->helperText('Familie (ingelogd) ziet je locatie altijd live.'),
                 ]),
-                Section::make('Budget (private)')->columns(2)->schema([
-                    TextInput::make('budget_total_eur')->label('Total budget')->numeric()->prefix('€')->required(),
-                    TextInput::make('budget_reserve_eur')->label('Of which emergency reserve')->numeric()->prefix('€')->required(),
+                Section::make('Budget (privé)')->columns(2)->schema([
+                    TextInput::make('budget_total_eur')->label('Totaalbudget')->numeric()->prefix('€')->required(),
+                    TextInput::make('budget_reserve_eur')->label('Waarvan noodreserve')->numeric()->prefix('€')->required(),
                 ]),
             ]);
     }
@@ -96,6 +92,6 @@ class Settings extends Page
         SiteSettings::set($state);
         Log::info('Settings changed', ['user' => auth()->id(), 'settings' => $state]);
 
-        Notification::make()->success()->title('Settings saved')->send();
+        Notification::make()->success()->title('Instellingen opgeslagen')->send();
     }
 }

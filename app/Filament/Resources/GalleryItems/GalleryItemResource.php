@@ -21,11 +21,15 @@ class GalleryItemResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPhoto;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Content';
+    protected static string|UnitEnum|null $navigationGroup = 'Inhoud';
+
+    protected static ?string $modelLabel = 'galerij-item';
+
+    protected static ?string $pluralModelLabel = 'Galerij';
 
     protected static ?int $navigationSort = 2;
 
-    protected static ?string $navigationLabel = 'Gallery';
+    protected static ?string $navigationLabel = 'Galerij';
 
     public static function form(Schema $schema): Schema
     {

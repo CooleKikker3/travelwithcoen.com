@@ -23,7 +23,7 @@ class ImageBlock extends RichContentCustomBlock
 
     public static function getLabel(): string
     {
-        return 'Image with caption';
+        return 'Afbeelding met bijschrift';
     }
 
     public static function getIcon(): Heroicon
@@ -34,10 +34,10 @@ class ImageBlock extends RichContentCustomBlock
     public static function configureEditorAction(Action $action): Action
     {
         return $action
-            ->modalHeading('Image')
+            ->modalHeading('Afbeelding')
             ->schema([
                 FileUpload::make('path')
-                    ->label('Image')
+                    ->label('Afbeelding')
                     ->image()
                     ->disk(MediaStorage::diskName())
                     // Resize in the browser first: much smaller uploads on a weak connection.
@@ -48,16 +48,16 @@ class ImageBlock extends RichContentCustomBlock
                     ->directory('articles/images')
                     ->maxSize(20480)
                     ->required()
-                    ->helperText('Also added to the gallery. Location data is removed.'),
-                TextInput::make('caption')
-                    ->placeholder('e.g. Walking on a sandy road near Berlin')
+                    ->helperText('Komt ook in de galerij. Locatiegegevens worden verwijderd.'),
+                TextInput::make('caption')->label('Bijschrift')
+                    ->placeholder('bijv. Lopen over een zandweg bij Berlijn')
                     ->maxLength(300),
                 TextInput::make('alt')
-                    ->label('Description for screen readers (optional)')
+                    ->label('Beschrijving voor schermlezers (optioneel)')
                     ->maxLength(300),
                 Toggle::make('sensitive')
-                    ->label('Sensitive content')
-                    ->helperText('E.g. an injury: shown blurred with a warning until the reader chooses to see it.'),
+                    ->label('Gevoelige inhoud')
+                    ->helperText('Bijv. een blessure: vervaagd met een waarschuwing tot de lezer hem wil zien.'),
             ]);
     }
 

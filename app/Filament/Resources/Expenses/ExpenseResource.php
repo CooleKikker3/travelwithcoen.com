@@ -21,7 +21,11 @@ class ExpenseResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Private';
+    protected static string|UnitEnum|null $navigationGroup = 'Privé';
+
+    protected static ?string $modelLabel = 'uitgave';
+
+    protected static ?string $pluralModelLabel = 'Uitgaven';
 
     protected static ?int $navigationSort = 1;
 

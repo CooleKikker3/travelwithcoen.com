@@ -22,18 +22,18 @@ class EquipmentItemsTable
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
             ->columns([
-                TextColumn::make('name')->state(fn (EquipmentItem $record) => $record->translate('name', 'en'))
+                TextColumn::make('name')->label('Naam')->state(fn (EquipmentItem $record) => $record->translate('name', 'en'))
                     ->description(fn (EquipmentItem $record) => trim($record->brand.' '.$record->model) ?: null),
-                TextColumn::make('category')->badge(),
-                TextColumn::make('status')->badge(),
-                TextColumn::make('weight_g')->label('Weight')->suffix(' g')->numeric()->summarize(Sum::make()->label('Total g')),
-                TextColumn::make('price')->money('EUR')->summarize(Sum::make()->money('EUR')),
-                IconColumn::make('is_worn')->label('Worn')->boolean(),
-                IconColumn::make('is_public')->label('Public')->boolean(),
+                TextColumn::make('category')->label('Categorie')->badge(),
+                TextColumn::make('status')->label('Status')->badge(),
+                TextColumn::make('weight_g')->label('Gewicht')->suffix(' g')->numeric()->summarize(Sum::make()->label('Totaal g')),
+                TextColumn::make('price')->label('Prijs')->money('EUR')->summarize(Sum::make()->money('EUR')),
+                IconColumn::make('is_worn')->label('Gedragen')->boolean(),
+                IconColumn::make('is_public')->label('Openbaar')->boolean(),
             ])
             ->filters([
-                SelectFilter::make('category')->options(EquipmentCategory::class),
-                SelectFilter::make('status')->options(EquipmentStatus::class),
+                SelectFilter::make('category')->label('Categorie')->options(EquipmentCategory::class),
+                SelectFilter::make('status')->label('Status')->options(EquipmentStatus::class),
             ])
             ->recordActions([
                 EditAction::make(),

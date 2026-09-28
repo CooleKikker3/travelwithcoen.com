@@ -19,15 +19,15 @@ class ExpensesTable
         return $table
             ->defaultSort('date', 'desc')
             ->columns([
-                TextColumn::make('date')->date('j M Y')->sortable(),
-                TextColumn::make('amount_eur')->label('Amount')->money('EUR')->sortable()->summarize(Sum::make()->money('EUR')),
-                TextColumn::make('category')->badge(),
-                TextColumn::make('country.iso_code')->label('Country'),
-                TextColumn::make('description')->placeholder('—')->wrap(),
+                TextColumn::make('date')->label('Datum')->date('j M Y')->sortable(),
+                TextColumn::make('amount_eur')->label('Bedrag')->money('EUR')->sortable()->summarize(Sum::make()->money('EUR')),
+                TextColumn::make('category')->label('Categorie')->badge(),
+                TextColumn::make('country.iso_code')->label('Land'),
+                TextColumn::make('description')->label('Beschrijving')->placeholder('—')->wrap(),
             ])
             ->filters([
-                SelectFilter::make('category')->options(ExpenseCategory::class),
-                SelectFilter::make('country_id')->label('Country')->options(fn () => Options::countries()),
+                SelectFilter::make('category')->label('Categorie')->options(ExpenseCategory::class),
+                SelectFilter::make('country_id')->label('Land')->options(fn () => Options::countries()),
             ])
             ->recordActions([
                 EditAction::make(),

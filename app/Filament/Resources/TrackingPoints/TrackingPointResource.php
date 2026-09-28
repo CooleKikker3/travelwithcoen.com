@@ -21,7 +21,11 @@ class TrackingPointResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMapPin;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Journey';
+    protected static string|UnitEnum|null $navigationGroup = 'Reis';
+
+    protected static ?string $modelLabel = 'locatiepunt';
+
+    protected static ?string $pluralModelLabel = 'Locatiepunten';
 
     protected static ?int $navigationSort = 5;
 

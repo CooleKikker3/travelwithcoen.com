@@ -19,48 +19,48 @@ class CountryForm
         return $schema
             ->columns(3)
             ->components([
-                Section::make('Content')
+                Section::make('Inhoud')
                     ->columnSpan(2)
                     ->schema([
                         TranslatableTabs::make(fn (string $locale, bool $isDefault) => [
                             TextInput::make("name.{$locale}")
-                                ->label('Name')
+                                ->label('Naam')
                                 ->required($isDefault)
                                 ->maxLength(100),
                             TextInput::make("slug.{$locale}")
-                                ->label('Slug')
-                                ->helperText('Leave empty to generate it from the name.')
+                                ->label('URL-naam')
+                                ->helperText('Laat leeg om hem uit de naam te maken.')
                                 ->alphaDash()
                                 ->maxLength(100),
                             Textarea::make("intro.{$locale}")
-                                ->label('Short intro')
+                                ->label('Korte intro')
                                 ->rows(3),
                             RichEditor::make("story.{$locale}")
-                                ->label('My story about this country'),
+                                ->label('Mijn verhaal over dit land'),
                         ]),
                     ]),
 
-                Section::make('Settings')
+                Section::make('Instellingen')
                     ->columnSpan(1)
                     ->schema([
                         TextInput::make('iso_code')
-                            ->label('ISO code')
-                            ->helperText('Two letters, e.g. DE. Used for the flag.')
+                            ->label('Landcode')
+                            ->helperText('Twee letters, bijv. DE. Voor de vlag.')
                             ->required()
                             ->length(2)
                             ->alpha()
                             ->dehydrateStateUsing(fn (string $state) => strtoupper($state))
                             ->unique(ignoreRecord: true),
-                        Select::make('status')
+                        Select::make('status')->label('Status')
                             ->options(CountryStatus::class)
                             ->default(CountryStatus::Tentative)
                             ->required(),
                         TextInput::make('sort_order')
-                            ->label('Order on the route')
+                            ->label('Volgorde op de route')
                             ->numeric()
                             ->default(0),
                         Toggle::make('is_published')
-                            ->label('Visible on the website')
+                            ->label('Zichtbaar op de website')
                             ->default(true),
                     ]),
             ]);

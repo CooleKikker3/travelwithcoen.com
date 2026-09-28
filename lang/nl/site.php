@@ -257,6 +257,8 @@ return [
         'retired' => 'Niet meer in gebruik',
     ],
 
+    'day_name' => 'Dag :number',
+
     'coming_soon' => [
         'title' => 'Er komt iets aan...',
         'hand' => 'de veters worden gestrikt!',

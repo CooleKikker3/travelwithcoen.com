@@ -21,26 +21,26 @@ class ArticlesTable
         return $table
             ->defaultSort('published_at', 'desc')
             ->columns([
-                TextColumn::make('title')
+                TextColumn::make('title')->label('Titel')
                     ->state(fn (Article $record) => $record->translate('title', 'en'))
                     ->searchable(query: fn (Builder $query, string $search) => $query->where('title', 'like', "%{$search}%"))
                     ->wrap(),
-                TextColumn::make('type')->badge(),
-                TextColumn::make('status')->badge(),
-                TextColumn::make('tags')->badge()->separator(',')->toggleable(),
+                TextColumn::make('type')->label('Soort')->badge(),
+                TextColumn::make('status')->label('Status')->badge(),
+                TextColumn::make('tags')->label('Tags')->badge()->separator(',')->toggleable(),
                 IconColumn::make('dutch')
                     ->label('NL')
                     ->state(fn (Article $record) => $record->isTranslated('nl'))
                     ->boolean(),
-                TextColumn::make('country')
+                TextColumn::make('country')->label('Land')
                     ->state(fn (Article $record) => $record->country?->translate('name', 'en')),
-                TextColumn::make('published_at')
+                TextColumn::make('published_at')->label('Gepubliceerd')
                     ->dateTime('j M Y, H:i')
                     ->sortable(),
             ])
             ->filters([
-                SelectFilter::make('type')->options(ArticleType::class),
-                SelectFilter::make('status')->options(ArticleStatus::class),
+                SelectFilter::make('type')->label('Soort')->options(ArticleType::class),
+                SelectFilter::make('status')->label('Status')->options(ArticleStatus::class),
             ])
             ->recordActions([
                 EditAction::make(),

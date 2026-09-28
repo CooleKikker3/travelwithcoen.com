@@ -21,7 +21,11 @@ class CountryResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFlag;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Journey';
+    protected static string|UnitEnum|null $navigationGroup = 'Reis';
+
+    protected static ?string $modelLabel = 'land';
+
+    protected static ?string $pluralModelLabel = 'Landen';
 
     protected static ?int $navigationSort = 1;
 

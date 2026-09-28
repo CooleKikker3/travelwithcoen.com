@@ -2,6 +2,9 @@
 // a draft in this browser (localStorage). After a failed save, a reload or an expired session the
 // draft can be restored. A successful save removes it. Loaded in the Filament panel (AdminPanelProvider).
 
+// Device time zone for the server (FilamentTimezone in AdminPanelProvider): times in the CMS follow the country you are in.
+document.cookie = `tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}; path=/; max-age=31536000; SameSite=Lax`;
+
 const PREFIX = 'twc-draft:';
 const INTERVAL_MS = 4000;
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
@@ -59,7 +62,7 @@ function offerRestore(root, wire, key, saved) {
     const banner = document.createElement('div');
     banner.setAttribute('role', 'alert');
     banner.style.cssText = 'display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;margin-bottom:1rem;padding:.75rem 1rem;border-radius:.75rem;background:#fef3c7;color:#78350f;font-size:.875rem';
-    banner.textContent = `Unsaved changes from ${new Date(draft.savedAt).toLocaleString()} were found in this browser. `;
+    banner.textContent = `Er zijn niet-opgeslagen wijzigingen van ${new Date(draft.savedAt).toLocaleString('nl-NL')} gevonden in deze browser. `;
 
     const button = (label, primary, onClick) => {
         const el = document.createElement('button');
@@ -71,8 +74,8 @@ function offerRestore(root, wire, key, saved) {
     };
 
     banner.append(
-        button('Restore draft', true, () => wire.$set('data', { ...wire.$get('data'), ...JSON.parse(draft.data) })),
-        button('Discard', false, () => storage.remove(key)),
+        button('Herstellen', true, () => wire.$set('data', { ...wire.$get('data'), ...JSON.parse(draft.data) })),
+        button('Weggooien', false, () => storage.remove(key)),
     );
 
     root.querySelector('.fi-page')?.prepend(banner);

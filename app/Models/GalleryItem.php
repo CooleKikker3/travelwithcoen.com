@@ -7,6 +7,7 @@ use App\Models\Concerns\HasTranslations;
 use App\Services\ImageProcessor;
 use App\Services\VideoProcessor;
 use App\Support\MediaStorage;
+use App\Support\TrackingPrivacy;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *  - kind "image" / "video": uploaded files (source "upload"), or images from an article's text (source "article")
  *  - kind "youtube": synced from the YouTube channel (source "youtube", see YouTubeSync)
  */
-#[Fillable(['path', 'width', 'height', 'youtube_id', 'youtube_channel_id', 'kind', 'source', 'caption', 'taken_at', 'country_id', 'article_id', 'journey_day_id', 'journey_event_id', 'is_public', 'is_sensitive'])]
+#[Fillable(['path', 'width', 'height', 'youtube_id', 'youtube_channel_id', 'kind', 'source', 'caption', 'taken_at', 'country_id', 'article_id', 'journey_day_id', 'journey_event_id', 'is_public', 'is_sensitive', 'is_sleeping_spot'])]
 class GalleryItem extends Model
 {
     use HasTranslations;
@@ -34,6 +35,7 @@ class GalleryItem extends Model
             'taken_at' => 'datetime',
             'is_public' => 'boolean',
             'is_sensitive' => 'boolean',
+            'is_sleeping_spot' => 'boolean',
         ];
     }
 
@@ -44,7 +46,10 @@ class GalleryItem extends Model
             if ($item->isDirty('path') && $item->path) {
                 $item->kind = in_array(strtolower(pathinfo($item->path, PATHINFO_EXTENSION)), self::VIDEO_EXTENSIONS, true) ? 'video' : 'image';
                 if ($item->kind === 'video') {
-                    app(VideoProcessor::class)->stripMetadata($item->path);
+                    // Safety net: a video whose metadata (possibly GPS) could not be removed is never public.
+                    if (! app(VideoProcessor::class)->stripMetadata($item->path)) {
+                        $item->is_public = false;
+                    }
                 } else {
                     $image = app(ImageProcessor::class)->process($item->path);
                     [$item->width, $item->height] = [$image['width'], $image['height']];
@@ -80,6 +85,11 @@ class GalleryItem extends Model
         ];
     }
 
+    public function journeyDay(): BelongsTo
+    {
+        return $this->belongsTo(JourneyDay::class);
+    }
+
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
@@ -94,9 +104,13 @@ class GalleryItem extends Model
     public function scopePublic(Builder $query): Builder
     {
         return $query->where('is_public', true)
-            ->where(fn ($q) => $q->where('source', '!=', 'article')->orWhereHas('article', fn ($a) => $a
-                ->where('status', ArticleStatus::Published)
-                ->where('published_at', '<=', now())))
+            // Images from an article's text: only once that article is visible.
+            ->where(fn ($q) => $q->where('source', '!=', 'article')->orWhereHas('article', fn ($a) => $a->published()))
+            // New uploads can show where I am now: visitors see them after the tracking delay (older photos right away).
+            ->where(fn ($q) => $q->where('source', '!=', 'upload')->orWhere('taken_at', '<=', TrackingPrivacy::cutoff(auth()->user()) ?? now()))
+            // Photos of a journey day (e.g. where I slept) reveal a location: public only after the tracking delay.
+            ->where(fn ($q) => $q->whereNull('journey_day_id')->orWhereHas('journeyDay', fn ($d) => $d
+                ->whereDate('date', '<', (TrackingPrivacy::cutoff(auth()->user()) ?? now()->addDay())->toDateString())))
             ->latest('taken_at');
     }
 

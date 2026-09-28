@@ -18,20 +18,20 @@ class EquipmentItemForm
         return $schema
             ->components([
                 TranslatableTabs::make(fn (string $locale, bool $isDefault) => [
-                    TextInput::make("name.{$locale}")->label('Name')->required($isDefault)->maxLength(150),
-                    Textarea::make("reason.{$locale}")->label('Why I chose it')->rows(2),
-                    Textarea::make("review.{$locale}")->label('Review after use')->rows(3),
+                    TextInput::make("name.{$locale}")->label('Naam')->required($isDefault)->maxLength(150),
+                    Textarea::make("reason.{$locale}")->label('Waarom ik het koos')->rows(2),
+                    Textarea::make("review.{$locale}")->label('Beoordeling na gebruik')->rows(3),
                 ]),
-                Select::make('category')->options(EquipmentCategory::class)->required(),
-                Select::make('status')->options(EquipmentStatus::class)->default(EquipmentStatus::Planned)->required()
-                    ->helperText('"Testing" and "In the pack" count towards the pack weight.'),
-                TextInput::make('brand')->maxLength(100),
-                TextInput::make('model')->maxLength(100),
-                TextInput::make('weight_g')->label('Weight')->numeric()->suffix('g'),
-                TextInput::make('price')->numeric()->prefix('€'),
-                TextInput::make('sort_order')->numeric()->default(0),
-                Toggle::make('is_worn')->label('Worn, not in the pack'),
-                Toggle::make('is_public')->label('Show on the website')->default(true),
+                Select::make('category')->label('Categorie')->options(EquipmentCategory::class)->required(),
+                Select::make('status')->label('Status')->options(EquipmentStatus::class)->default(EquipmentStatus::Planned)->required()
+                    ->helperText('"Testen" en "In de rugzak" tellen mee voor het rugzakgewicht.'),
+                TextInput::make('brand')->label('Merk')->maxLength(100),
+                TextInput::make('model')->label('Model')->maxLength(100),
+                TextInput::make('weight_g')->label('Gewicht')->numeric()->suffix('g'),
+                TextInput::make('price')->label('Prijs')->numeric()->prefix('€'),
+                TextInput::make('sort_order')->label('Volgorde')->numeric()->default(0),
+                Toggle::make('is_worn')->label('Gedragen, niet in de rugzak'),
+                Toggle::make('is_public')->label('Tonen op de website')->default(true),
             ]);
     }
 }

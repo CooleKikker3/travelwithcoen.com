@@ -9,6 +9,7 @@ use App\Models\Concerns\HasTranslations;
 use App\Services\ArticleGallerySync;
 use App\Services\ImageProcessor;
 use App\Support\MediaStorage;
+use App\Support\TrackingPrivacy;
 use Filament\Forms\Components\RichEditor\RichContentRenderer;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -77,11 +78,17 @@ class Article extends Model
         return $this->hasMany(GalleryItem::class)->where('is_public', true)->where('source', '!=', 'article')->oldest('taken_at');
     }
 
-    /** Published and not scheduled for the future, newest first. */
+    /**
+     * Published and not scheduled for the future, newest first. Diary stories tell where I am, so visitors
+     * only see them after the tracking delay (family and admins right away); preparation stories right away.
+     */
     public function scopePublished(Builder $query): Builder
     {
+        $cutoff = TrackingPrivacy::cutoff(auth()->user()) ?? now();
+
         return $query->where('status', ArticleStatus::Published)
             ->where('published_at', '<=', now())
+            ->where(fn ($q) => $q->where('type', '!=', ArticleType::Diary)->orWhere('published_at', '<=', $cutoff))
             ->latest('published_at');
     }
 
@@ -95,7 +102,14 @@ class Article extends Model
     /** Body HTML with image blocks rendered. HTML comes from the admin-only editor. */
     public function bodyHtml(?string $locale = null): string
     {
-        return RichContentRenderer::make($this->translate('body', $locale) ?? '')
+        $body = $this->translate('body', $locale);
+
+        // An empty body crashes the renderer (e.g. a story that only has a title so far).
+        if (blank($body)) {
+            return '';
+        }
+
+        return RichContentRenderer::make($body)
             ->customBlocks([ImageBlock::class])
             ->toUnsafeHtml();
     }

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['date', 'country_id', 'type', 'start_location', 'end_location', 'distance_km', 'walking_minutes', 'overnight', 'notes'])]
+#[Fillable(['date', 'country_id', 'type', 'started_at', 'ended_at', 'start_point_id', 'end_point_id', 'start_location', 'end_location', 'distance_km', 'walking_minutes', 'overnight', 'notes'])]
 class JourneyDay extends Model
 {
     protected function casts(): array
@@ -21,6 +21,8 @@ class JourneyDay extends Model
             'type' => DayType::class,
             'overnight' => Overnight::class,
             'distance_km' => 'float',
+            'started_at' => 'datetime',
+            'ended_at' => 'datetime',
         ];
     }
 
@@ -42,9 +44,26 @@ class JourneyDay extends Model
         return $cutoff ? $query->whereDate('date', '<', $cutoff->toDateString()) : $query;
     }
 
-    /** Day number counted from the first recorded day. */
+    /**
+     * Day number: position in the list of all days (walk, rest and transport days alike), oldest first.
+     * Computed, never stored; lists load it in one query with withNumber().
+     */
     public function number(): int
     {
-        return static::whereDate('date', '<=', $this->date)->count();
+        return (int) ($this->attributes['day_number'] ?? static::whereDate('date', '<=', $this->date)->count());
+    }
+
+    /** "Day 3" / "Dag 3". */
+    public function name(): string
+    {
+        return __('site.day_name', ['number' => $this->number()]);
+    }
+
+    /** Adds the day number to each row with a subquery, so a list needs no query per day. */
+    public function scopeWithNumber(Builder $query): Builder
+    {
+        return $query->addSelect(['day_number' => static::from('journey_days as earlier')
+            ->selectRaw('count(*)')
+            ->whereColumn('earlier.date', '<=', 'journey_days.date')]);
     }
 }

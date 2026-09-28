@@ -257,6 +257,8 @@ return [
         'retired' => 'No longer used',
     ],
 
+    'day_name' => 'Day :number',
+
     'coming_soon' => [
         'title' => 'Something is coming...',
         'hand' => 'lacing up my boots!',

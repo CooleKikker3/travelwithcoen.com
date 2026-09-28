@@ -25,8 +25,8 @@ class Options
 
     public static function days(): array
     {
-        return JourneyDay::orderByDesc('date')->get()
-            ->mapWithKeys(fn (JourneyDay $day) => [$day->id => $day->date->format('D j M Y').($day->end_location ? " — {$day->end_location}" : '')])
+        return JourneyDay::select('journey_days.*')->withNumber()->orderByDesc('date')->get()
+            ->mapWithKeys(fn (JourneyDay $day) => [$day->id => $day->name().' — '.$day->date->translatedFormat('D j M Y').($day->end_location ? " — {$day->end_location}" : '')])
             ->all();
     }
 }

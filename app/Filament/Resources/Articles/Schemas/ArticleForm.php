@@ -26,59 +26,59 @@ class ArticleForm
         return $schema
             ->columns(3)
             ->components([
-                Section::make('Content')
-                    ->description('English is required. Leave Dutch empty and the site shows the English version with a notice.')
+                Section::make('Inhoud')
+                    ->description('Engels is verplicht. Laat je Nederlands leeg, dan toont de site de Engelse versie met een melding.')
                     ->columnSpan(2)
                     ->schema([
                         TranslatableTabs::make(fn (string $locale, bool $isDefault) => [
                             TextInput::make("title.{$locale}")
-                                ->label('Title')
+                                ->label('Titel')
                                 ->required($isDefault)
                                 ->maxLength(200),
                             TextInput::make("slug.{$locale}")
-                                ->label('Slug')
-                                ->helperText('Leave empty to generate it from the title.')
+                                ->label('URL-naam')
+                                ->helperText('Laat leeg om hem uit de titel te maken.')
                                 ->alphaDash()
                                 ->maxLength(200),
                             Textarea::make("excerpt.{$locale}")
-                                ->label('Excerpt')
+                                ->label('Samenvatting')
                                 ->rows(2)
                                 ->maxLength(400),
                             RichEditor::make("body.{$locale}")
-                                ->label('Body')
-                                ->helperText('Use the "Image with caption" block (toolbar, blocks icon) to place photos in the text. They also appear in the gallery.')
+                                ->label('Tekst')
+                                ->helperText('Gebruik het blok "Afbeelding met bijschrift" (werkbalk, blokken-icoon) om foto\'s in de tekst te zetten. Ze komen ook in de galerij.')
                                 ->customBlocks([ImageBlock::class])
                                 ->fileAttachments(false),
                         ]),
                     ]),
 
-                Section::make('Publication')
+                Section::make('Publicatie')
                     ->columnSpan(1)
                     ->schema([
-                        Select::make('type')
+                        Select::make('type')->label('Soort')
                             ->options(ArticleType::class)
                             ->default(ArticleType::Preparation)
                             ->required(),
-                        Select::make('status')
+                        Select::make('status')->label('Status')
                             ->options(ArticleStatus::class)
                             ->default(ArticleStatus::Draft)
                             ->required(),
                         DateTimePicker::make('published_at')
-                            ->label('Publish date')
+                            ->label('Publicatiedatum')
                             ->default(now())
-                            ->helperText('A future date schedules the article.'),
-                        TagsInput::make('tags')
+                            ->helperText('Een datum in de toekomst plant het artikel in. Dagboekverhalen zien bezoekers pas na de vertraging van je locatie.'),
+                        TagsInput::make('tags')->label('Tags')
                             ->suggestions(fn () => Article::allTags())
-                            ->helperText('E.g. gear, training, camping, visas. Visitors can filter on tags.'),
+                            ->helperText('Bijv. uitrusting, training, kamperen, visa. Bezoekers kunnen op tags filteren.'),
                         Select::make('country_id')
-                            ->label('Country')
+                            ->label('Land')
                             ->options(fn () => Options::countries())
                             ->searchable(),
                         Select::make('journey_day_id')
-                            ->label('Journey day')
+                            ->label('Reisdag')
                             ->options(fn () => Options::days())
                             ->searchable(),
-                        FileUpload::make('cover_image')
+                        FileUpload::make('cover_image')->label('Omslagfoto')
                             ->image()
                             ->disk(MediaStorage::diskName())
                             // Resize in the browser first: much smaller uploads on a weak connection.

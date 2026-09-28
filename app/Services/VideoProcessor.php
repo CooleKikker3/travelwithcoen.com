@@ -12,27 +12,40 @@ use Illuminate\Support\Facades\Process;
  */
 class VideoProcessor
 {
-    public function stripMetadata(string $path): void
+    /** Whether ffmpeg is installed; without it videos cannot be uploaded (see GalleryItemForm::upload()). */
+    public static function available(): bool
+    {
+        static $available;
+
+        return $available ??= rescue(fn () => Process::run([config('travel.ffmpeg_path'), '-version'])->successful(), false, report: false);
+    }
+
+    /** @return bool whether the metadata was removed */
+    public function stripMetadata(string $path): bool
     {
         $ffmpeg = config('travel.ffmpeg_path');
 
         // Check first, so a large video is not downloaded from R2 for nothing.
-        if (! rescue(fn () => Process::run([$ffmpeg, '-version'])->successful(), false, report: false)) {
+        if (! self::available()) {
             Log::warning('Video metadata (possibly including GPS) not removed: ffmpeg not available.', ['path' => $path]);
 
-            return;
+            return false;
         }
 
-        MediaStorage::editLocally($path, function (string $file) use ($ffmpeg, $path) {
+        return MediaStorage::editLocally($path, function (string $file) use ($ffmpeg, $path) {
             $temp = $file.'.clean.'.pathinfo($file, PATHINFO_EXTENSION);
             $result = Process::timeout(600)->run([$ffmpeg, '-y', '-i', $file, '-map_metadata', '-1', '-map', '0', '-c', 'copy', $temp]);
 
             if ($result->successful() && is_file($temp)) {
                 rename($temp, $file);
-            } else {
-                @unlink($temp);
-                Log::warning('Video metadata could not be removed.', ['path' => $path, 'error' => $result->errorOutput()]);
+
+                return true;
             }
+
+            @unlink($temp);
+            Log::warning('Video metadata could not be removed.', ['path' => $path, 'error' => $result->errorOutput()]);
+
+            return false;
         });
     }
 }

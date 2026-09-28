@@ -5,10 +5,12 @@ namespace App\Filament\Resources\JourneyDays\Schemas;
 use App\Enums\DayType;
 use App\Enums\Overnight;
 use App\Filament\Support\Options;
+use App\Filament\Support\TrackingPointSelect;
 use App\Models\TrackingPoint;
 use App\Support\RouteGeometry;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -22,22 +24,26 @@ class JourneyDayForm
     {
         return $schema
             ->components([
-                DatePicker::make('date')->required()->default(today())->unique(ignoreRecord: true),
-                Select::make('type')->options(DayType::class)->default(DayType::Walk)->required(),
-                Select::make('country_id')->label('Country')->options(fn () => Options::countries())->searchable(),
-                Select::make('overnight')->label('Where I slept')->options(Overnight::class),
-                TextInput::make('start_location')->maxLength(150),
-                TextInput::make('end_location')->maxLength(150),
+                DatePicker::make('date')->label('Datum')->required()->default(fn () => now(\Filament\Support\Facades\FilamentTimezone::get())->toDateString())->unique(ignoreRecord: true),
+                Select::make('type')->label('Soort')->options(DayType::class)->default(DayType::Walk)->required(),
+                Select::make('country_id')->label('Land')->options(fn () => Options::countries())->searchable(),
+                DateTimePicker::make('started_at')->label('Gestart')->seconds(false),
+                DateTimePicker::make('ended_at')->label('Beëindigd')->seconds(false),
+                Select::make('overnight')->label('Waar ik sliep')->options(Overnight::class),
+                TrackingPointSelect::make('start_point_id', 'GPS-locatie bij vertrek')->default(null),
+                TrackingPointSelect::make('end_point_id', 'GPS-locatie bij aankomst')->default(null),
+                TextInput::make('start_location')->label('Plaatsnaam vertrek (zichtbaar op de website)')->placeholder('bijv. Lisse')->maxLength(150),
+                TextInput::make('end_location')->label('Plaatsnaam aankomst (zichtbaar op de website)')->placeholder('bijv. Haarlem')->maxLength(150),
                 TextInput::make('distance_km')
-                    ->label('Distance')
+                    ->label('Afstand')
                     ->numeric()
                     ->suffix('km')
                     ->suffixAction(Action::make('fromTracking')
                         ->icon('heroicon-o-map')
-                        ->tooltip('Calculate from the tracking points of this date')
+                        ->tooltip('Berekenen uit de trackingpunten van deze dag')
                         ->action(fn (Get $get, Set $set) => $set('distance_km', self::trackedDistance($get('date'))))),
-                TextInput::make('walking_minutes')->label('Walking time')->numeric()->suffix('min'),
-                Textarea::make('notes')->label('Private notes')->rows(3)->columnSpanFull(),
+                TextInput::make('walking_minutes')->label('Looptijd')->numeric()->suffix('min'),
+                Textarea::make('notes')->label('Privénotities')->rows(3)->columnSpanFull(),
             ]);
     }
 

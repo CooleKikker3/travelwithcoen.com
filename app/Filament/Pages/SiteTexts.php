@@ -26,9 +26,9 @@ class SiteTexts extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLanguage;
 
-    protected static ?string $navigationLabel = 'Website texts';
+    protected static ?string $navigationLabel = 'Websiteteksten';
 
-    protected static ?string $title = 'Website texts';
+    protected static ?string $title = 'Websiteteksten';
 
     protected static string|UnitEnum|null $navigationGroup = 'Website';
 
@@ -84,7 +84,7 @@ class SiteTexts extends Page
 
         Texts::save($texts);
 
-        Notification::make()->success()->title('Texts saved')->send();
+        Notification::make()->success()->title('Teksten opgeslagen')->send();
     }
 
     private function input(string $key, string $locale, string $label): TextInput|Textarea
@@ -97,7 +97,7 @@ class SiteTexts extends Page
             ->label($locale === config('app.fallback_locale') ? $path : $label)
             ->hint($locale === config('app.fallback_locale') ? $label : null)
             ->placeholder($default)
-            ->helperText(str_contains($default, ':') ? 'Keep words starting with ":" as they are (placeholders).' : null);
+            ->helperText(str_contains($default, ':') ? 'Laat woorden die met ":" beginnen staan (die worden automatisch ingevuld).' : null);
     }
 
     /** @return array<int, string> all editable keys as "group.dotted.path" */

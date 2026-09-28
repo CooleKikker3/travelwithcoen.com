@@ -25,34 +25,34 @@ class CountryRouteForm
                     ->columnSpanFull()
                     ->schema([
                         Select::make('country_id')
-                            ->label('Country')
+                            ->label('Land')
                             ->options(fn () => Country::orderBy('sort_order')->get()
                                 ->mapWithKeys(fn (Country $country) => [$country->id => $country->flag().' '.$country->translate('name', 'en')]))
                             ->required()
                             ->searchable(),
-                        Select::make('type')
+                        Select::make('type')->label('Soort')
                             ->options(RouteType::class)
                             ->default(RouteType::Planned)
                             ->required()
-                            ->helperText('Planned = the plan. Actual = what I really walked. They are never merged.'),
+                            ->helperText('Gepland = het plan. Gelopen = wat ik echt gelopen heb.'),
                         TextInput::make('name')
-                            ->label('Name (internal)')
-                            ->placeholder('e.g. Stage 1: Lisse → Den Helder')
+                            ->label('Naam (intern)')
+                            ->placeholder('bijv. Etappe 1: Lisse → Den Helder')
                             ->maxLength(150),
                         TextInput::make('sort_order')
-                            ->label('Order within the country')
+                            ->label('Volgorde binnen het land')
                             ->numeric()
                             ->default(0),
                         FileUpload::make('gpx_path')
-                            ->label('GPX file')
-                            ->helperText('Optional: export from Komoot, gpx.studio, a GPS watch, etc. No GPX? Use the Route planner to draw the route on a map.')
+                            ->label('GPX-bestand')
+                            ->helperText('Optioneel: export uit Komoot, gpx.studio, een GPS-horloge enz. Geen GPX? Teken de route in de Routeplanner.')
                             ->disk('local')
                             ->directory('gpx')
                             ->preserveFilenames()
                             ->maxSize(20480)
                             ->rules(['extensions:gpx', fn () => self::validGpx()])
                             ->columnSpanFull(),
-                        Textarea::make('notes')
+                        Textarea::make('notes')->label('Notities')
                             ->rows(3)
                             ->columnSpanFull(),
                     ]),
@@ -64,10 +64,10 @@ class CountryRouteForm
         return function (string $attribute, mixed $file, Closure $fail) {
             try {
                 if (count(app(GpxImporter::class)->parse(file_get_contents($file->getRealPath()))) < 2) {
-                    $fail('This GPX file contains no track or route points.');
+                    $fail('Dit GPX-bestand bevat geen route- of trackpunten.');
                 }
             } catch (Throwable) {
-                $fail('This is not a valid GPX file.');
+                $fail('Dit is geen geldig GPX-bestand.');
             }
         };
     }

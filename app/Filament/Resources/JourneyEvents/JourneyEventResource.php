@@ -21,7 +21,11 @@ class JourneyEventResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSparkles;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Journey';
+    protected static string|UnitEnum|null $navigationGroup = 'Reis';
+
+    protected static ?string $modelLabel = 'gebeurtenis';
+
+    protected static ?string $pluralModelLabel = 'Gebeurtenissen';
 
     protected static ?int $navigationSort = 4;
 

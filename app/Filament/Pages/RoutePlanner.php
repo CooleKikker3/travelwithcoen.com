@@ -26,11 +26,11 @@ class RoutePlanner extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPencilSquare;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Journey';
+    protected static string|UnitEnum|null $navigationGroup = 'Reis';
 
     protected static ?int $navigationSort = 2;
 
-    protected static ?string $title = 'Route planner';
+    protected static ?string $title = 'Routeplanner';
 
     #[Url]
     public ?int $route = null;
@@ -101,7 +101,7 @@ class RoutePlanner extends Page
                 return RouteGeometry::simplify(array_map(fn ($c) => [round($c[1], 6), round($c[0], 6)], $coordinates), 0.00003);
             });
         } catch (Throwable) {
-            Notification::make()->warning()->title('Path routing unavailable; using a straight line for this part.')->send();
+            Notification::make()->warning()->title('Wandelpaden niet beschikbaar; voor dit stuk een rechte lijn.')->send();
 
             return [$from, $to];
         }
@@ -114,7 +114,7 @@ class RoutePlanner extends Page
     public function save(array $waypoints, array $line): void
     {
         if (! $this->countryId || count($line) < 2) {
-            Notification::make()->danger()->title('Choose a country and place at least two waypoints.')->send();
+            Notification::make()->danger()->title('Kies een land en zet minstens twee punten.')->send();
 
             return;
         }
@@ -130,6 +130,6 @@ class RoutePlanner extends Page
         $route->replacePoints(array_map(fn ($p) => ['lat' => (float) $p[0], 'lng' => (float) $p[1]], $line));
         $this->route = $route->id;
 
-        Notification::make()->success()->title('Route saved: '.number_format($route->fresh()->distance_km, 1).' km')->send();
+        Notification::make()->success()->title('Route opgeslagen: '.number_format($route->fresh()->distance_km, 1).' km')->send();
     }
 }

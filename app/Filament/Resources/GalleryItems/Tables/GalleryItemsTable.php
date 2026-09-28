@@ -26,31 +26,31 @@ class GalleryItemsTable
             ->columns([
                 ImageColumn::make('thumbnail')->label('')->square()
                     ->state(fn (GalleryItem $record) => $record->thumbnailUrl()),
-                TextColumn::make('kind')->badge()->color(fn (string $state) => match ($state) {
+                TextColumn::make('kind')->label('Soort')->badge()->color(fn (string $state) => match ($state) {
                     'youtube' => 'danger',
                     'video' => 'warning',
                     default => 'success',
                 }),
-                TextColumn::make('caption')->state(fn (GalleryItem $record) => $record->translate('caption', 'en'))->placeholder('—')->wrap()->limit(80),
-                TextColumn::make('article')
+                TextColumn::make('caption')->label('Bijschrift')->state(fn (GalleryItem $record) => $record->translate('caption', 'en'))->placeholder('—')->wrap()->limit(80),
+                TextColumn::make('article')->label('Artikel')
                     ->state(fn (GalleryItem $record) => $record->article?->translate('title', 'en'))
-                    ->description(fn (GalleryItem $record) => $record->source === 'article' ? 'from article text' : null)
+                    ->description(fn (GalleryItem $record) => $record->source === 'article' ? 'uit artikeltekst' : null)
                     ->placeholder('—'),
-                TextColumn::make('taken_at')->label('Date')->dateTime('j M Y')->sortable(),
-                IconColumn::make('is_public')->label('Public')->boolean(),
-                IconColumn::make('is_sensitive')->label('Sensitive')->boolean()->trueIcon('heroicon-o-eye-slash')->trueColor('warning')->falseColor('gray'),
+                TextColumn::make('taken_at')->label('Datum')->dateTime('j M Y')->sortable(),
+                IconColumn::make('is_public')->label('Openbaar')->boolean(),
+                IconColumn::make('is_sensitive')->label('Gevoelig')->boolean()->trueIcon('heroicon-o-eye-slash')->trueColor('warning')->falseColor('gray'),
             ])
             ->filters([
-                SelectFilter::make('kind')->options(['image' => 'Photos', 'video' => 'Uploaded videos', 'youtube' => 'YouTube']),
-                SelectFilter::make('source')->options(['upload' => 'Uploaded', 'article' => 'From articles', 'youtube' => 'YouTube']),
+                SelectFilter::make('kind')->label('Soort')->options(['image' => 'Photos', 'video' => 'Geüploade video\'s', 'youtube' => 'YouTube']),
+                SelectFilter::make('source')->label('Bron')->options(['upload' => 'Uploaded', 'article' => 'From articles', 'youtube' => 'YouTube']),
             ])
             ->headerActions([
                 Action::make('bulkUpload')
-                    ->label('Upload several at once')
+                    ->label('Meerdere tegelijk uploaden')
                     ->icon('heroicon-o-arrow-up-tray')
                     ->color('gray')
                     ->schema([
-                        GalleryItemForm::upload('files')->label('Photos and videos')->multiple()->maxFiles(50)->required(),
+                        GalleryItemForm::upload('files')->label('Foto\'s en video\'s')->multiple()->maxFiles(50)->required(),
                         ...GalleryItemForm::links(),
                     ])
                     ->action(function (array $data) {
@@ -58,18 +58,18 @@ class GalleryItemsTable
                             GalleryItem::create(['path' => $path] + collect($data)->except('files')->all());
                         }
 
-                        Notification::make()->success()->title(count($data['files']).' items uploaded')->body('Add a caption per item via Edit.')->send();
+                        Notification::make()->success()->title(count($data['files']).' items geüpload')->body('Voeg per item een bijschrift toe via Bewerken.')->send();
                     }),
                 Action::make('syncYoutube')
-                    ->label('Sync YouTube now')
+                    ->label('YouTube nu ophalen')
                     ->icon('heroicon-o-arrow-path')
                     ->color('gray')
                     ->visible(fn () => filled(config('travel.youtube_channel')))
                     ->action(function () {
                         try {
-                            Notification::make()->success()->title(app(YouTubeSync::class)->sync().' new YouTube videos added')->send();
+                            Notification::make()->success()->title(app(YouTubeSync::class)->sync().' nieuwe YouTube-video\'s toegevoegd')->send();
                         } catch (Throwable $e) {
-                            Notification::make()->danger()->title('YouTube sync failed')->body($e->getMessage())->send();
+                            Notification::make()->danger()->title('YouTube ophalen mislukt')->body($e->getMessage())->send();
                         }
                     }),
             ])

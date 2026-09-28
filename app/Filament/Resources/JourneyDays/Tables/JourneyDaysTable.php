@@ -14,16 +14,18 @@ class JourneyDaysTable
     {
         return $table
             ->defaultSort('date', 'desc')
+            ->modifyQueryUsing(fn ($query) => $query->select('journey_days.*')->withNumber())
             ->columns([
-                TextColumn::make('date')->date('D j M Y')->sortable(),
-                TextColumn::make('type')->badge(),
-                TextColumn::make('country.iso_code')->label('Country'),
-                TextColumn::make('end_location')->label('To')->placeholder('—'),
-                TextColumn::make('distance_km')->label('Km')->numeric(1)->summarize(\Filament\Tables\Columns\Summarizers\Sum::make()->label('Total')),
-                TextColumn::make('overnight')->badge()->placeholder('—'),
+                TextColumn::make('name')->label('Dag')->state(fn (\App\Models\JourneyDay $record) => $record->name())->weight('bold'),
+                TextColumn::make('date')->label('Datum')->date('D j M Y')->sortable(),
+                TextColumn::make('type')->label('Soort')->badge(),
+                TextColumn::make('country.iso_code')->label('Land'),
+                TextColumn::make('end_location')->label('Naar')->placeholder('—'),
+                TextColumn::make('distance_km')->label('Km')->numeric(1)->summarize(\Filament\Tables\Columns\Summarizers\Sum::make()->label('Totaal')),
+                TextColumn::make('overnight')->label('Overnachting')->badge()->placeholder('—'),
             ])
             ->filters([
-                SelectFilter::make('type')->options(DayType::class),
+                SelectFilter::make('type')->label('Soort')->options(DayType::class),
             ])
             ->recordActions([
                 EditAction::make(),

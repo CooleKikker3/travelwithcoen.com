@@ -21,6 +21,9 @@ class JourneyOverview extends StatsOverviewWidget
 {
     protected static ?int $sort = 1;
 
+    // No automatic refresh every few seconds: costly on a weak connection.
+    protected ?string $pollingInterval = null;
+
     protected function getStats(): array
     {
         $stats = JourneyStats::for(auth()->user());
@@ -31,25 +34,25 @@ class JourneyOverview extends StatsOverviewWidget
         $current = Country::where('status', CountryStatus::Current)->first();
 
         return [
-            Stat::make('Journey status', JourneyPhase::from(Settings::get('journey_phase'))->getLabel())
-                ->description($current ? 'Current country: '.$current->translate('name', 'en') : 'No current country set'),
-            Stat::make('Last tracking update', $lastPoint?->recorded_at->diffForHumans() ?? '—')
-                ->description($lastPoint ? 'Received '.$lastPoint->received_at->diffForHumans() : 'No tracking data yet')
+            Stat::make('Status van de reis', JourneyPhase::from(Settings::get('journey_phase'))->getLabel())
+                ->description($current ? 'Huidig land: '.$current->translate('name', 'en') : 'Geen huidig land ingesteld'),
+            Stat::make('Laatste locatie-update', $lastPoint?->recorded_at->diffForHumans() ?? '—')
+                ->description($lastPoint ? 'Ontvangen '.$lastPoint->received_at->diffForHumans() : 'Nog geen locaties ontvangen')
                 ->color($lastPoint && $lastPoint->recorded_at->gt(now()->subHours(6)) ? 'success' : 'warning'),
-            Stat::make('Total distance', Number::format($stats['distance_km'], 0).' km')
-                ->description(Number::format(JourneyDay::where('date', '>=', now()->startOfMonth())->sum('distance_km'), 0).' km this month · '.$stats['countries'].' countries'),
-            Stat::make('Articles', Article::where('status', ArticleStatus::Published)->count())
-                ->description(Article::where('status', ArticleStatus::Draft)->count().' drafts'),
-            Stat::make('Gallery (own uploads)', GalleryItem::where('kind', '!=', 'youtube')->count())
-                ->description(GalleryItem::where('kind', 'image')->count().' photos · '.GalleryItem::where('kind', 'video')->count().' videos'),
-            Stat::make('YouTube videos', GalleryItem::where('kind', 'youtube')->count())
+            Stat::make('Totale afstand', Number::format($stats['distance_km'], 0).' km')
+                ->description(Number::format(JourneyDay::where('date', '>=', now()->startOfMonth())->sum('distance_km'), 0).' km deze maand · '.$stats['countries'].' landen'),
+            Stat::make('Artikelen', Article::where('status', ArticleStatus::Published)->count())
+                ->description(Article::where('status', ArticleStatus::Draft)->count().' concepten'),
+            Stat::make('Galerij (eigen uploads)', GalleryItem::where('kind', '!=', 'youtube')->count())
+                ->description(GalleryItem::where('kind', 'image')->count().' foto\'s · '.GalleryItem::where('kind', 'video')->count().' video\'s'),
+            Stat::make('YouTube-video\'s', GalleryItem::where('kind', 'youtube')->count())
                 ->description(($latest = GalleryItem::where('kind', 'youtube')->latest('taken_at')->first())
-                    ? 'Latest: '.$latest->taken_at->format('j M Y')
-                    : (filled(config('travel.youtube_channel')) ? 'Not synced yet' : 'No channel set (YOUTUBE_CHANNEL)'))
+                    ? 'Nieuwste: '.$latest->taken_at->format('j M Y')
+                    : (filled(config('travel.youtube_channel')) ? 'Nog niet opgehaald' : 'Geen kanaal ingesteld'))
                 ->color('danger'),
-            Stat::make('Budget spent (private)', Number::currency($spent, 'EUR'))
-                ->description(Number::currency($available - $spent, 'EUR').' left excl. reserve'
-                    .($stats['walking_days'] ? ' · '.Number::currency($spent / max(1, $stats['days']), 'EUR').'/day' : ''))
+            Stat::make('Uitgegeven (privé)', Number::currency($spent, 'EUR'))
+                ->description(Number::currency($available - $spent, 'EUR').' over (zonder reserve)'
+                    .($stats['walking_days'] ? ' · '.Number::currency($spent / max(1, $stats['days']), 'EUR').'/dag' : ''))
                 ->color($spent > $available ? 'danger' : 'success'),
         ];
     }

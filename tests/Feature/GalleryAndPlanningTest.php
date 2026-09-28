@@ -48,7 +48,7 @@ class GalleryAndPlanningTest extends TestCase
                 'nl' => $this->imageBlock('articles/images/sand.jpg', 'Lopen over een zandweg bij Berlijn'),
             ],
             'status' => ArticleStatus::Published,
-            'published_at' => now()->subHour(),
+            'published_at' => now()->subDays(20),
             'tags' => ['camping', 'germany'],
         ]);
     }
@@ -92,7 +92,7 @@ class GalleryAndPlanningTest extends TestCase
     public function test_articles_can_be_filtered_on_tags(): void
     {
         $this->article();
-        Article::create(['type' => ArticleType::Diary, 'title' => ['en' => 'Other'], 'status' => ArticleStatus::Published, 'published_at' => now()->subHour(), 'tags' => ['food']]);
+        Article::create(['type' => ArticleType::Diary, 'title' => ['en' => 'Other'], 'status' => ArticleStatus::Published, 'published_at' => now()->subDays(20), 'tags' => ['food']]);
 
         $this->get('/journey?tag=camping')->assertSee('Sand roads')->assertDontSee('>Other<', false);
         $this->get('/journey')->assertSee('#camping')->assertSee('#food');
@@ -132,7 +132,7 @@ class GalleryAndPlanningTest extends TestCase
         $this->assertSame('Walking across Europe', $video->translate('caption'));
 
         // Mixed with uploads in one gallery, newest first.
-        GalleryItem::create(['kind' => 'image', 'source' => 'upload', 'path' => 'gallery/old.jpg', 'taken_at' => '2027-07-01', 'caption' => ['en' => 'Older photo']]);
+        GalleryItem::create(['kind' => 'image', 'source' => 'upload', 'path' => 'gallery/old.jpg', 'taken_at' => '2026-07-01', 'caption' => ['en' => 'Older photo']]);
         $this->get('/gallery')->assertSeeInOrder(['data-src="dQw4w9WgXcQ"', 'Older photo'], false);
     }
 

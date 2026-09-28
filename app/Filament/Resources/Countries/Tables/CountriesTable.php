@@ -19,12 +19,12 @@ class CountriesTable
             ->reorderable('sort_order')
             ->columns([
                 TextColumn::make('sort_order')->label('#'),
-                TextColumn::make('name')
+                TextColumn::make('name')->label('Naam')
                     ->state(fn (Country $record) => $record->flag().' '.$record->translate('name', 'en')),
                 TextColumn::make('iso_code')->label('ISO'),
-                TextColumn::make('status')->badge(),
-                IconColumn::make('is_published')->label('Visible')->boolean(),
-                TextColumn::make('articles_count')->counts('articles')->label('Articles'),
+                TextColumn::make('status')->label('Status')->badge(),
+                IconColumn::make('is_published')->label('Zichtbaar')->boolean(),
+                TextColumn::make('articles_count')->counts('articles')->label('Artikelen'),
             ])
             ->recordActions([
                 EditAction::make(),

@@ -15,11 +15,11 @@ class ExpenseForm
     {
         return $schema
             ->components([
-                DatePicker::make('date')->required()->default(today()),
-                TextInput::make('amount_eur')->label('Amount')->numeric()->prefix('€')->required(),
-                Select::make('category')->options(ExpenseCategory::class)->required(),
-                Select::make('country_id')->label('Country')->options(fn () => Options::countries())->searchable(),
-                TextInput::make('description')->maxLength(255)->columnSpanFull(),
+                DatePicker::make('date')->label('Datum')->required()->default(today()),
+                TextInput::make('amount_eur')->label('Bedrag')->numeric()->prefix('€')->required(),
+                Select::make('category')->label('Categorie')->options(ExpenseCategory::class)->required(),
+                Select::make('country_id')->label('Land')->options(fn () => Options::countries())->searchable(),
+                TextInput::make('description')->label('Beschrijving')->maxLength(255)->columnSpanFull(),
             ]);
     }
 }

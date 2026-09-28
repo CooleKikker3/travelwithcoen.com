@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\GalleryItems\Schemas;
 
+use App\Services\VideoProcessor;
 use App\Filament\Support\Options;
 use App\Filament\Support\TranslatableTabs;
 use App\Models\GalleryItem;
@@ -30,19 +31,20 @@ class GalleryItemForm
                     ->label('YouTube video')
                     ->disabled()
                     ->visible($isYoutube)
-                    ->helperText('Synced from your YouTube channel. The English caption follows the YouTube title.')
+                    ->helperText('Opgehaald van je YouTube-kanaal. Het Engelse bijschrift volgt de YouTube-titel.')
                     ->columnSpanFull(),
                 self::caption(),
                 ...self::links(),
-                DateTimePicker::make('taken_at')->label('Date')->helperText('Filled from the photo itself when empty.'),
+                DateTimePicker::make('taken_at')->label('Datum')->helperText('Wordt uit de foto zelf gehaald als je het leeg laat.'),
             ]);
     }
 
     public static function upload(string $name = 'path'): FileUpload
     {
         return FileUpload::make($name)
-            ->label('Photo or video')
-            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v'])
+            ->label(VideoProcessor::available() ? 'Foto of video' : 'Foto')
+            // Videos can contain your GPS location: only accepted when the server can remove it.
+            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', ...(VideoProcessor::available() ? ['video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v'] : [])])
             ->disk(MediaStorage::diskName())
             // Resize in the browser first: much smaller uploads on a weak connection.
             ->imageResizeTargetWidth('2400')
@@ -51,7 +53,9 @@ class GalleryItemForm
             ->imageResizeUpscale(false)
             ->directory('gallery')
             ->maxSize(512000)
-            ->helperText('Photos are resized; location data (GPS) is removed from photos, and from videos when ffmpeg is installed.');
+            ->helperText(VideoProcessor::available()
+                ? 'Foto\'s worden verkleind en locatiegegevens (GPS) worden verwijderd.'
+                : 'Video\'s uploaden kan nog niet: de locatie in video\'s kan op deze server nog niet worden verwijderd.');
     }
 
     /** One or two sentences about the photo or video, per language. */
@@ -59,8 +63,8 @@ class GalleryItemForm
     {
         return TranslatableTabs::make(fn (string $locale) => [
             Textarea::make("caption.{$locale}")
-                ->label('About this photo or video')
-                ->placeholder('One or two sentences (optional)')
+                ->label('Over deze foto of video')
+                ->placeholder('Een of twee zinnen (optioneel)')
                 ->rows(2)
                 ->maxLength(300),
         ]);
@@ -70,13 +74,13 @@ class GalleryItemForm
     public static function links(): array
     {
         return [
-            Select::make('country_id')->label('Country')->options(fn () => Options::countries())->searchable(),
-            Select::make('article_id')->label('Article')->options(fn () => Options::articles())->searchable(),
-            Select::make('journey_day_id')->label('Journey day')->options(fn () => Options::days())->searchable(),
-            Toggle::make('is_public')->label('Public')->default(true),
+            Select::make('country_id')->label('Land')->options(fn () => Options::countries())->searchable(),
+            Select::make('article_id')->label('Artikel')->options(fn () => Options::articles())->searchable(),
+            Select::make('journey_day_id')->label('Reisdag')->options(fn () => Options::days())->searchable(),
+            Toggle::make('is_public')->label('Openbaar')->default(true),
             Toggle::make('is_sensitive')
-                ->label('Sensitive content')
-                ->helperText('E.g. an injury: blurred with a warning until the visitor chooses to see it.'),
+                ->label('Gevoelige inhoud')
+                ->helperText('Bijv. een blessure: vervaagd met een waarschuwing tot de bezoeker hem wil zien.'),
         ];
     }
 }

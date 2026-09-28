@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [SecurityHeaders::class]);
         // Device ingest authenticates with a bearer token instead of a session.
         $middleware->validateCsrfTokens(except: ['api/tracking']);
+        // The device time zone for the CMS is set by JavaScript (admin-drafts.js), so it is not encrypted.
+        $middleware->encryptCookies(except: ['tz']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

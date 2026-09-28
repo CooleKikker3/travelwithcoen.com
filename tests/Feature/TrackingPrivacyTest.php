@@ -92,6 +92,33 @@ class TrackingPrivacyTest extends TestCase
         $this->postJson('/api/tracking', $payload, ['Authorization' => 'Bearer secret-token'])->assertJson(['stored' => 0]);
     }
 
+    public function test_diary_stories_and_new_uploads_are_delayed_for_guests(): void
+    {
+        $story = fn ($days) => \App\Models\Article::create(['type' => \App\Enums\ArticleType::Diary, 'title' => ['en' => "Story {$days}"], 'status' => \App\Enums\ArticleStatus::Published, 'published_at' => now()->subDays($days)]);
+        [$recent, $old] = [$story(1), $story(20)];
+        \App\Models\Article::create(['type' => \App\Enums\ArticleType::Preparation, 'title' => ['en' => 'Gear list'], 'status' => \App\Enums\ArticleStatus::Published, 'published_at' => now()->subHour()]);
+        \App\Models\GalleryItem::create(['kind' => 'image', 'source' => 'upload', 'path' => 'gallery/today.jpg', 'taken_at' => now()]);
+        \App\Models\GalleryItem::create(['kind' => 'image', 'source' => 'upload', 'path' => 'gallery/scotland.jpg', 'taken_at' => now()->subYear()]);
+
+        $this->get('/journey')->assertSee('Story 20')->assertSee('Gear list')->assertDontSee('Story 1<', false);
+        $this->get($recent->url())->assertNotFound();
+        $this->assertSame(['gallery/scotland.jpg'], \App\Models\GalleryItem::public()->pluck('path')->all());
+
+        $this->actingAs($this->trusted());
+        $this->get($recent->url())->assertOk();
+        $this->assertSame(2, \App\Models\GalleryItem::public()->count());
+    }
+
+    public function test_videos_are_refused_while_their_location_cannot_be_removed(): void
+    {
+        config(['travel.ffmpeg_path' => 'no-such-ffmpeg']);
+        \Illuminate\Support\Facades\Storage::fake('public');
+        \Illuminate\Support\Facades\Storage::disk('public')->put('gallery/walk.mp4', 'video');
+
+        $this->assertNotContains('video/mp4', \App\Filament\Resources\GalleryItems\Schemas\GalleryItemForm::upload()->getAcceptedFileTypes());
+        $this->assertFalse(\App\Models\GalleryItem::create(['source' => 'upload', 'path' => 'gallery/walk.mp4', 'is_public' => true])->is_public);
+    }
+
     public function test_recent_journey_days_are_hidden_from_guest_statistics(): void
     {
         $country = Country::create(['iso_code' => 'DE', 'name' => ['en' => 'Germany']]);

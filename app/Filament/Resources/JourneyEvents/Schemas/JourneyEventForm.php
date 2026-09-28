@@ -19,16 +19,16 @@ class JourneyEventForm
         return $schema
             ->components([
                 TranslatableTabs::make(fn (string $locale, bool $isDefault) => [
-                    TextInput::make("title.{$locale}")->label('Title')->required($isDefault)->maxLength(150),
-                    Textarea::make("description.{$locale}")->label('Description')->rows(3),
+                    TextInput::make("title.{$locale}")->label('Titel')->required($isDefault)->maxLength(150),
+                    Textarea::make("description.{$locale}")->label('Beschrijving')->rows(3),
                 ]),
-                DateTimePicker::make('occurred_at')->label('When')->required()->default(now()),
-                Select::make('type')->options(EventType::class)->required(),
-                Select::make('country_id')->label('Country')->options(fn () => Options::countries())->searchable(),
-                TextInput::make('latitude')->numeric()->minValue(-90)->maxValue(90)->helperText('Optional: shows the event on the maps.'),
-                TextInput::make('longitude')->numeric()->minValue(-180)->maxValue(180),
-                Toggle::make('is_public')->label('Public')->default(true)
-                    ->helperText('Public events follow the same delay as tracking for normal visitors.'),
+                DateTimePicker::make('occurred_at')->label('Wanneer')->required()->default(now()),
+                Select::make('type')->label('Soort')->options(EventType::class)->required(),
+                Select::make('country_id')->label('Land')->options(fn () => Options::countries())->searchable(),
+                TextInput::make('latitude')->label('Breedtegraad')->numeric()->minValue(-90)->maxValue(90)->helperText('Optioneel: toont de gebeurtenis op de kaarten.'),
+                TextInput::make('longitude')->label('Lengtegraad')->numeric()->minValue(-180)->maxValue(180),
+                Toggle::make('is_public')->label('Openbaar')->default(true)
+                    ->helperText('Openbare gebeurtenissen krijgen voor bezoekers dezelfde vertraging als je locatie.'),
             ]);
     }
 }

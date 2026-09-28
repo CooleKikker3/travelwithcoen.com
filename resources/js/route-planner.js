@@ -35,7 +35,7 @@ function init(wire) {
     let queue = Promise.resolve();
 
     const run = (task) => (queue = queue.then(async () => {
-        $('[data-status]').textContent = 'Calculating…';
+        $('[data-status]').textContent = 'Berekenen…';
         try { await task(); } finally { $('[data-status]').textContent = ''; render(); }
     }));
 
@@ -62,7 +62,7 @@ function init(wire) {
         const points = fullLine();
         line.setLatLngs(points);
         const km = points.reduce((sum, p, i) => (i ? sum + L.latLng(points[i - 1]).distanceTo(L.latLng(p)) : 0), 0) / 1000;
-        $('[data-distance]').textContent = `${km.toFixed(1)} km · ${waypoints.length} waypoints`;
+        $('[data-distance]').textContent = `${km.toFixed(1)} km · ${waypoints.length} punten`;
     }
 
     function addWaypoint(latlng) {
@@ -100,10 +100,10 @@ function init(wire) {
     }
 
     map.on('click', (event) => addWaypoint(event.latlng));
-    $('[data-routing]').addEventListener('change', () => waypoints.length > 1 && confirm('Recalculate the whole route with this setting?') && rerouteAll());
+    $('[data-routing]').addEventListener('change', () => waypoints.length > 1 && confirm('De hele route opnieuw berekenen met deze instelling?') && rerouteAll());
     $('[data-action="undo"]').addEventListener('click', () => waypoints.length && removeWaypoint(waypoints.length - 1));
     $('[data-action="clear"]').addEventListener('click', () => {
-        if (confirm('Remove all waypoints?')) run(async () => { waypoints = []; segments = []; });
+        if (confirm('Alle punten wissen?')) run(async () => { waypoints = []; segments = []; });
     });
     $('[data-action="save"]').addEventListener('click', () => run(async () => {
         let index = 0;
