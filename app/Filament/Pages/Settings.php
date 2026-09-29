@@ -85,8 +85,11 @@ class Settings extends Page
         $state = $this->form->getState();
         $state['journey_phase'] = $state['journey_phase'] instanceof JourneyPhase ? $state['journey_phase']->value : $state['journey_phase'];
 
-        if ($state['home_image'] && $state['home_image'] !== SiteSettings::get('home_image')) {
+        if (! $state['home_image']) {
+            $state['home_image_variants'] = null;
+        } elseif ($state['home_image'] !== SiteSettings::get('home_image')) {
             app(ImageProcessor::class)->process($state['home_image']); // re-encode, strip EXIF/GPS
+            $state['home_image_variants'] = app(ImageProcessor::class)->variants($state['home_image']);
         }
 
         SiteSettings::set($state);

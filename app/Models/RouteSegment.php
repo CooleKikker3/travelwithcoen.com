@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** One part of a route piece: an imported GPX file or a drawn piece (route planner). */
-#[Fillable(['country_route_id', 'sequence', 'kind', 'label', 'routing', 'waypoints', 'line'])]
+#[Fillable(['country_route_id', 'sequence', 'kind', 'label', 'notes', 'routing', 'waypoints', 'line'])]
 class RouteSegment extends Model
 {
     protected function casts(): array

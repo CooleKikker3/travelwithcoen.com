@@ -5,6 +5,8 @@ import 'leaflet/dist/leaflet.css';
 const styles = {
     planned: { color: '#eee8d8', weight: 3, dashArray: '6 8', opacity: 0.95 },
     actual: { color: '#a6cf92', weight: 5, opacity: 1 },
+    // A route piece highlighted from its card (country page).
+    highlight: { color: '#facc15' },
     // Home map: straight line from the end of the planned route to the destination, still to be planned. Dotted.
     open: { color: '#c2c07a', weight: 3, dashArray: '1 9', lineCap: 'round', opacity: 0.95 },
 };
@@ -84,6 +86,30 @@ function sharpWhenZoomed(map) {
 }
 
 const area = (bounds) => (bounds.getNorth() - bounds.getSouth()) * (bounds.getEast() - bounds.getWest());
+
+// Cards with [data-route-piece="id"] highlight that piece on every map of the page (hover, keyboard focus, tap).
+const highlighters = [];
+const highlight = (routeId) => highlighters.forEach((fn) => fn(routeId));
+let tapped = null;
+document.addEventListener('mouseover', (event) => {
+    const card = event.target.closest('[data-route-piece]');
+    if (card && !card.contains(event.relatedTarget)) highlight(Number(card.dataset.routePiece));
+});
+document.addEventListener('mouseout', (event) => {
+    const card = event.target.closest('[data-route-piece]');
+    if (card && !card.contains(event.relatedTarget) && tapped === null) highlight(null);
+});
+document.addEventListener('focusin', (event) => {
+    const card = event.target.closest('[data-route-piece]');
+    if (card) highlight(Number(card.dataset.routePiece));
+});
+document.addEventListener('click', (event) => {
+    // Phones have no hover: a tap toggles the highlight.
+    const card = event.target.closest('[data-route-piece]');
+    const id = card ? Number(card.dataset.routePiece) : null;
+    tapped = id === tapped ? null : id;
+    if (card || tapped === null) highlight(tapped);
+});
 
 function initMap(figure) {
     const data = JSON.parse(figure.querySelector('script[type="application/json"]').textContent);
@@ -180,11 +206,22 @@ function initMap(figure) {
     layer.addTo(map);
 
     // Zoomed out, a dashed route turns into a blob: planned routes are a thin solid line until zoom 10.
-    const restyle = () => layer.setStyle((feature) => (feature.properties.type === 'planned' && map.getZoom() < 10
-        ? { ...styles.planned, dashArray: null, weight: 2 }
-        : styles[feature.properties.type]));
+    // A highlighted route piece (hover over its card on the country page) gets another colour and is on top.
+    let highlighted = null;
+    const restyle = () => layer.setStyle((feature) => {
+        const style = feature.properties.type === 'planned' && map.getZoom() < 10
+            ? { ...styles.planned, dashArray: null, weight: 2 }
+            : styles[feature.properties.type];
+        // Highlighted: same line, only another colour.
+        return highlighted && feature.properties.route === highlighted ? { ...style, color: styles.highlight.color, opacity: 1 } : style;
+    });
     restyle();
     map.on('zoomend', restyle);
+    highlighters.push((routeId) => {
+        highlighted = routeId;
+        restyle();
+        if (routeId) layer.eachLayer((line) => line.feature?.properties.route === routeId && line.bringToFront?.());
+    });
 }
 
 // Only build maps when they scroll into view: the journey page can have many.

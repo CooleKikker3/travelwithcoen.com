@@ -27,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Behind Cloudflare: trust its forwarding headers (config, so it also works with config:cache).
+        if ($proxies = config('travel.trusted_proxies')) {
+            \Illuminate\Http\Middleware\TrustProxies::at($proxies === '*' ? '*' : explode(',', $proxies));
+        }
+
         Gate::define('see-live-tracking', fn (User $user) => $user->canSeeLiveTracking());
     }
 }

@@ -58,6 +58,8 @@ return [
             'endpoint' => env('R2_ENDPOINT'),
             'url' => env('R2_URL'),
             'use_path_style_endpoint' => true,
+            // Uploads have unique names and never change, so browsers may keep them for a year.
+            'options' => ['CacheControl' => 'public, max-age=31536000, immutable'],
             'throw' => true,
             'report' => true,
         ],

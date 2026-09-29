@@ -214,6 +214,17 @@ class GalleryAndPlanningTest extends TestCase
         $this->get('/admin/route-planner?route='.$route->id)->assertOk()->assertSee('data-route-editor', false);
         $this->assertCount(5, Livewire::withQueryParams(['route' => $route->id])->test(RoutePlanner::class)->instance()->initialData()['segments']);
         $this->get('/nl/landen/nederland')->assertOk()->assertSee('Nijmeegse Vierdaagse')->assertSee('Met 40.000 anderen.');
+
+        // A private note per part (Routes list → Notities), kept when the piece is saved again in the planner.
+        $this->get('/admin/country-routes/'.$route->id.'/edit')->assertOk()->assertSee('Dag 2')->assertSee('Notities per deel');
+        $edit = Livewire::test(\App\Filament\Resources\CountryRoutes\Pages\EditCountryRoute::class, ['record' => $route->id]);
+        $key = collect($edit->get('data.segments'))->search(fn ($part) => $part['label'] === 'Dag 2');
+        $edit->set("data.segments.{$key}.notes", 'Slapen bij camping De Wolfsberg')->call('save')->assertHasNoFormErrors();
+        $this->assertSame(['Naar de start', 'Dag 1', 'Dag 2', 'Dag 3', 'Dag 4'], $route->segments()->pluck('label')->all());
+        $planner = Livewire::withQueryParams(['route' => $route->id])->test(RoutePlanner::class);
+        $planner->call('save', ['meta' => $payload['meta'], 'segments' => $planner->instance()->initialData()['segments']]);
+        $this->assertSame('Slapen bij camping De Wolfsberg', $route->segments()->where('label', 'Dag 2')->value('notes'));
+        $this->get('/nl/landen/nederland')->assertDontSee('De Wolfsberg');
     }
 
     public function test_countries_and_route_pieces_are_ordered_by_dragging(): void
@@ -261,6 +272,30 @@ class GalleryAndPlanningTest extends TestCase
         $this->assertSame([$nl->id, $de->id], \App\Models\TrackingPoint::orderBy('recorded_at')->pluck('country_id')->all());
         $this->assertSame(\App\Enums\CountryStatus::Current, $de->fresh()->status);
         $this->assertSame(\App\Enums\CountryStatus::Visited, $nl->fresh()->status);
+    }
+
+    public function test_concept_route_pieces_stay_off_the_website(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => Role::Admin]));
+        $nl = Country::create(['iso_code' => 'NL', 'name' => ['en' => 'Netherlands', 'nl' => 'Nederland'], 'is_published' => true]);
+        $concept = $nl->routes()->create(['type' => 'planned', 'name' => 'Alternatief via de dijk', 'title' => ['nl' => 'Alternatief via de dijk'], 'description' => ['nl' => 'Misschien.'], 'is_draft' => true]);
+        $concept->replacePoints([['lat' => 51.84, 'lng' => 5.86], ['lat' => 51.83, 'lng' => 5.95]]);
+
+        // Website: no line, kilometres, story or "still to be planned" start from the concept.
+        auth()->logout();
+        $this->get('/nl/landen/nederland')->assertOk()->assertDontSee('Alternatief via de dijk')->assertDontSee('[5.86,51.84]', false);
+        $this->get('/nl/reis')->assertOk()->assertDontSee('[5.86,51.84]', false);
+        $this->assertSame(0.0, \App\Support\JourneyStats::for(null)['planned_km']);
+        $open = collect(\App\Support\RouteGeometry::withOpenPlan(['features' => []])['features'])->firstWhere('properties.type', 'open');
+        $this->assertSame([4.557, 52.2575], $open['geometry']['coordinates'][0]); // still from Lisse
+
+        // CMS: listed under "Concepten", selectable in the planner, publishable with one click.
+        $this->actingAs(User::factory()->create(['role' => Role::Admin]));
+        Livewire::test(\App\Filament\Resources\CountryRoutes\Pages\ListCountryRoutes::class, ['activeTab' => 'concepten'])
+            ->assertCanSeeTableRecords([$concept])
+            ->callTableAction('draft', $concept);
+        $this->assertFalse($concept->fresh()->is_draft);
+        $this->assertStringContainsString('Alternatief via de dijk', implode(' ', Livewire::test(RoutePlanner::class)->instance()->routeOptions()));
     }
 
     public function test_the_planner_refuses_a_route_without_country_or_parts(): void

@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  * A planned or actual route (segment) through one country, stored as ordered points.
  * Country pages and the global overview both read from here: one source of truth.
  */
-#[Fillable(['country_id', 'type', 'name', 'title', 'description', 'sort_order', 'gpx_path', 'waypoints', 'routing', 'notes'])]
+#[Fillable(['country_id', 'type', 'is_draft', 'name', 'title', 'description', 'sort_order', 'gpx_path', 'waypoints', 'routing', 'notes'])]
 class CountryRoute extends Model
 {
     use HasTranslations;
@@ -29,14 +29,21 @@ class CountryRoute extends Model
     {
         return [
             'type' => RouteType::class,
+            'is_draft' => 'boolean',
             'distance_km' => 'float',
             'waypoints' => 'array',
             'country_km' => 'array',
         ];
     }
 
+    /** Name of the global scope that hides concepts; the CMS removes it with withoutGlobalScope(). */
+    public const PUBLISHED = 'published';
+
     protected static function booted(): void
     {
+        // Concept pieces never reach the website; only the CMS sees them (withoutGlobalScope(self::PUBLISHED)).
+        static::addGlobalScope(self::PUBLISHED, fn ($query) => $query->where('country_routes.is_draft', false));
+
         // A new or replaced GPX file replaces the route's points.
         static::saved(function (CountryRoute $route) {
             if ($route->gpx_path && ($route->wasRecentlyCreated || $route->wasChanged('gpx_path'))) {

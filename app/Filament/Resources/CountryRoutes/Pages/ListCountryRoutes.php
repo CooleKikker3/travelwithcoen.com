@@ -4,6 +4,7 @@ namespace App\Filament\Resources\CountryRoutes\Pages;
 
 use App\Filament\Resources\CountryRoutes\CountryRouteResource;
 use App\Models\Country;
+use App\Models\CountryRoute;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 
@@ -18,7 +19,11 @@ class ListCountryRoutes extends ListRecords
             ->filter(fn (Country $country) => $country->routes_count > 0)
             ->mapWithKeys(fn (Country $country) => [$country->iso_code => Tab::make($country->flag().' '.$country->translate('name', 'nl'))
                 ->badge($country->routes_count)
-                ->modifyQueryUsing(fn ($query) => $query->where('country_id', $country->id))])
+                ->modifyQueryUsing(fn ($query) => $query->where('country_id', $country->id)->where('is_draft', false))])
+            ->put('concepten', Tab::make('Concepten')
+                ->icon('heroicon-o-pencil-square')
+                ->badge(CountryRoute::withoutGlobalScope(CountryRoute::PUBLISHED)->where('is_draft', true)->count() ?: null)
+                ->modifyQueryUsing(fn ($query) => $query->where('is_draft', true)))
             ->all();
     }
 }

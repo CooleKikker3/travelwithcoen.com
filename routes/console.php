@@ -87,6 +87,7 @@ Artisan::command('media:prune {--dry-run : Only list what would be deleted} {--d
         ...GalleryItem::whereNotNull('path')->pluck('path'),
         ...Article::whereNotNull('cover_image')->pluck('cover_image'),
         Settings::get('home_image'),
+        ...array_values(Settings::get('home_image_variants') ?? []),
     ])->filter()->flip();
     // Images placed in article text are referenced inside the (JSON) body.
     $bodies = Article::pluck('body')->map(fn ($body) => json_encode($body, JSON_UNESCAPED_SLASHES))->join("\n");
@@ -113,7 +114,7 @@ Schedule::command('media:prune')->weeklyOn(1, '04:00')->withoutOverlapping();
 Artisan::command('geo:countries', function () {
     $locator = app(\App\Support\CountryLocator::class);
 
-    \App\Models\CountryRoute::with('points')->get()->each(fn ($route) => $route->replacePoints(
+    \App\Models\CountryRoute::withoutGlobalScope(\App\Models\CountryRoute::PUBLISHED)->with('points')->get()->each(fn ($route) => $route->replacePoints(
         $route->points->map(fn ($p) => ['lat' => (float) $p->latitude, 'lng' => (float) $p->longitude, 'ele' => $p->elevation, 'time' => $p->recorded_at])->all()
     ));
 
@@ -125,3 +126,44 @@ Artisan::command('geo:countries', function () {
     $this->info(\App\Models\CountryRoute::count().' route pieces and '.$points->count().' GPS points assigned to countries.');
 })->purpose('Assign route and GPS points to the country they lie in');
 Schedule::command('geo:countries')->weeklyOn(1, '04:30')->withoutOverlapping();
+
+// Files uploaded before every R2 write got a cache lifetime (config/filesystems.php): add it, keeping their metadata.
+Artisan::command('media:cache-headers', function () {
+    $disk = MediaStorage::disk();
+    if (! method_exists($disk, 'getClient')) {
+        return $this->warn('Media are stored locally: nothing to do.');
+    }
+    $client = $disk->getClient();
+    $bucket = config('filesystems.disks.r2.bucket');
+    $fixed = 0;
+
+    foreach (['articles/images', 'articles/covers', 'gallery', 'site'] as $directory) {
+        foreach ($disk->allFiles($directory) as $path) {
+            $head = $client->headObject(['Bucket' => $bucket, 'Key' => $path]);
+            if (str_contains((string) ($head['CacheControl'] ?? ''), 'max-age')) {
+                continue;
+            }
+            $client->copyObject([
+                'Bucket' => $bucket,
+                'Key' => $path,
+                'CopySource' => $bucket.'/'.str_replace('%2F', '/', rawurlencode($path)),
+                'MetadataDirective' => 'REPLACE',
+                'Metadata' => $head['Metadata'] ?? [],
+                'ContentType' => $head['ContentType'] ?? 'application/octet-stream',
+                'CacheControl' => 'public, max-age=31536000, immutable',
+            ]);
+            $fixed++;
+        }
+    }
+
+    $this->info("{$fixed} file(s) given a cache lifetime of one year.");
+})->purpose('Give existing media files in R2 a long browser cache lifetime');
+
+// Garmin inReach: new positions from the MapShare feed (GARMIN_MAPSHARE_URL). The device sends every 10 min or more.
+Artisan::command('garmin:sync', function () {
+    if (blank(config('travel.garmin.mapshare_url'))) {
+        return $this->warn('No GARMIN_MAPSHARE_URL set.');
+    }
+    $this->info(app(\App\Services\GarminMapShare::class)->sync().' new position(s) from Garmin.');
+})->purpose('Fetch new Garmin inReach positions from MapShare');
+Schedule::command('garmin:sync')->everyTenMinutes()->withoutOverlapping();

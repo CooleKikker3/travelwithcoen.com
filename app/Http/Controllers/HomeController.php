@@ -28,6 +28,8 @@ class HomeController extends Controller
             // Stops in the rough direction that match a country link to its page.
             'countryLinks' => Country::published()->get()->mapWithKeys(fn (Country $country) => [mb_strtolower($country->translate('name')) => $country->url()]),
             'heroImage' => ($image = Settings::get('home_image')) ? MediaStorage::url($image) : null,
+            // Smaller WebP copies (see ImageProcessor::variants): the browser picks the size for the screen.
+            'heroSrcset' => collect(Settings::get('home_image_variants') ?? [])->map(fn ($path, $width) => MediaStorage::url($path)." {$width}w")->join(', '),
             'lastLocation' => TrackingPoint::visibleTo($user)->with('country')->latest('recorded_at')->first(),
             'latest' => Article::published()->with('country')->limit(3)->get(),
             'gallery' => GalleryItem::public()->limit(8)->get(),

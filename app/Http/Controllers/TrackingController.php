@@ -71,7 +71,9 @@ class TrackingController extends Controller
 
     private function payload(?Carbon $cutoff, bool $private): array
     {
-        $points = TrackingPoint::recordedBefore($cutoff)->orderBy('recorded_at')->get();
+        $points = TrackingPoint::recordedBefore($cutoff)->orderBy('recorded_at')->get()
+            // The public never gets locations near home (privacy zone around the start).
+            ->when(! $private, fn ($points) => $points->reject(fn ($p) => \App\Support\RouteGeometry::isPrivate($p->latitude, $p->longitude, evenWhenLoggedIn: true))->values());
         $last = $points->last();
 
         return [

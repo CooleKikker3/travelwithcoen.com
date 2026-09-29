@@ -48,6 +48,10 @@
                         </x-filament::input.wrapper>
                     </label>
                 </div>
+                <label style="display:flex;gap:.5rem;align-items:center;font-size:.875rem;font-weight:500">
+                    <input type="checkbox" data-meta="isDraft" style="width:1.1rem;height:1.1rem">
+                    Concept (niet zichtbaar op de website)
+                </label>
                 <div style="{{ $grid }}">
                     <label style="{{ $field }}">
                         <span>Titel (Nederlands)</span>
@@ -78,8 +82,8 @@
             <input type="file" accept=".gpx,application/gpx+xml" multiple hidden data-gpx-input>
             <x-filament::input.wrapper style="width:auto">
                 <x-filament::input.select data-routing title="Lijn tussen getekende punten">
-                    <option value="hiking">Wandelpaden volgen</option>
                     <option value="straight">Rechte lijnen</option>
+                    <option value="hiking">Wandelpaden volgen</option>
                 </x-filament::input.select>
             </x-filament::input.wrapper>
             <x-filament::button type="button" color="gray" data-action="undo" icon="heroicon-o-arrow-uturn-left">Ongedaan maken</x-filament::button>
@@ -97,6 +101,7 @@
             <span data-distance style="font-weight:600"></span>
             <span data-status style="font-size:.875rem;color:#6b7280"></span>
             @if ($data['routeId'])
+                <x-filament::button type="button" color="gray" size="sm" wire:click="downloadGpx" icon="heroicon-o-arrow-down-tray">GPX downloaden</x-filament::button>
                 <x-filament::button type="button" color="danger" outlined size="sm" wire:click="deleteRoute" wire:confirm="Dit routestuk verwijderen?" icon="heroicon-o-trash" style="margin-inline-start:auto">Verwijderen</x-filament::button>
             @endif
         </div>

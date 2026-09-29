@@ -132,6 +132,7 @@ function init(wire) {
         segments: initial.segments.map((s) => ({ ...s, line: decode(s.line), waypoints: s.waypoints ?? [] })),
     };
     let active = null; // index of the drawn part that receives map taps
+    let linking = null; // first tapped S/E marker: { i, end: 'S' | 'E' }
     let dirty = false;
     const history = [];
 
@@ -192,7 +193,7 @@ function init(wire) {
             const newLegs = [];
             for (let i = 0; i < points.length - 1; i++) {
                 const reuse = legs && !legs.includes(i) && oldLegs[i];
-                newLegs.push(reuse || await routeBetween(points[i].slice(0, 2), points[i + 1].slice(0, 2), segment.routing));
+                newLegs.push(reuse || pinEnds(await routeBetween(points[i].slice(0, 2), points[i + 1].slice(0, 2), segment.routing), points[i], points[i + 1]));
             }
             setLegs(segment, newLegs);
             status('');
@@ -200,6 +201,15 @@ function init(wire) {
             render();
         });
         return queue;
+    }
+
+    // Walking paths start and end at the nearest path, which can be off the tapped point: pin the
+    // leg to the points themselves, so parts and connections always join without a gap.
+    function pinEnds(leg, from, to) {
+        const line = [...leg];
+        if (!line.length || metres(line[0], from) > 1) line.unshift([from[0], from[1]]);
+        if (metres(line.at(-1), to) > 1) line.push([to[0], to[1]]);
+        return line;
     }
 
     // A drawn part's line split per leg, using the line index stored with each waypoint.
@@ -218,6 +228,8 @@ function init(wire) {
     }
 
     /* ----- actions ----- */
+    // Straight from the previous point by default (paths the router does not know stay possible); remembered per device.
+    try { $('[data-routing]').value = localStorage.getItem('twc-routing') || 'straight'; } catch { /* blocked */ }
     const routing = () => $('[data-routing]').value;
 
     function startDrawing(at = null) {
@@ -267,12 +279,8 @@ function init(wire) {
     }
 
     function reverse(i) {
-        change(() => {
-            const segment = state.segments[i];
-            segment.line = [...segment.line].reverse();
-            const last = segment.line.length - 1;
-            segment.waypoints = [...segment.waypoints].reverse().map((w) => [w[0], w[1], w[2] == null ? null : last - w[2]]);
-        });
+        change(() => reverseInPlace(state.segments[i]));
+
     }
 
     function remove(i) {
@@ -290,6 +298,42 @@ function init(wire) {
         const segment = { kind: 'drawn', label: 'Verbinding', routing: routing(), waypoints: [[from[0], from[1], null], [to[0], to[1], null]], line: [from, to] };
         change(() => { state.segments.splice(i + 1, 0, segment); active = null; });
         rebuildDrawn(segment);
+    }
+
+    /*
+     * Link an end to a start: tap the E of one part, then the S of another (or the other way round).
+     * The second part moves to right after the first; two ends or two starts reverse a part first.
+     * A remaining gap is filled with a connecting part.
+     */
+    function tapEnd(i, end) {
+        if (!linking) {
+            linking = { i, end };
+            render();
+            return;
+        }
+        const first = linking;
+        linking = null;
+        if (first.i === i) { render(); return; }
+
+        // Make it "E of a" → "S of b".
+        let [a, aEnd, b, bEnd] = first.end === 'E' || end === 'S' ? [first.i, first.end, i, end] : [i, end, first.i, first.end];
+        change(() => {
+            if (aEnd === 'S') reverseInPlace(state.segments[a]);
+            if (bEnd === 'E') reverseInPlace(state.segments[b]);
+            const [moved] = state.segments.splice(b, 1);
+            if (b < a) a--;
+            state.segments.splice(a + 1, 0, moved);
+            active = null;
+        });
+        const end0 = state.segments[a].line.at(-1);
+        const start1 = state.segments[a + 1].line[0];
+        if (end0 && start1 && metres(end0, start1) > GAP_METRES) connect(a);
+    }
+
+    function reverseInPlace(segment) {
+        segment.line = [...segment.line].reverse();
+        const last = segment.line.length - 1;
+        segment.waypoints = [...segment.waypoints].reverse().map((w) => [w[0], w[1], w[2] == null ? null : last - w[2]]);
     }
 
     async function addGpx(files) {
@@ -335,8 +379,9 @@ function init(wire) {
 
     /* ----- meta fields (texts, country, type) ----- */
     const metaFields = [...root.querySelectorAll('[data-meta]')];
-    function writeMeta() { metaFields.forEach((field) => { field.value = state.meta[field.dataset.meta] ?? ''; }); }
-    function readMeta() { metaFields.forEach((field) => { state.meta[field.dataset.meta] = field.value || null; }); }
+    const isBox = (field) => field.type === 'checkbox';
+    function writeMeta() { metaFields.forEach((field) => { if (isBox(field)) field.checked = !!state.meta[field.dataset.meta]; else field.value = state.meta[field.dataset.meta] ?? ''; }); }
+    function readMeta() { metaFields.forEach((field) => { state.meta[field.dataset.meta] = isBox(field) ? field.checked : (field.value || null); }); }
     metaFields.forEach((field) => field.addEventListener('change', () => change(readMeta)));
 
     /* ----- drawing on the map and the list ----- */
@@ -380,14 +425,34 @@ function init(wire) {
                 });
             }
         });
+        state.segments.forEach((segment, i) => {
+            if (!segment.line.length) return;
+            const colour = COLOURS[i % COLOURS.length];
+            [['S', segment.line[0]], ['E', segment.line.at(-1)]].forEach(([end, point]) => {
+                const selected = linking && linking.i === i && linking.end === end;
+                const size = selected ? 30 : 22;
+                L.marker(point, {
+                    zIndexOffset: -100, // below the draggable points of the part being edited
+                    title: `${end === 'S' ? 'Start' : 'Eind'} van stuk ${i + 1}`,
+                    icon: L.divIcon({
+                        className: '',
+                        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${end === 'S' ? '#fff' : colour};color:${end === 'S' ? colour : '#fff'};border:3px solid ${selected ? '#facc15' : colour};font:800 11px/${size - 6}px sans-serif;text-align:center;box-shadow:0 1px 4px #0006">${end}</div>`,
+                        iconSize: [size, size],
+                        iconAnchor: [size / 2, size / 2],
+                    }),
+                }).on('click', () => tapEnd(i, end)).addTo(drawing);
+            });
+        });
         gaps().forEach((gap) => gap && L.polyline([gap.from, gap.to], { color: '#dc2626', weight: 3, dashArray: '2 8', interactive: false }).addTo(drawing));
 
         renderList();
         const km = state.segments.reduce((sum, s) => sum + lineKm(s.line), 0);
         $('[data-distance]').textContent = `${formatKm(km)} · ${state.segments.length} ${state.segments.length === 1 ? 'stuk' : 'stukken'}`;
-        $('[data-hint]').textContent = active !== null
+        $('[data-hint]').textContent = linking
+            ? `Tik nu op de S of E van een ander stuk om het aan ${linking.end === 'S' ? 'de start' : 'het eind'} van stuk ${linking.i + 1} te koppelen (nogmaals tikken = annuleren).`
+            : active !== null
             ? `Tik op de kaart om punten aan stuk ${active + 1} toe te voegen. Sleep een punt om het te verplaatsen, tik erop om het te verwijderen.`
-            : 'Kies "Stuk tekenen" of "GPX toevoegen". Tik op een getekend stuk om het te bewerken.';
+            : 'Kies "Stuk tekenen" of "GPX toevoegen". Tik op een getekend stuk om het te bewerken. Koppelen: tik op de E van een stuk en daarna op de S van een ander.';
     }
 
     function renderList() {
@@ -445,6 +510,7 @@ function init(wire) {
     $('[data-action="undo"]').addEventListener('click', undo);
     $('[data-action="save"]').addEventListener('click', save);
     $('[data-routing]').addEventListener('change', () => {
+        try { localStorage.setItem('twc-routing', routing()); } catch { /* blocked */ }
         const segment = state.segments[active];
         if (segment?.kind === 'drawn' && segment.waypoints.length > 1 && confirm(`Stuk ${active + 1} opnieuw berekenen met deze instelling?`)) {
             change(() => { segment.routing = routing(); });

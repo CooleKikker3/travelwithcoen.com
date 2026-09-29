@@ -10,10 +10,16 @@
     };
 @endphp
 <x-layouts.app>
+    @if ($heroImage)
+        {{-- The hero photo is the largest element: start downloading it right away. --}}
+        <x-slot:head>
+            <link rel="preload" as="image" href="{{ $heroImage }}" @if ($heroSrcset) imagesrcset="{{ $heroSrcset }}" imagesizes="100vw" @endif fetchpriority="high">
+        </x-slot:head>
+    @endif
     {{-- Hero: the photo chosen in Settings, with the green wave pattern over a gradient; without a photo just the pattern. --}}
     <section class="wave-bottom relative isolate overflow-hidden bg-forest-900 text-sage-100">
         @if ($heroImage)
-            <img src="{{ $heroImage }}" alt="" class="drift absolute inset-0 -z-20 size-full object-cover" fetchpriority="high">
+            <img src="{{ $heroImage }}" @if ($heroSrcset) srcset="{{ $heroSrcset }}" sizes="100vw" @endif alt="" class="drift absolute inset-0 -z-20 size-full object-cover" fetchpriority="high">
             <div class="absolute inset-0 -z-10 bg-gradient-to-r from-forest-950/90 via-forest-900/60 to-forest-900/10"></div>
             <div class="absolute inset-0 -z-10 bg-gradient-to-t from-forest-950/70 to-transparent to-40%"></div>
         @endif

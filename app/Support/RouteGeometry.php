@@ -25,9 +25,64 @@ class RouteGeometry
      * Start and destination markers, plus a straight "still to be planned" line from the last point
      * of the planned route (the last published country that has one) — or from the start — to the destination.
      */
+    /**
+     * The start of the journey is the first point of the first planned route piece (countries and pieces
+     * in their order). That is home, so the website hides everything within privacy_radius_m of it.
+     *
+     * @return array{lat: float, lng: float, km: float}|null
+     */
+    public static function privacyZone(bool $evenWhenLoggedIn = false): ?array
+    {
+        // Family and admins (logged in) know where home is: no privacy zone for them.
+        if (! $evenWhenLoggedIn && auth()->user()?->canSeeLiveTracking()) {
+            return null;
+        }
+
+        return once(function () {
+            $first = CountryRoute::where('type', RouteType::Planned)
+                ->join('countries', 'countries.id', '=', 'country_routes.country_id')
+                ->where('countries.is_published', true)
+                ->orderBy('countries.sort_order')
+                ->orderBy('country_routes.sort_order')
+                ->select('country_routes.*')
+                ->first()
+                ?->points()->first(['latitude', 'longitude']);
+
+            return $first ? ['lat' => (float) $first->latitude, 'lng' => (float) $first->longitude, 'km' => config('travel.privacy_radius_m') / 1000] : null;
+        });
+    }
+
+    /** The route piece the journey starts with (see privacyZone()). */
+    private static function privacyZoneRoute(): ?CountryRoute
+    {
+        return CountryRoute::where('type', RouteType::Planned)
+            ->join('countries', 'countries.id', '=', 'country_routes.country_id')
+            ->where('countries.is_published', true)
+            ->orderBy('countries.sort_order')
+            ->orderBy('country_routes.sort_order')
+            ->select('country_routes.*')
+            ->first();
+    }
+
+    public static function isPrivate(float $lat, float $lng, bool $evenWhenLoggedIn = false): bool
+    {
+        $zone = self::privacyZone($evenWhenLoggedIn);
+
+        return $zone !== null && self::haversine([$zone['lat'], $zone['lng']], [$lat, $lng]) < $zone['km'];
+    }
+
     public static function withOpenPlan(array $collection): array
     {
         [$start, $destination] = [config('travel.start'), config('travel.destination')];
+
+        // Start marker where the visible route begins (just outside the privacy zone), named after the town.
+        if ($zone = self::privacyZone()) {
+            $firstVisible = collect(self::privacyZoneRoute()?->points()->get(['latitude', 'longitude']) ?? [])
+                ->first(fn ($p) => ! self::isPrivate($p->latitude, $p->longitude));
+            if ($firstVisible) {
+                $start = ['lat' => (float) $firstVisible->latitude, 'lng' => (float) $firstVisible->longitude] + $start;
+            }
+        }
 
         $lastPlanned = CountryRoute::where('type', RouteType::Planned)
             ->join('countries', 'countries.id', '=', 'country_routes.country_id')
@@ -75,7 +130,7 @@ class RouteGeometry
      */
     public static function featureCollection(Collection $routes, float $tolerance, ?int $countryId = null): array
     {
-        $key = 'geojson:'.md5($routes->map(fn ($r) => $r->id.'@'.$r->updated_at?->timestamp)->join(',').":{$tolerance}:".app()->getLocale().':'.$countryId);
+        $key = 'geojson:'.md5($routes->map(fn ($r) => $r->id.'@'.$r->updated_at?->timestamp)->join(',').":{$tolerance}:".app()->getLocale().':'.$countryId.':'.json_encode(self::privacyZone()));
 
         return Cache::remember($key, now()->addDay(), fn () => [
             'type' => 'FeatureCollection',
@@ -83,7 +138,8 @@ class RouteGeometry
                 // For one country: only the stretches of the piece inside that country (a piece can cross borders).
                 $lines = [[]];
                 foreach ($route->points()->get(['latitude', 'longitude', 'country_id']) as $point) {
-                    if ($countryId && $point->country_id !== null && $point->country_id !== $countryId) {
+                    // Outside this country, or inside the privacy zone around home: not drawn.
+                    if (($countryId && $point->country_id !== null && $point->country_id !== $countryId) || self::isPrivate($point->latitude, $point->longitude)) {
                         $lines[] = [];
 
                         continue;
@@ -101,7 +157,7 @@ class RouteGeometry
 
                 return [
                     'type' => 'Feature',
-                    'properties' => array_filter(['type' => $route->type->value, 'country' => $route->country_id, 'label' => $route->translate('title')]),
+                    'properties' => array_filter(['type' => $route->type->value, 'route' => $route->id, 'country' => $route->country_id, 'label' => $route->translate('title')]),
                     'geometry' => count($coordinates) === 1
                         ? ['type' => 'LineString', 'coordinates' => $coordinates[0]]
                         : ['type' => 'MultiLineString', 'coordinates' => $coordinates],
@@ -119,7 +175,10 @@ class RouteGeometry
         $points = TrackingPoint::visibleTo($user)
             ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
             ->orderBy('recorded_at')
-            ->get(['latitude', 'longitude', 'recorded_at']);
+            ->get(['latitude', 'longitude', 'recorded_at'])
+            // Never show locations near home.
+            ->reject(fn ($p) => self::isPrivate($p->latitude, $p->longitude))
+            ->values();
 
         // A new line after gaps longer than 12 hours (e.g. transport or no signal).
         $segments = [];

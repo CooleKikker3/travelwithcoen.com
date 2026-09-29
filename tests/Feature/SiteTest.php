@@ -218,8 +218,24 @@ class SiteTest extends TestCase
         $this->assertSame(3, $route->points()->count());
         $this->assertEqualsWithDelta(79, $route->fresh()->distance_km, 3);
 
-        $this->get('/journey')->assertOk()->assertSee('"type":"planned"', false)->assertSee('[4.56,52.26]', false);
-        $this->get('/nl/landen/nederland')->assertOk()->assertSee('[4.76,52.96]', false);
+        // The first point is home (start of the first route piece): hidden on the website, like GPS points near it.
+        $this->get('/journey')->assertOk()->assertSee('"type":"planned"', false)->assertSee('[4.7,52.5]', false)->assertDontSee('[4.56,52.26]', false);
+        $this->get('/nl/landen/nederland')->assertOk()->assertSee('[4.76,52.96]', false)->assertDontSee('52.26', false);
+        \App\Models\TrackingPoint::create(['latitude' => 52.2603, 'longitude' => 4.5605, 'source' => 'test', 'recorded_at' => now()->subDays(30), 'received_at' => now()]);
+        $this->getJson('/api/public/tracking')->assertJsonCount(0, 'points');
+
+        // Logged in (family, admin): no privacy zone on the maps; the public API stays public.
+        $this->actingAs(User::factory()->create(['role' => Role::TrustedViewer]));
+        $this->get('/journey')->assertSee('[4.56,52.26]', false);
+        $this->getJson('/api/public/tracking')->assertJsonCount(0, 'points');
+        auth()->logout();
+
+        // The start marker sits where the visible route begins, named after the town.
+        $start = collect($this->get('/')->viewData('overview')['features'])->firstWhere('properties.type', 'start');
+        $this->assertSame([[4.7, 52.5], 'Lisse'], [$start['geometry']['coordinates'], $start['properties']['label']]);
+
+        // The whole route, home included, can be downloaded as GPX in the CMS (e.g. for a Garmin).
+        $this->assertStringContainsString('<trkpt lat="52.260000" lon="4.560000">', \App\Support\GpxExport::route($route));
     }
 
     public function test_slugs_are_generated_per_locale(): void

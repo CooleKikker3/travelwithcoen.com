@@ -42,7 +42,7 @@ class RoutePlanner extends Page
     /** Everything the editor needs: this route piece, its parts, and the other routes for context. */
     public function initialData(): array
     {
-        $existing = CountryRoute::with('segments')->find($this->route);
+        $existing = CountryRoute::withoutGlobalScope(CountryRoute::PUBLISHED)->with('segments')->find($this->route);
 
         return [
             'routeId' => $existing?->id,
@@ -54,10 +54,11 @@ class RoutePlanner extends Page
                 'titleEn' => $existing?->translate('title', 'en', false),
                 'descriptionNl' => $existing?->translate('description', 'nl', false),
                 'descriptionEn' => $existing?->translate('description', 'en', false),
+                'isDraft' => (bool) $existing?->is_draft,
             ],
             'segments' => $existing ? $this->segmentsFor($existing) : [],
             'reference' => RouteGeometry::featureCollection(
-                CountryRoute::when($existing, fn ($q) => $q->whereKeyNot($existing->id))->get(),
+                CountryRoute::withoutGlobalScope(CountryRoute::PUBLISHED)->when($existing, fn ($q) => $q->whereKeyNot($existing->id))->get(),
                 RouteGeometry::OVERVIEW / 5,
             )['features'],
         ];
@@ -66,8 +67,8 @@ class RoutePlanner extends Page
     /** Route pieces to switch between, newest first. */
     public function routeOptions(): array
     {
-        return CountryRoute::with('country')->orderBy('country_id')->orderBy('sort_order')->get()
-            ->mapWithKeys(fn (CountryRoute $route) => [$route->id => $route->country?->flag().' '.$route->label().' · '.number_format((float) $route->distance_km, 1).' km'])
+        return CountryRoute::withoutGlobalScope(CountryRoute::PUBLISHED)->with('country')->orderBy('is_draft')->orderBy('country_id')->orderBy('sort_order')->get()
+            ->mapWithKeys(fn (CountryRoute $route) => [$route->id => $route->country?->flag().' '.$route->label().' · '.number_format((float) $route->distance_km, 1).' km'.($route->is_draft ? ' (concept)' : '')])
             ->all();
     }
 
@@ -122,9 +123,11 @@ class RoutePlanner extends Page
             'meta.titleEn' => ['nullable', 'string', 'max:150'],
             'meta.descriptionNl' => ['nullable', 'string', 'max:5000'],
             'meta.descriptionEn' => ['nullable', 'string', 'max:5000'],
+            'meta.isDraft' => ['nullable'],
             'segments' => ['required', 'array', 'min:1', 'max:100'],
             'segments.*.kind' => ['required', 'in:gpx,drawn'],
             'segments.*.label' => ['nullable', 'string', 'max:150'],
+            'segments.*.notes' => ['nullable', 'string', 'max:10000'],
             'segments.*.routing' => ['nullable', 'in:hiking,straight'],
             'segments.*.waypoints' => ['nullable', 'array', 'max:500'],
             'segments.*.line' => ['required', 'string', 'max:2000000'],
@@ -137,7 +140,7 @@ class RoutePlanner extends Page
         }
 
         $meta = $payload['meta'];
-        $route = CountryRoute::find($this->route) ?? new CountryRoute([
+        $route = CountryRoute::withoutGlobalScope(CountryRoute::PUBLISHED)->find($this->route) ?? new CountryRoute([
             'sort_order' => (CountryRoute::where('country_id', $meta['countryId'])->max('sort_order') ?? 0) + 10,
         ]);
         $route->fill([
@@ -146,6 +149,7 @@ class RoutePlanner extends Page
             'name' => $meta['titleNl'] ?: ($meta['titleEn'] ?: $route->name),
             'title' => array_filter(['nl' => $meta['titleNl'] ?? null, 'en' => $meta['titleEn'] ?? null]),
             'description' => array_filter(['nl' => $meta['descriptionNl'] ?? null, 'en' => $meta['descriptionEn'] ?? null]),
+            'is_draft' => filter_var($meta['isDraft'] ?? false, FILTER_VALIDATE_BOOL),
             'gpx_path' => null,
             'waypoints' => null,
         ])->save();
@@ -153,6 +157,7 @@ class RoutePlanner extends Page
         $route->replaceSegments(array_map(fn (array $segment) => [
             'kind' => $segment['kind'],
             'label' => $segment['label'] ?? null,
+            'notes' => $segment['notes'] ?? null,
             'routing' => $segment['kind'] === 'drawn' ? ($segment['routing'] ?? 'hiking') : null,
             'waypoints' => $segment['kind'] === 'drawn' ? ($segment['waypoints'] ?? []) : null,
             'line' => $segment['line'],
@@ -166,9 +171,17 @@ class RoutePlanner extends Page
         return ['routeId' => $route->id, 'updatedAt' => $route->updated_at->getTimestampMs(), 'km' => (float) $route->distance_km];
     }
 
+    /** The saved route piece as GPX (for Garmin). */
+    public function downloadGpx()
+    {
+        $route = CountryRoute::withoutGlobalScope(CountryRoute::PUBLISHED)->findOrFail($this->route);
+
+        return response()->streamDownload(fn () => print (\App\Support\GpxExport::route($route)), \App\Support\GpxExport::filename($route), ['Content-Type' => 'application/gpx+xml']);
+    }
+
     public function deleteRoute(): void
     {
-        CountryRoute::find($this->route)?->delete();
+        CountryRoute::withoutGlobalScope(CountryRoute::PUBLISHED)->find($this->route)?->delete();
         Notification::make()->success()->title('Routestuk verwijderd')->send();
         $this->redirect(self::getUrl());
     }
@@ -177,7 +190,7 @@ class RoutePlanner extends Page
     private function segmentsFor(CountryRoute $route): array
     {
         if ($route->segments->isNotEmpty()) {
-            return $route->segments->map(fn ($s) => $s->only(['kind', 'label', 'routing', 'waypoints', 'line']))->all();
+            return $route->segments->map(fn ($s) => $s->only(['kind', 'label', 'notes', 'routing', 'waypoints', 'line']))->all();
         }
 
         $points = $route->points()->get(['latitude', 'longitude'])->map(fn ($p) => [(float) $p->latitude, (float) $p->longitude])->all();

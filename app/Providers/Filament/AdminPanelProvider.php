@@ -39,6 +39,8 @@ class AdminPanelProvider extends PanelProvider
             ->favicon(asset('brand/favicon.svg'))
             ->path('admin')
             ->login()
+            // "Wachtwoord vergeten" on the login page (needs MAIL_* in .env, see DEPLOYMENT.md).
+            ->passwordReset()
             ->brandName('Travel with Coen')
             // Saves form drafts in the browser, for writing on a weak connection.
             ->renderHook(PanelsRenderHook::BODY_END, fn () => Blade::render("@vite('resources/js/admin-drafts.js')"))

@@ -25,6 +25,36 @@ class ImageProcessor
     }
 
     /** @return array{taken_at: ?Carbon, width: ?int, height: ?int} */
+    /**
+     * Smaller WebP copies next to the image ("{name}-{width}.webp"), for srcset: phones download far less.
+     *
+     * @param  list<int>  $widths
+     * @return array<int, string> width => path on the media disk
+     */
+    public function variants(string $path, array $widths = [960, 1600, 2400]): array
+    {
+        return MediaStorage::editLocally($path, function (string $file) use ($path, $widths) {
+            $source = @imagecreatefromstring((string) file_get_contents($file));
+            if (! $source) {
+                return [];
+            }
+            $variants = [];
+            foreach ($widths as $width) {
+                $scaled = imagesx($source) > $width ? imagescale($source, $width, -1, IMG_BICUBIC) : $source;
+                ob_start();
+                imagewebp($scaled, null, 78);
+                $target = preg_replace('/\.[^.\/]+$/', '', $path)."-{$width}.webp";
+                MediaStorage::disk()->put($target, ob_get_clean());
+                $variants[$width] = $target;
+                if (imagesx($source) <= $width) {
+                    break; // no point in larger copies than the original
+                }
+            }
+
+            return $variants;
+        });
+    }
+
     public function processFile(string $file): array
     {
         $type = @exif_imagetype($file);

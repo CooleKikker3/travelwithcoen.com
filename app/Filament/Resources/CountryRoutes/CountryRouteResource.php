@@ -19,6 +19,12 @@ class CountryRouteResource extends Resource
 {
     protected static ?string $model = CountryRoute::class;
 
+    /** The CMS also lists concepts (hidden on the website). */
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->withoutGlobalScope(CountryRoute::PUBLISHED);
+    }
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMap;
 
     protected static string|UnitEnum|null $navigationGroup = 'Reis';

@@ -45,8 +45,18 @@ class CountryRoutesTable
                 Action::make('draw')->label('Nieuw routestuk')->icon('heroicon-o-plus')->url(RoutePlanner::getUrl()),
             ])
             ->recordActions([
+                Action::make('draft')
+                    ->label(fn (CountryRoute $record) => $record->is_draft ? 'Publiceren' : 'Concept maken')
+                    ->icon(fn (CountryRoute $record) => $record->is_draft ? 'heroicon-o-eye' : 'heroicon-o-eye-slash')
+                    ->color('gray')
+                    ->action(fn (CountryRoute $record) => $record->update(['is_draft' => ! $record->is_draft])),
+                Action::make('gpx')
+                    ->label('GPX')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->action(fn (CountryRoute $record) => response()->streamDownload(fn () => print (\App\Support\GpxExport::route($record)), \App\Support\GpxExport::filename($record), ['Content-Type' => 'application/gpx+xml'])),
                 Action::make('planner')->label('Bewerken')->icon('heroicon-o-map')->url(fn (CountryRoute $record) => RoutePlanner::getUrl(['route' => $record->id])),
-                EditAction::make()->label('Notities'),
+                EditAction::make()->label('Notities')->icon('heroicon-o-pencil'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
