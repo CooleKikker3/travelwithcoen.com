@@ -4,7 +4,6 @@ namespace App\Filament\Widgets;
 
 use App\Enums\ArticleStatus;
 use App\Enums\CountryStatus;
-use App\Enums\JourneyPhase;
 use App\Models\Article;
 use App\Models\Country;
 use App\Models\GalleryItem;
@@ -31,8 +30,8 @@ class JourneyOverview extends StatsOverviewWidget
         $current = Country::where('status', CountryStatus::Current)->first();
 
         return [
-            Stat::make('Status van de reis', JourneyPhase::from(Settings::get('journey_phase'))->getLabel())
-                ->description($current ? 'Huidig land: '.$current->translate('name', 'en') : 'Geen huidig land ingesteld'),
+            Stat::make('Huidig land', $current ? $current->translate('name', 'nl') ?? $current->translate('name', 'en') : '—')
+                ->description('Automatisch uit je laatste locatie'),
             Stat::make('Laatste locatie-update', $lastPoint?->recorded_at->diffForHumans() ?? '—')
                 ->description($lastPoint ? 'Ontvangen '.$lastPoint->received_at->diffForHumans() : 'Nog geen locaties ontvangen')
                 ->color($lastPoint && $lastPoint->recorded_at->gt(now()->subHours(6)) ? 'success' : 'warning'),

@@ -1,7 +1,10 @@
 @php
     $kg = fn ($grams) => \Illuminate\Support\Number::format($grams / 1000, precision: 2, locale: app()->getLocale()).' kg';
 @endphp
-<x-layouts.app :title="__('site.equipment.title')">
+@php
+    $photo = ($path = \App\Support\Settings::get('gear_image')) ? \App\Support\MediaStorage::url($path) : null;
+@endphp
+<x-layouts.app :title="__('site.equipment.title')" :image="$photo">
     <x-page-header :title="__('site.equipment.title')" :lead="__('site.equipment.lead')">
         <dl class="mt-8 flex flex-wrap gap-3">
             <div class="rounded-2xl bg-forest-700/70 px-4 py-3">
@@ -15,13 +18,23 @@
         </dl>
     </x-page-header>
 
-    <div class="container-page mt-12 space-y-12">
+    @if ($photo)
+        {{-- Me with my gear: a polaroid over the edge of the header. --}}
+        <div class="container-page relative z-10 -mt-16">
+            <figure class="polaroid mx-auto max-w-2xl rounded-md bg-white p-3 pb-4 shadow-xl ring-1 ring-sage-200/70" style="--tilt: -1.5deg" data-reveal>
+                <img src="{{ $photo }}" alt="{{ __('site.equipment.hand') }}" class="w-full rounded-sm object-cover" loading="lazy">
+                <figcaption class="mt-3 text-center font-hand text-2xl text-forest-800">{{ __('site.equipment.hand') }}</figcaption>
+            </figure>
+        </div>
+    @endif
+
+    <div class="container-page mt-14 space-y-14">
         @forelse ($categories as $category => $items)
             <section>
-                <h2 class="border-b border-sage-200 pb-2 text-2xl font-semibold">{{ \App\Enums\EquipmentCategory::from($category)->getLabel() }}</h2>
-                <ul class="mt-4 divide-y divide-sage-100 rounded-2xl bg-white ring-1 ring-sage-200">
+                <h2 class="text-3xl font-extrabold" data-reveal>{{ \App\Enums\EquipmentCategory::from($category)->getLabel() }}</h2>
+                <ul class="mt-5 grid gap-4 sm:grid-cols-2">
                     @foreach ($items as $item)
-                        <li @class(['p-5', 'opacity-60' => $item->status === $replaced])>
+                        <li @class(['rounded-2xl bg-white p-5 shadow-sm ring-1 ring-sage-200 transition hover:-translate-y-0.5 hover:shadow-md', 'opacity-60' => $item->status === $replaced]) data-reveal style="--i: {{ min($loop->index, 6) }}">
                             <div class="flex flex-wrap items-baseline justify-between gap-2">
                                 <div>
                                     <span class="font-display text-lg font-semibold">{{ $item->translate('name') }}</span>

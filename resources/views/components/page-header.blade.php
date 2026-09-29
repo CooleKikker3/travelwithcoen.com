@@ -4,9 +4,9 @@
         @if ($eyebrow)
             <div class="mb-3 text-sm font-semibold tracking-wide text-fern-300 uppercase">{{ $eyebrow }}</div>
         @endif
-        <h1 class="max-w-3xl text-4xl font-semibold text-white sm:text-5xl">@if ($country)<x-flag :country="$country" class="mr-3 align-[-0.05em]" />@endif{{ $title }}</h1>
+        <h1 class="rise max-w-3xl text-4xl font-extrabold text-white sm:text-6xl">@if ($country)<x-flag :country="$country" class="mr-3 align-[-0.05em]" />@endif{{ $title }}</h1>
         @if ($lead)
-            <p class="mt-4 max-w-2xl text-lg text-sage-200">{{ $lead }}</p>
+            <p class="rise mt-4 max-w-2xl text-lg text-sage-200" style="--d: .3s">{{ $lead }}</p>
         @endif
         {{ $slot }}
     </div>

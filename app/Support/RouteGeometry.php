@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Enums\RouteType;
 use App\Models\CountryRoute;
 use App\Models\JourneyEvent;
+use App\Models\RoutePoint;
 use App\Models\TrackingPoint;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -16,6 +17,9 @@ class RouteGeometry
     public const DETAILED = 0.0003;
 
     public const OVERVIEW = 0.005;
+
+    /** Zoomed in closely: (almost) every bend of a path, like in the route planner. */
+    public const FINE = 0.00003;
 
     /**
      * Outline of a country as GeoJSON MultiPolygon coordinates ([lng, lat]), from Natural Earth 1:50m
@@ -64,11 +68,35 @@ class RouteGeometry
             ->first();
     }
 
+    /** Compass bearing in degrees (0 = north, 90 = east) from one [lat, lng] to another. */
+    public static function bearing(array $from, array $to): float
+    {
+        [$φ1, $φ2] = [deg2rad($from[0]), deg2rad($to[0])];
+        $Δλ = deg2rad($to[1] - $from[1]);
+
+        return fmod(rad2deg(atan2(sin($Δλ) * cos($φ2), cos($φ1) * sin($φ2) - sin($φ1) * cos($φ2) * cos($Δλ))) + 360, 360);
+    }
+
     public static function isPrivate(float $lat, float $lng, bool $evenWhenLoggedIn = false): bool
     {
         $zone = self::privacyZone($evenWhenLoggedIn);
 
         return $zone !== null && self::haversine([$zone['lat'], $zone['lng']], [$lat, $lng]) < $zone['km'];
+    }
+
+    /** Where the planned route ends so far (the last point of the last planned piece of the last published country). */
+    public static function lastPlannedPoint(): ?RoutePoint
+    {
+        return CountryRoute::where('type', RouteType::Planned)
+            ->join('countries', 'countries.id', '=', 'country_routes.country_id')
+            ->where('countries.is_published', true)
+            ->orderByDesc('countries.sort_order')
+            ->orderByDesc('country_routes.sort_order')
+            ->select('country_routes.*')
+            ->get()
+            ->map(fn (CountryRoute $route) => $route->points()->reorder('sequence', 'desc')->first())
+            ->filter()
+            ->first();
     }
 
     public static function withOpenPlan(array $collection): array
@@ -84,16 +112,7 @@ class RouteGeometry
             }
         }
 
-        $lastPlanned = CountryRoute::where('type', RouteType::Planned)
-            ->join('countries', 'countries.id', '=', 'country_routes.country_id')
-            ->where('countries.is_published', true)
-            ->orderByDesc('countries.sort_order')
-            ->orderByDesc('country_routes.sort_order')
-            ->select('country_routes.*')
-            ->get()
-            ->map(fn (CountryRoute $route) => $route->points()->reorder('sequence', 'desc')->first())
-            ->filter()
-            ->first();
+        $lastPlanned = self::lastPlannedPoint();
         $from = $lastPlanned ? [$lastPlanned->latitude, $lastPlanned->longitude] : [$start['lat'], $start['lng']];
 
         $collection['features'][] = self::line('open', [$from, [$destination['lat'], $destination['lng']]]);
@@ -128,6 +147,44 @@ class RouteGeometry
      *
      * @param  Collection<int, CountryRoute>  $routes
      */
+    /**
+     * The route pieces (all published ones, or those through one country) in more detail, only the stretches
+     * within a bounding box [west, south, east, north]: maps fetch these when zooming in (GET /api/track).
+     */
+    public static function routesIn(array $bbox, ?int $countryId, float $tolerance): array
+    {
+        $routes = $countryId
+            ? (\App\Models\Country::published()->find($countryId)?->routesThrough() ?? collect())
+            : CountryRoute::whereHas('country', fn ($query) => $query->where('is_published', true))->get();
+        [$west, $south, $east, $north] = $bbox;
+        // A stretch between two points counts when it may cross the box: on a straight road both ends can lie far outside it.
+        $crosses = fn (array $a, array $b) => max($a[0], $b[0]) >= $west && min($a[0], $b[0]) <= $east && max($a[1], $b[1]) >= $south && min($a[1], $b[1]) <= $north;
+
+        $features = [];
+        foreach (self::featureCollection($routes, $tolerance, $countryId)['features'] as $feature) {
+            $lines = $feature['geometry']['type'] === 'LineString' ? [$feature['geometry']['coordinates']] : $feature['geometry']['coordinates'];
+            $parts = [];
+            foreach ($lines as $line) {
+                $run = [];
+                for ($i = 1; $i < count($line); $i++) {
+                    if ($crosses($line[$i - 1], $line[$i])) {
+                        $run = $run ? [...$run, $line[$i]] : [$line[$i - 1], $line[$i]];
+                    } elseif ($run) {
+                        $parts[] = $run;
+                        $run = [];
+                    }
+                }
+                $parts[] = $run;
+            }
+            $parts = array_values(array_filter($parts, fn ($part) => count($part) > 1));
+            if ($parts) {
+                $features[] = ['geometry' => ['type' => 'MultiLineString', 'coordinates' => $parts]] + $feature;
+            }
+        }
+
+        return $features;
+    }
+
     public static function featureCollection(Collection $routes, float $tolerance, ?int $countryId = null): array
     {
         $key = 'geojson:'.md5($routes->map(fn ($r) => $r->id.'@'.$r->updated_at?->timestamp)->join(',').":{$tolerance}:".app()->getLocale().':'.$countryId.':'.json_encode(self::privacyZone()));
@@ -170,39 +227,32 @@ class RouteGeometry
      * Add tracking (as actual route + last position) and journey events to a route collection,
      * limited to what the user may see. Not cached: visibility depends on the user and time.
      */
-    public static function withTracking(array $collection, ?User $user, ?int $countryId, float $tolerance): array
+    public static function withTracking(array $collection, ?User $user, ?int $countryId, int $level = 2): array
     {
-        $points = TrackingPoint::visibleTo($user)
+        // The walked route at this level of detail (stored ready-made; never all GPS points at once).
+        array_push($collection['features'], ...WalkedTrack::features($user, $level, null, $countryId));
+
+        // Last position: one point, and never near home for visitors.
+        $last = TrackingPoint::visibleTo($user)
             ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
-            ->orderBy('recorded_at')
-            ->get(['latitude', 'longitude', 'recorded_at'])
-            // Never show locations near home.
-            ->reject(fn ($p) => self::isPrivate($p->latitude, $p->longitude))
-            ->values();
-
-        // A new line after gaps longer than 12 hours (e.g. transport or no signal).
-        $segments = [];
-        $previous = null;
-        foreach ($points as $point) {
-            if (! $previous || $previous->recorded_at->diffInHours($point->recorded_at) > 12) {
-                $segments[] = [];
-            }
-            $segments[array_key_last($segments)][] = [$point->latitude, $point->longitude];
-            $previous = $point;
-        }
-
-        foreach ($segments as $segment) {
-            if (count($segment) > 1) {
-                $collection['features'][] = self::line('actual', self::simplify($segment, $tolerance));
-            }
-        }
-
-        if ($last = $points->last()) {
+            ->latest('recorded_at')
+            ->first(['latitude', 'longitude', 'recorded_at']);
+        // A country already left: an arrow where the border was crossed, pointing the way I went on.
+        // Direction towards a point a few hours later (the very next point is too close: GPS jitter).
+        $next = $countryId && $last
+            ? (TrackingPoint::visibleTo($user)->where('recorded_at', '>=', $last->recorded_at->copy()->addHours(3))->oldest('recorded_at')->first(['latitude', 'longitude'])
+                ?? TrackingPoint::visibleTo($user)->where('recorded_at', '>', $last->recorded_at)->latest('recorded_at')->first(['latitude', 'longitude']))
+            : null;
+        if ($last && $next) {
+            $collection['features'][] = self::point('exit', $last->latitude, $last->longitude, [
+                'bearing' => round(self::bearing([$last->latitude, $last->longitude], [$next->latitude, $next->longitude])),
+                'label' => __('site.map.exit').': '.$last->recorded_at->translatedFormat('j F Y'),
+            ]);
+        } elseif ($last && ! self::isPrivate($last->latitude, $last->longitude)) {
             $collection['features'][] = self::point('position', $last->latitude, $last->longitude, [
                 'label' => __('site.live.last_location').': '.$last->recorded_at->translatedFormat('j F Y, H:i'),
             ]);
         }
-
         JourneyEvent::visibleTo($user)
             ->when($countryId, fn ($q) => $q->where('country_id', $countryId))
             ->whereNotNull('latitude')

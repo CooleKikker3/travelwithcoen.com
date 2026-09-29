@@ -35,12 +35,9 @@ class ContentTest extends TestCase
         $this->get('/robots.txt')->assertOk()->assertSee('Sitemap: '.url('/sitemap.xml'))->assertSee('Disallow: /admin');
     }
 
-    public function test_home_follows_the_journey_phase(): void
+    public function test_home_shows_the_plan(): void
     {
-        $this->get('/')->assertSee('Road to Hanoi');
-
-        Settings::set(['journey_phase' => 'journey']);
-        $this->get('/')->assertSee('On the way to Hanoi');
+        $this->get('/')->assertSee('Road to Hanoi')->assertSee(__('site.home.direction_title'));
     }
 
     public function test_family_can_log_in_and_out(): void

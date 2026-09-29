@@ -34,9 +34,9 @@ class CountryController extends Controller
 
         return view('countries.index', [
             'countries' => $countries,
-            'overview' => RouteGeometry::withTracking(RouteGeometry::featureCollection($routes, RouteGeometry::OVERVIEW), $user, null, RouteGeometry::OVERVIEW),
+            'overview' => RouteGeometry::withTracking(RouteGeometry::featureCollection($routes, RouteGeometry::OVERVIEW), $user, null, 2),
             'maps' => $countries->mapWithKeys(fn (Country $country) => [
-                $country->id => RouteGeometry::withTracking(RouteGeometry::featureCollection($country->routesThrough(), RouteGeometry::OVERVIEW / 2, $country->id), $user, $country->id, RouteGeometry::OVERVIEW / 2),
+                $country->id => RouteGeometry::withTracking(RouteGeometry::featureCollection($country->routesThrough(), RouteGeometry::OVERVIEW / 2, $country->id), $user, $country->id, 1),
             ]),
             'distances' => $countries->mapWithKeys(fn (Country $country) => [
                 $country->id => $this->distances($country, JourneyStats::for($user, $country)),
@@ -50,6 +50,8 @@ class CountryController extends Controller
             'preparation' => Article::published()->where('type', ArticleType::Preparation)->limit(3)->get(),
             'preparationCount' => Article::published()->where('type', ArticleType::Preparation)->count(),
             'latest' => Article::published()->with('country')->limit(3)->get(),
+            // Day by day (visitors after the delay), newest first.
+            'days' => \App\Models\JourneyDay::visibleTo($user)->select('journey_days.*')->withNumber()->with('country')->latest('date')->limit(14)->get(),
 
         ]);
     }
@@ -72,7 +74,7 @@ class CountryController extends Controller
 
         return view('countries.show', [
             'country' => $country,
-            'map' => RouteGeometry::withTracking(RouteGeometry::featureCollection($country->routesThrough(), RouteGeometry::DETAILED, $country->id), $user, $country->id, RouteGeometry::DETAILED),
+            'map' => RouteGeometry::withTracking(RouteGeometry::featureCollection($country->routesThrough(), RouteGeometry::DETAILED, $country->id), $user, $country->id, 2),
             'distances' => $this->distances($country, $stats),
             'pieces' => $country->routesThrough()->where('type', RouteType::Planned),
             'stats' => $stats,

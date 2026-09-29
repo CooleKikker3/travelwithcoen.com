@@ -4,15 +4,16 @@
 <x-layouts.app :title="$country->translate('name')" :description="$country->translate('intro')" :alternates="$alternates">
     <x-page-header :country="$country" :title="$country->translate('name')" :lead="$country->translate('intro')">
         <div class="mt-6 flex flex-wrap items-center gap-3">
-            <span class="badge">{{ $country->status->getLabel() }}</span>
+            <span class="badge">{{ $country->statusLabel() }}</span>
             <span class="text-sm text-sage-200">{{ __('site.stats.planned') }}: <strong class="text-white">{{ $km($distances['planned']) }}</strong></span>
             <span class="text-sm text-sage-200">{{ __('site.stats.walked') }}: <strong class="text-white">{{ $km($distances['actual']) }}</strong></span>
         </div>
     </x-page-header>
 
     <section class="container-page mt-10">
-        <x-route-map :geojson="$map" :start-home="$country->iso_code === 'NL'" class="h-[26rem] sm:h-[32rem]" />
+        <x-route-map :geojson="$map" :track-country="$country->id" :start-home="$country->iso_code === 'NL'" class="h-[26rem] sm:h-[32rem]" />
         <p class="mt-3 text-sm text-moss-600">{{ __('site.map.planned_note') }}</p>
+        <x-delay-note class="mt-1 text-moss-600" />
     </section>
 
     {{-- The plan per route piece (route planner), with its story. --}}

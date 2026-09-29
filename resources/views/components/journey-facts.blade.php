@@ -1,23 +1,11 @@
 @php
-    use App\Enums\JourneyPhase;
-    use App\Support\JourneyStats;
-    use App\Support\Settings;
-
-    $preparing = (JourneyPhase::tryFrom(Settings::get('journey_phase')) ?? JourneyPhase::Preparation) === JourneyPhase::Preparation;
-    $stats = JourneyStats::for(auth()->user());
-    $km = fn ($value) => __('site.stats.km', ['km' => \Illuminate\Support\Number::format($value ?? 0, maxPrecision: 0, locale: app()->getLocale())]);
-    // Before departure: the plan. From departure on: the real numbers.
-    $facts = $preparing ? [
+    // The plan in a few facts (texts editable under "Website texts").
+    $facts = [
         [__('site.home.facts.departure'), ucfirst(__('site.departure'))],
         [__('site.home.facts.duration'), __('site.home.facts.duration_value')],
         [__('site.home.facts.daily'), __('site.home.facts.daily_value')],
         [__('site.home.facts.pack'), __('site.home.facts.pack_value')],
-    ] : [
-        [__('site.statistics.distance'), $km($stats['distance_km'])],
-        [__('site.statistics.days'), $stats['days']],
-        [__('site.statistics.countries'), $stats['countries']],
-        [__('site.statistics.tent_nights'), $stats['tent_nights']],
-];
+    ];
 @endphp
 {{-- Key facts of the journey as tilted luggage tags. --}}
 <section {{ $attributes }}>

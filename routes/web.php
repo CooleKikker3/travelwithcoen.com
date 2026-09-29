@@ -58,5 +58,6 @@ Route::get('robots.txt', fn () => response(
 Route::prefix('api')->name('api.')->group(function () {
     Route::get('public/tracking', [TrackingController::class, 'publicIndex'])->middleware('throttle:60,1')->name('tracking.public');
     Route::get('private/tracking', [TrackingController::class, 'privateIndex'])->middleware(['auth', 'can:see-live-tracking', 'throttle:120,1'])->name('tracking.private');
+    Route::get('track', [TrackingController::class, 'track'])->middleware('throttle:240,1')->name('track');
     Route::post('tracking', [TrackingController::class, 'ingest'])->middleware('throttle:60,1')->name('tracking.ingest');
 });

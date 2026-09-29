@@ -22,6 +22,7 @@
         <h2 class="sr-only">{{ __('site.journey.overview') }}</h2>
         <x-route-map :geojson="$overview" start-home class="h-[28rem] sm:h-[34rem]" />
         <p class="mt-3 text-sm text-moss-600">{{ __('site.map.planned_note') }}</p>
+        <x-delay-note class="mt-1 text-moss-600" />
     </section>
 
     <section class="container-page mt-16">
@@ -65,13 +66,13 @@
                                         <a href="{{ $country->url() }}" class="transition group-hover:text-moss-600 focus:outline-none after:absolute after:inset-0 after:z-[600]">{{ $country->translate('name') }}</a>
                                     </h3>
                                 </div>
-                                <div><span class="badge">{{ $country->status->getLabel() }}</span></div>
+                                <div><span class="badge">{{ $country->statusLabel() }}</span></div>
                                 @if ($intro = $country->translate('intro'))
                                     <p class="text-forest-700">{{ $intro }}</p>
                                 @endif
                                 <dl class="mt-auto flex flex-wrap gap-x-6 gap-y-1 text-sm">
-                                    <div><dt class="inline text-moss-600">{{ __('site.stats.planned') }}:</dt> <dd class="inline font-semibold">{{ $km($planned) }}</dd></div>
-                                    <div><dt class="inline text-moss-600">{{ __('site.stats.walked') }}:</dt> <dd class="inline font-semibold">{{ $km($actual) }}</dd></div>
+                                    @if ($planned > 0)<div><dt class="inline text-moss-600">{{ __('site.stats.planned') }}:</dt> <dd class="inline font-semibold">{{ $km($planned) }}</dd></div>@endif
+                                    @if ($actual > 0)<div><dt class="inline text-moss-600">{{ __('site.stats.walked') }}:</dt> <dd class="inline font-semibold">{{ $km($actual) }}</dd></div>@endif
                                     <div class="text-moss-600">{{ trans_choice('site.journey.stories', $country->articles_count) }}</div>
                                     <div class="ml-auto font-semibold text-moss-600 transition duration-300 group-hover:translate-x-1" aria-hidden="true">→</div>
                                 </dl>
@@ -86,6 +87,8 @@
     </section>
 
     {{-- All stories (preparation and on the road), filterable by type and tag. --}}
+    <x-day-log :days="$days" class="mt-20" />
+
     {{-- The latest stories; all stories have their own page. --}}
     @if ($latest->isNotEmpty())
         <section class="container-page mt-20">

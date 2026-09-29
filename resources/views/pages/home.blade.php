@@ -1,13 +1,5 @@
 @php
-    use App\Enums\JourneyPhase;
-
-    $preparing = $phase === JourneyPhase::Preparation;
-
-    [$title, $lead] = match ($phase) {
-        JourneyPhase::Journey => [__('site.home.title_journey'), __('site.home.lead_journey')],
-        JourneyPhase::Archive => [__('site.home.title_archive'), __('site.home.lead_archive')],
-        default => [__('site.home.title'), __('site.home.lead', ['departure' => __('site.departure')])],
-    };
+    [$title, $lead] = [__('site.home.title'), __('site.home.lead', ['departure' => __('site.departure')])];
 @endphp
 <x-layouts.app>
     @if ($heroImage)
@@ -34,19 +26,10 @@
                     {{ __('site.home.hand_note') }}
                 </p>
                 <p class="rise mt-6 max-w-xl text-lg text-sage-100" style="--d: .25s">{{ $lead }}</p>
-                @if (! $preparing && $lastLocation)
-                    <p class="mt-4 text-sm text-fern-300">
-                        {{ __('site.home.latest_location') }}:
-                        <strong class="text-white">{{ $lastLocation->country?->translate('name') ?? '—' }}</strong>,
-                        {{ $lastLocation->recorded_at->translatedFormat('j F Y') }}
-                    </p>
-                @endif
+
                 <div class="rise mt-8 flex flex-wrap gap-3" style="--d: .4s">
-                    @if ($preparing)
-                        <a href="{{ stories_url('preparation') }}" class="btn-primary">{{ __('site.home.cta_preparation') }} →</a>
-                    @else
-                        <a href="{{ lroute('journey') }}" class="btn-primary">{{ __('site.journey.title') }} →</a>
-                    @endif
+                    <a href="{{ stories_url('preparation') }}" class="btn-primary">{{ __('site.home.cta_preparation') }} →</a>
+
                     <a href="{{ lroute('about') }}" class="btn-ghost">{{ __('site.home.cta_about') }}</a>
                 </div>
 
@@ -54,8 +37,9 @@
         </div>
     </section>
 
-    @if ($preparing)
-        {{-- The rough plan: a sand-coloured "map page" with passport stamps; deliberately static text, not route data. --}}
+    <x-journey-status class="-mt-20 sm:-mt-24" />
+
+    {{-- The rough plan: a sand-coloured "map page" with passport stamps; deliberately static text, not route data. --}}
         <section class="container-page relative mt-16">
             <div class="topo-sand relative overflow-hidden rounded-[2rem] bg-sand-100 px-6 py-10 shadow-xl shadow-forest-900/10 ring-1 ring-olive-300/40 sm:px-12 sm:py-14" data-reveal>
                 {{-- Compass in the corner. --}}
@@ -93,7 +77,6 @@
                 </ol>
             </div>
         </section>
-    @endif
 
     {{-- The route: dark band with waves at the top and bottom, the plan and the latest (delayed) location. --}}
     <section id="route" class="topo wave-both relative mt-20 bg-forest-900 pt-24 pb-28 text-sage-100">
@@ -110,7 +93,8 @@
                 </div>
                 <a href="{{ lroute('journey') }}" class="btn-ghost">{{ __('site.journey.title') }} →</a>
             </div>
-            <x-route-map :geojson="$overview" :delay-days="$delayDays" class="mt-8 h-[26rem] rounded-3xl shadow-2xl shadow-black/40 ring-4 ring-forest-700 sm:h-[34rem]" data-reveal />
+            <x-route-map :geojson="$overview" :track-level="1" :delay-days="$delayDays" class="mt-8 h-[26rem] rounded-3xl shadow-2xl shadow-black/40 ring-4 ring-forest-700 sm:h-[34rem]" data-reveal />
+            <x-delay-note class="mt-4 text-sage-200" />
         </div>
     </section>
 

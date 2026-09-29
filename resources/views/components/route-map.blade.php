@@ -1,7 +1,7 @@
-@props(['geojson', 'interactive' => true, 'legend' => true, 'border' => null, 'startHome' => false, 'delayDays' => 0])
+@props(['geojson', 'interactive' => true, 'legend' => true, 'border' => null, 'startHome' => false, 'delayDays' => 0, 'trackLevel' => 2, 'trackCountry' => null])
 {{-- Map of routes, the rough plan, locations and events, with a legend of what is on it. With a border (MultiPolygon coordinates) only that country is shown. Initialised lazily by resources/js/map.js. --}}
 <figure {{ $attributes->class('relative overflow-hidden rounded-2xl bg-sage-100 ring-1 ring-sage-200') }}
-    data-route-map data-interactive="{{ $interactive ? 'true' : 'false' }}" data-start-home="{{ $startHome ? 'true' : 'false' }}">
+    data-route-map data-interactive="{{ $interactive ? 'true' : 'false' }}" data-start-home="{{ $startHome ? 'true' : 'false' }}" data-track-url="{{ route('api.track') }}" data-track-level="{{ $trackLevel }}" data-zoom-hint="{{ __('site.map.zoom_hint') }}" @if ($trackCountry) data-track-country="{{ $trackCountry }}" @endif>
     <script type="application/json">@json($geojson)</script>
     @if ($border)
         <script type="application/json" data-border>@json($border)</script>
@@ -20,6 +20,7 @@
                 'planned' => $types->contains('planned') ? __('site.map.planned') : null,
                 'open' => $types->contains('open') ? __('site.map.open') : null,
                 'actual' => $types->contains('actual') ? __('site.map.actual') : null,
+                'exit' => $types->contains('exit') ? __('site.map.exit') : null,
                 'position' => $types->contains('position') ? __('site.map.position').($delayDays ? ' ('.__('site.map.delay', ['days' => $delayDays]).')' : '') : null,
                 'endpoints' => $types->contains('start') ? __('site.map.endpoints') : null,
             ]);

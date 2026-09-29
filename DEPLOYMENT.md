@@ -120,7 +120,7 @@ Zonder e-mail werkt "wachtwoord vergeten" niet — en onderweg kan niemand je da
 
 - [ ] Inloggen op `/admin` met `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 - [ ] **Instellingen → Website is open: uit** zolang je nog test. Beheerders en `PREVIEW_IPS` zien de hele site.
-- [ ] Hoofdfoto, fase van het project, vertraging van je locatie controleren.
+- [ ] Hoofdfoto en vertraging van je locatie controleren.
 - [ ] Een foto uploaden → verschijnt de preview in het beheer (CORS) en op de site (R2)?
 - [ ] `https://travelwithcoen.com/sitemap.xml` en `/robots.txt` openen.
 - [ ] Klaar? **Website is open: aan**. Daarna de sitemap indienen in Google Search Console.
@@ -155,4 +155,3 @@ De site haalt elke 10 minuten nieuwe posities op uit je **MapShare**-feed (via d
 
 - [ ] **Voorwaarden kaartbeelden**: de scherpe satellietbeelden bij inzoomen komen van Esri (World Imagery). Controleer of hun voorwaarden dit gebruik toestaan. NASA (uitgezoomd) en OpenFreeMap (plaatsnamen) zijn vrij te gebruiken.
 - [ ] Garmin koppelen (stap 12). Andere locatie-apps kunnen posities sturen naar `POST /api/tracking` met `TRACKING_INGEST_TOKEN`.
-- [ ] Vóórdat een locatie-apparaat elke minuut een punt stuurt: de gelopen route cachen (zie "Open notes" in `CLAUDE.md`).

@@ -48,6 +48,21 @@ class Country extends Model
     }
 
     /** Every route piece with a part in this country (also pieces made for a neighbour that cross the border). */
+    /** The status for visitors; a country not walked yet says how far its route is planned. */
+    public function statusLabel(): string
+    {
+        if ($this->status !== CountryStatus::Tentative) {
+            return $this->status->getLabel();
+        }
+        $planned = RoutePoint::where('country_id', $this->id)->whereHas('route', fn ($query) => $query->where('type', \App\Enums\RouteType::Planned))->exists();
+
+        return match (true) {
+            ! $planned => __('countries.planning.none'),
+            \App\Support\RouteGeometry::lastPlannedPoint()?->country_id === $this->id => __('countries.planning.partly'),
+            default => __('countries.planning.full'),
+        };
+    }
+
     public function routesThrough(): \Illuminate\Support\Collection
     {
         return CountryRoute::whereHas('points', fn ($q) => $q->where('country_id', $this->id))

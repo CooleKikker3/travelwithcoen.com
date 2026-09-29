@@ -87,6 +87,8 @@ Artisan::command('media:prune {--dry-run : Only list what would be deleted} {--d
         ...GalleryItem::whereNotNull('path')->pluck('path'),
         ...Article::whereNotNull('cover_image')->pluck('cover_image'),
         Settings::get('home_image'),
+        Settings::get('about_image'),
+        Settings::get('gear_image'),
         ...array_values(Settings::get('home_image_variants') ?? []),
     ])->filter()->flip();
     // Images placed in article text are referenced inside the (JSON) body.
@@ -122,6 +124,7 @@ Artisan::command('geo:countries', function () {
     $countries = $locator->locateAll($points->map(fn ($p) => [(float) $p->latitude, (float) $p->longitude])->all(), $points->first()?->country_id);
     $points->each(fn ($p, $i) => $p->country_id === $countries[$i] ?: \App\Models\TrackingPoint::whereKey($p->id)->update(['country_id' => $countries[$i]]));
     app(\App\Services\TrackingRecorder::class)->updateCurrentCountry();
+    \App\Support\WalkedTrack::rebuildAll(); // their countries may have changed
 
     $this->info(\App\Models\CountryRoute::count().' route pieces and '.$points->count().' GPS points assigned to countries.');
 })->purpose('Assign route and GPS points to the country they lie in');
@@ -167,3 +170,22 @@ Artisan::command('garmin:sync', function () {
     $this->info(app(\App\Services\GarminMapShare::class)->sync().' new position(s) from Garmin.');
 })->purpose('Fetch new Garmin inReach positions from MapShare');
 Schedule::command('garmin:sync')->everyTenMinutes()->withoutOverlapping();
+
+// Test data for trying out and performance checks (see App\Support\TestData). Never on the live site.
+Artisan::command('testdata:add {days=60 : Number of journey days} {--interval=10 : Minutes between GPS points (e.g. 0.5)}', function () {
+    if (app()->isProduction() && ! $this->confirm('This is the live site. Add test data anyway?')) {
+        return;
+    }
+    ['days' => $days, 'points' => $points] = app(\App\Support\TestData::class)->add((int) $this->argument('days'), max(0.1, (float) $this->option('interval')));
+    $this->info("{$days} test days with {$points} GPS points added. Remove with: php artisan testdata:remove");
+})->purpose('Add test journey days with GPS points (Lisse → Istanbul)');
+
+Artisan::command('testdata:remove', function () {
+    ['days' => $days, 'points' => $points] = app(\App\Support\TestData::class)->remove();
+    $this->info("{$days} test days and {$points} GPS points removed.");
+})->purpose('Remove all test journey days and GPS points');
+
+// The walked route by level of detail (walked_lines) is kept up to date automatically; this rebuilds it all.
+Artisan::command('track:rebuild', function () {
+    $this->info(\App\Support\WalkedTrack::rebuildAll().' day(s) of walked route rebuilt.');
+})->purpose('Rebuild the stored walked route (all levels of detail)');

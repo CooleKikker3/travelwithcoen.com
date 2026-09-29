@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CountryRoute;
 use App\Models\TrackingPoint;
 use App\Services\TrackingRecorder;
 use App\Support\RouteGeometry;
@@ -19,14 +20,41 @@ class TrackingController extends Controller
     {
         $user = $request->user();
         $live = TrackingPrivacy::canSeeLive($user);
-        $last = TrackingPoint::visibleTo($user)->latest('recorded_at')->first();
+        $last = TrackingPoint::visibleTo($user)->with('country')->latest('recorded_at')->first();
 
         return view('pages.live', [
             'live' => $live,
             'last' => $last,
             'isLive' => $live && $last && $last->recorded_at->gt(now()->subMinutes(TrackingPrivacy::LIVE_MINUTES)),
             'delayDays' => round(TrackingPrivacy::delayHours() / 24),
-            'map' => RouteGeometry::withTracking(['type' => 'FeatureCollection', 'features' => []], $user, null, RouteGeometry::DETAILED),
+            'map' => RouteGeometry::withOpenPlan(RouteGeometry::withTracking(
+                RouteGeometry::featureCollection(CountryRoute::whereHas('country', fn ($query) => $query->where('is_published', true))->get(), RouteGeometry::OVERVIEW),
+                $user, null, 2,
+            )),
+        ]);
+    }
+
+    /**
+     * GET /api/track?level=1-4&bbox=west,south,east,north[&country=id] — the walked route (and from level 3 the route pieces) at a level of detail,
+     * for the part of the map in view (maps fetch this when zooming in). Delay and privacy zone apply per user.
+     */
+    public function track(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'level' => ['required', 'integer', 'between:1,4'],
+            'bbox' => ['required', 'regex:/^-?\d+(\.\d+)?(,-?\d+(\.\d+)?){3}$/'],
+            'country' => ['nullable', 'integer'],
+        ]);
+        $bbox = array_map('floatval', explode(',', $data['bbox']));
+        $level = (int) $data['level'];
+
+        return response()->json([
+            'type' => 'FeatureCollection',
+            'features' => [
+                // Zoomed in, the route pieces follow every path too (pages embed them simplified).
+                ...($level >= 3 ? RouteGeometry::routesIn($bbox, $data['country'] ?? null, $level >= 4 ? RouteGeometry::FINE : RouteGeometry::DETAILED) : []),
+                ...\App\Support\WalkedTrack::features($request->user(), $level, $bbox, $data['country'] ?? null),
+            ],
         ]);
     }
 
@@ -71,10 +99,11 @@ class TrackingController extends Controller
 
     private function payload(?Carbon $cutoff, bool $private): array
     {
-        $points = TrackingPoint::recordedBefore($cutoff)->orderBy('recorded_at')->get()
-            // The public never gets locations near home (privacy zone around the start).
-            ->when(! $private, fn ($points) => $points->reject(fn ($p) => \App\Support\RouteGeometry::isPrivate($p->latitude, $p->longitude, evenWhenLoggedIn: true))->values());
-        $last = $points->last();
+        // The last point, never near home for the public (privacy zone around the start).
+        $last = TrackingPoint::recordedBefore($cutoff)->latest('recorded_at')->first();
+        if ($last && ! $private && \App\Support\RouteGeometry::isPrivate($last->latitude, $last->longitude, evenWhenLoggedIn: true)) {
+            $last = null;
+        }
 
         return [
             'delay_hours' => $private ? 0 : TrackingPrivacy::delayHours(),
@@ -86,7 +115,8 @@ class TrackingController extends Controller
                 'received_at' => $private ? $last->received_at->toIso8601String() : null,
                 'public_from' => $last->publicFrom()->toIso8601String(),
             ]) : null,
-            'points' => $points->map(fn (TrackingPoint $p) => [$p->latitude, $p->longitude, $p->recorded_at->toIso8601String()])->all(),
+            // The route as lines ([lat, lng]), ~200 m detail: light, however many points there are.
+            'lines' => \App\Support\WalkedTrack::lines($private ? request()->user() : null, 2),
         ];
     }
 }

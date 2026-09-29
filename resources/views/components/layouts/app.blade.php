@@ -1,4 +1,4 @@
-@props(['title' => null, 'description' => null, 'alternates' => null, 'canonical' => null])
+@props(['title' => null, 'description' => null, 'alternates' => null, 'canonical' => null, 'solidNav' => false, 'image' => null])
 @php
     $locale = app()->getLocale();
     $locales = config('travel.locales');
@@ -24,8 +24,12 @@
         'equipment' => __('site.nav.equipment'),
         'about' => __('site.nav.about'),
     ];
+    // Family (logged in) gets the live map in the menu.
+    if (auth()->user()?->canSeeLiveTracking()) {
+        $nav = array_slice($nav, 0, 2, true) + ['live' => __('site.nav.live')] + array_slice($nav, 2, null, true);
+    }
     $current = preg_replace('/^[a-z]{2}\./', '', request()->route()?->getName() ?? '');
-    $isActive = fn ($name) => $current === $name || str_starts_with($current, strtok($name, '.').'.') || ($name === 'journey' && preg_match('/^(countries|live)/', $current)) || ($name === 'stories' && preg_match('/^(diary|preparation)\./', $current));
+    $isActive = fn ($name) => $current === $name || str_starts_with($current, strtok($name, '.').'.') || ($name === 'journey' && str_starts_with($current, 'countries')) || ($name === 'stories' && preg_match('/^(diary|preparation)\./', $current));
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $locale }}">
@@ -48,6 +52,15 @@
     <meta property="og:description" content="{{ $description }}">
     <meta property="og:url" content="{{ $canonical }}">
     <meta property="og:locale" content="{{ $locale === 'nl' ? 'nl_NL' : 'en_GB' }}">
+    @php
+        // Preview image when the page is shared: the page's own image, else the home photo (1600 px WebP when available).
+        $shareImage = $image ?? (\App\Support\Settings::get('home_image_variants')[1600] ?? \App\Support\Settings::get('home_image'));
+        $shareImage = $shareImage && ! str_starts_with($shareImage, 'http') ? \App\Support\MediaStorage::url($shareImage) : $shareImage;
+    @endphp
+    @if ($shareImage)
+        <meta property="og:image" content="{{ $shareImage }}">
+        <meta name="twitter:card" content="summary_large_image">
+    @endif
     <meta name="theme-color" content="#142a1c">
     <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/brand/icon-512.png">
@@ -60,7 +73,7 @@
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">{{ __('site.skip') }}</a>
 
     {{-- Floating navigation: transparent over the dark top of every page, a blurred green pill once scrolled (js in app.js). --}}
-    <header class="site-nav fixed inset-x-0 top-0 z-[1100] px-3 pt-3 text-sage-100 sm:px-5" data-nav>
+    <header @class(["site-nav fixed inset-x-0 top-0 z-[1100] px-3 pt-3 text-sage-100 sm:px-5", "is-solid" => $solidNav]) data-nav>
         <div class="site-nav__bar mx-auto flex max-w-6xl items-center justify-between gap-4 rounded-full py-2 pr-2 pl-4 sm:pl-5">
             <a href="{{ lroute('home') }}" class="group flex items-center gap-3">
                 <svg class="size-10 shrink-0 text-fern-300 transition duration-500 group-hover:-rotate-12 group-hover:scale-110" viewBox="0 0 36 36" fill="none" aria-hidden="true">
@@ -110,6 +123,11 @@
         {{ $slot }}
     </main>
 
+    {{-- Back to top: appears after scrolling down (app.js). --}}
+    <a href="#main" class="to-top" data-to-top aria-label="{{ __('site.back_to_top') }}" title="{{ __('site.back_to_top') }}">
+        <svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 17a.75.75 0 0 1-.75-.75V5.56L5.53 9.28a.75.75 0 0 1-1.06-1.06l5-5a.75.75 0 0 1 1.06 0l5 5a.75.75 0 1 1-1.06 1.06l-3.72-3.72v10.69A.75.75 0 0 1 10 17Z" clip-rule="evenodd"/></svg>
+    </a>
+
     {{-- Footer: wavy top edge, logo with a handwritten goodbye, the menu, family login, copyright. --}}
     <footer class="topo wave-top mt-24 bg-forest-950 pt-32 text-sage-200">
         <div class="container-page grid gap-10 pb-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr] lg:items-center">
@@ -147,7 +165,7 @@
         <div class="border-t border-dashed border-forest-700">
             <div class="container-page flex flex-col gap-2 py-5 text-xs sm:flex-row sm:items-center sm:justify-between">
                 <p>&copy; {{ now()->year > 2026 ? '2026–'.now()->year : '2026' }} {{ __('site.name') }} · <a href="{{ route('sitemap') }}" class="hover:text-white">{{ __('site.footer.sitemap') }}</a></p>
-                <p>{{ __('site.footer.made_by') }} <a href="https://coenvink.com" class="font-bold text-fern-300 hover:text-white">coenvink.com</a></p>
+                <p>{{ __('site.footer.made_by') }} <a href="https://coenvink.com" target="_blank" rel="noopener" class="font-bold text-fern-300 hover:text-white">coenvink.com</a></p>
             </div>
         </div>
     </footer>

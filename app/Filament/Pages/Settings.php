@@ -2,7 +2,6 @@
 
 namespace App\Filament\Pages;
 
-use App\Enums\JourneyPhase;
 use App\Services\ImageProcessor;
 use App\Support\MediaStorage;
 use App\Support\Settings as SiteSettings;
@@ -50,13 +49,6 @@ class Settings extends Page
                     Toggle::make('site_open')
                         ->label('Website is open'),
                 ]),
-                Section::make('Reis')->columns(2)->schema([
-                    Select::make('journey_phase')
-                        ->label('Fase van het project')
-                        ->options(JourneyPhase::class)
-                        ->required()
-                        ->helperText('Bepaalt waar de homepagina de nadruk op legt.'),
-                ]),
                 Section::make('Homepagina')->schema([
                     FileUpload::make('home_image')
                         ->label('Hoofdfoto')
@@ -70,6 +62,10 @@ class Settings extends Page
                         ->directory('site')
                         ->maxSize(8192),
                 ]),
+                Section::make('Foto\'s op pagina\'s')->columns(2)->schema([
+                    self::photo('about_image', 'Foto op de pagina "Over"', 'Een foto van jezelf.'),
+                    self::photo('gear_image', 'Foto op de pagina "Uitrusting"', 'Jij met je spullen.'),
+                ]),
                 Section::make('Privacy van je locatie')->columns(2)->schema([
                     Select::make('public_tracking_delay_hours')
                         ->label('Bezoekers zien je locatie van')
@@ -80,16 +76,37 @@ class Settings extends Page
             ]);
     }
 
+    private static function photo(string $name, string $label, string $hint): FileUpload
+    {
+        return FileUpload::make($name)
+            ->label($label)
+            ->helperText($hint)
+            ->image()
+            ->disk(MediaStorage::diskName())
+            ->imageResizeTargetWidth('1600')
+            ->imageResizeTargetHeight('1600')
+            ->imageResizeMode('contain')
+            ->imageResizeUpscale(false)
+            ->directory('site')
+            ->maxSize(8192);
+    }
+
     public function save(): void
     {
         $state = $this->form->getState();
-        $state['journey_phase'] = $state['journey_phase'] instanceof JourneyPhase ? $state['journey_phase']->value : $state['journey_phase'];
 
         if (! $state['home_image']) {
             $state['home_image_variants'] = null;
         } elseif ($state['home_image'] !== SiteSettings::get('home_image')) {
             app(ImageProcessor::class)->process($state['home_image']); // re-encode, strip EXIF/GPS
             $state['home_image_variants'] = app(ImageProcessor::class)->variants($state['home_image']);
+        }
+
+        // New page photos: re-encoded without EXIF/GPS, like every upload.
+        foreach (['about_image', 'gear_image'] as $photo) {
+            if ($state[$photo] && $state[$photo] !== SiteSettings::get($photo)) {
+                app(ImageProcessor::class)->process($state[$photo]);
+            }
         }
 
         SiteSettings::set($state);

@@ -4,7 +4,7 @@ return [
     'name' => 'Travel with Coen',
     'tagline' => 'Te voet van Nederland naar Hanoi',
     'departure' => 'eind juni 2027',
-    'description' => 'Coen bereidt een wandeltocht voor van Nederland naar Hanoi, Vietnam: zoveel mogelijk te voet, over land, met een lichte rugzak en een tent.',
+    'description' => 'Coen loopt van Nederland naar Hanoi, Vietnam: zoveel mogelijk te voet, over land, met een lichte rugzak en een tent.',
     'skip' => 'Naar de inhoud',
     'menu' => 'Menu',
     'language' => 'Taal',
@@ -19,19 +19,16 @@ return [
         'media' => 'Galerij',
     ],
 
-    'status' => [
-        'not_final' => 'Niet definitief',
-    ],
 
     'home' => [
         'hand_note' => 'ja, lopend!',
         'eyebrow' => 'Nederland → Hanoi, te voet',
         'title' => 'Te voet van Nederland naar Hanoi',
-        'lead' => ':Departure wil ik vanuit Nederland oostwaarts gaan lopen, zoveel mogelijk te voet en over land, met een tent op mijn rug. De bestemming is Hanoi, Vietnam. Alles daartussen wordt nog uitgezocht.',
+        'lead' => 'Vanaf :departure loop ik vanuit Nederland oostwaarts naar Hanoi, Vietnam: zoveel mogelijk te voet en over land, met een tent op mijn rug.',
         'cta_preparation' => 'Road to Hanoi',
         'cta_about' => 'Waarom ik dit doe',
         'facts' => [
-            'departure' => 'Gepland vertrek',
+            'departure' => 'Vertrek',
             'duration' => 'Verwachte duur',
             'duration_value' => '16–20 maanden',
             'daily' => 'Basisafstand',
@@ -39,11 +36,6 @@ return [
             'pack' => 'Doel basisgewicht',
             'pack_value' => '8–10 kg',
         ],
-        'title_journey' => 'Onderweg naar Hanoi',
-        'lead_journey' => 'Ik loop van Nederland naar Hanoi. Volg de route, de verhalen en de cijfers.',
-        'title_archive' => 'Te voet van Nederland naar Hanoi',
-        'lead_archive' => 'De complete tocht: de route, de verhalen en de cijfers.',
-        'latest_location' => 'Laatste publieke locatie',
         'photos_title' => 'Nieuw in de galerij',
         'photos_hand' => 'kiekjes van onderweg',
         'video_title' => 'Nieuwste video',
@@ -61,7 +53,7 @@ return [
 
     'journey' => [
         'title' => 'De reis',
-        'lead' => 'Elk land onderweg krijgt een eigen pagina. De lijst hieronder volgt het huidige plan en verandert naarmate de route duidelijker wordt.',
+        'lead' => 'Elk land onderweg krijgt een eigen pagina, met de route, de kilometers en de verhalen.',
         'overview' => 'De hele reis',
         'timeline' => 'Land voor land',
         'stories_title' => 'Verhalen',
@@ -89,10 +81,6 @@ return [
         'tagged' => 'Met tag “:tag”',
     ],
 
-    'diary' => [
-        'title' => 'Dagboek',
-        'lead' => 'Verhalen van onderweg, in chronologische volgorde.',
-    ],
 
     'preparation' => [
         'title' => 'Road to Hanoi',
@@ -100,13 +88,18 @@ return [
     ],
 
     'about' => [
+        'hand' => "hoi, ik ben Coen!",
+        'youtube' => "Bekijk mijn video's op YouTube",
         'title' => 'Over het project',
         'lead' => 'Waarom van Nederland naar Hanoi lopen?',
-        'body' => "Ik ben Coen, uit Lisse. :Departure wil ik van huis vertrekken en naar Hanoi, Vietnam lopen: zoveel mogelijk te voet en over land, en alleen vervoer gebruiken als een grens, visum, veiligheid of geografie dat echt nodig maakt.\n\nHet gaat me niet om toeristische hoogtepunten. Ik zoek platteland, natuur, rustige wegen, onverharde paden en kleine dorpen. Ik ga veel kamperen, zelf koken en de reis zo goedkoop houden als kan zonder hem onveilig te maken.\n\nIk heb de Nijmeegse Vierdaagse gelopen en een Kennedymars van 80 km uitgelopen — en daarna van mijn knieën geleerd dat één keer ver lopen iets anders is dan dag na dag ver lopen. Daar is de voorbereiding voor.\n\nDeze website is de thuisbasis van het project: eerst de voorbereiding, dan de reis zelf, en daarna het complete archief van de tocht.",
+        'body' => "Ik ben Coen, uit Lisse. Vanaf :departure loop ik van mijn voordeur naar Hanoi, Vietnam: zoveel mogelijk te voet en over land, en ik gebruik alleen vervoer als een grens, visum, veiligheid of geografie dat echt nodig maakt.\n\nHet gaat me niet om toeristische hoogtepunten. Ik zoek platteland, natuur, rustige wegen, onverharde paden en kleine dorpen. Ik kampeer veel, kook zelf en houd de reis zo goedkoop als kan zonder hem onveilig te maken.\n\nIk heb de Nijmeegse Vierdaagse gelopen en een Kennedymars van 80 km uitgelopen — en daarna van mijn knieën geleerd dat één keer ver lopen iets anders is dan dag na dag ver lopen. Daar is de voorbereiding voor.\n\nDeze website is de thuisbasis van het project: eerst de voorbereiding, dan de reis zelf, en daarna het complete archief van de tocht.",
         'uncertain' => 'Route, landen, afstanden en data zijn plannen, geen beloftes. Waar iets onzeker is, staat dat erbij.',
     ],
 
     'map' => [
+        'exit' => 'Grens over',
+        'zoom_hint' => 'Gebruik Ctrl + scrollen om te zoomen',
+        'delay_note' => 'Mijn locatie loopt :days dagen achter, voor mijn veiligheid.',
         'pieces_title' => 'Het plan, stuk voor stuk',
         'legend' => 'Legenda',
         'open' => 'Nog in te plannen',
@@ -126,12 +119,6 @@ return [
         'km' => ':km km',
         'countries' => 'Landen',
     ],
-    'phase' => [
-        'preparation' => 'Voorbereiding',
-        'journey' => 'Onderweg',
-        'archive' => 'Afgerond',
-    ],
-
     'live' => [
         'title' => 'Live locatie',
         'lead_public' => 'Voor de veiligheid loopt de publieke locatie :days dagen achter. Familie kan live meekijken.',
@@ -160,28 +147,16 @@ return [
     ],
 
     'statistics' => [
-        'title' => 'Statistieken',
-        'lead' => 'Berekend uit de vastgelegde dagen en tracking. Publieke statistieken lopen :days dagen achter.',
-        'empty' => 'De statistieken beginnen zodra de tocht begint.',
-        'distance' => 'Afstand gelopen',
         'days' => 'Dagen onderweg',
         'walking_days' => 'Wandeldagen',
         'rest_days' => 'Rustdagen',
-        'transport_days' => 'Transportdagen',
         'average' => 'Gemiddeld per wandeldag',
-        'longest' => 'Langste dag',
         'hours' => 'Wandeluren',
         'countries' => 'Landen gelopen',
-        'tent_nights' => 'Nachten in de tent',
-        'highest' => 'Hoogste punt',
-        'lowest' => 'Laagste punt',
-        'planned' => 'Geplande afstand',
-        'difference' => 'Gelopen t.o.v. gepland',
-        'per_country' => 'Per land',
-        'nights' => 'Waar ik sliep',
     ],
 
     'equipment' => [
+        'hand' => 'alles wat ik meesjouw',
         'title' => 'Uitrusting',
         'lead' => 'Wat ik meeneem, waarom ik het koos en hoe het bevalt.',
         'base_weight' => 'Basisgewicht (in de rugzak)',
@@ -266,6 +241,30 @@ return [
         'lead' => 'Alles wat ik over de tocht schrijf: de voorbereiding en de reis zelf.',
     ],
 
+    'errors' => [
+        'not_found_title' => 'Verkeerde afslag',
+        'not_found_hand' => 'oeps, dit pad loopt dood!',
+        'not_found_lead' => 'Deze pagina bestaat niet (meer). Misschien is de route veranderd, of zit er een tikfout in de link. Terug naar bekend terrein?',
+        'back_home' => 'Terug naar huis',
+    ],
+
+    'status_block' => [
+        'country' => 'Huidig land',
+        'live' => 'Live',
+        'to_hanoi' => 'Hemelsbreed naar Hanoi',
+        'walking' => 'onderweg',
+        'resting' => 'rustdag',
+        'walked_km' => 'Gelopen',
+        'days' => 'Dagen onderweg',
+        'as_of' => 'Stand van :date',
+    ],
+
+    'day_log' => [
+        'title' => 'Dag voor dag',
+        'hand' => 'mijn logboek',
+    ],
+
+    'back_to_top' => 'Naar boven',
     'coming_soon' => [
         'title' => 'Er komt iets aan...',
         'hand' => 'de veters worden gestrikt!',

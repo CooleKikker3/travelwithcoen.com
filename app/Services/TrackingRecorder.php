@@ -48,6 +48,9 @@ class TrackingRecorder
         ]);
 
         $stored = $rows->chunk(500)->sum(fn ($chunk) => TrackingPoint::insertOrIgnore($chunk->values()->all()));
+        if ($stored) {
+            \App\Support\WalkedTrack::rebuild($rows->map(fn ($row) => $row['recorded_at']->toDateString()));
+        }
         $this->updateCurrentCountry();
 
         return $stored;

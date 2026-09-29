@@ -4,7 +4,7 @@ return [
     'name' => 'Travel with Coen',
     'tagline' => 'Walking from the Netherlands to Hanoi',
     'departure' => 'late June 2027',
-    'description' => 'Coen is preparing to walk from the Netherlands to Hanoi, Vietnam: mostly on foot, over land, with a light backpack and a tent.',
+    'description' => 'Coen walks from the Netherlands to Hanoi, Vietnam: mostly on foot, over land, with a light backpack and a tent.',
     'skip' => 'Skip to content',
     'menu' => 'Menu',
     'language' => 'Language',
@@ -19,19 +19,16 @@ return [
         'media' => 'Gallery',
     ],
 
-    'status' => [
-        'not_final' => 'Not final',
-    ],
 
     'home' => [
         'hand_note' => 'yes, on foot!',
         'eyebrow' => 'The Netherlands → Hanoi, on foot',
         'title' => 'Walking from the Netherlands to Hanoi',
-        'lead' => 'In :departure I plan to start walking east from the Netherlands, as much as possible on foot and over land, with a tent on my back. The destination is Hanoi, Vietnam. Everything in between is still being worked out.',
+        'lead' => 'From :departure I walk east from the Netherlands to Hanoi, Vietnam: as much as possible on foot and over land, with a tent on my back.',
         'cta_preparation' => 'Road to Hanoi',
         'cta_about' => 'Why I’m doing this',
         'facts' => [
-            'departure' => 'Planned departure',
+            'departure' => 'Departure',
             'duration' => 'Expected duration',
             'duration_value' => '16–20 months',
             'daily' => 'Base distance',
@@ -39,11 +36,6 @@ return [
             'pack' => 'Target base weight',
             'pack_value' => '8–10 kg',
         ],
-        'title_journey' => 'On the way to Hanoi',
-        'lead_journey' => 'I am walking from the Netherlands to Hanoi. Follow the route, the stories and the numbers.',
-        'title_archive' => 'From the Netherlands to Hanoi, on foot',
-        'lead_archive' => 'The complete walk: the route, the stories and the numbers.',
-        'latest_location' => 'Latest public location',
         'photos_title' => 'Latest from the gallery',
         'photos_hand' => 'snapshots from the road',
         'video_title' => 'Latest video',
@@ -61,7 +53,7 @@ return [
 
     'journey' => [
         'title' => 'The journey',
-        'lead' => 'Every country on the way gets its own page. The list below follows the current plan and will change as the route becomes clearer.',
+        'lead' => 'Every country on the way gets its own page, with the route, the kilometres and the stories.',
         'overview' => 'The whole journey',
         'timeline' => 'Country by country',
         'stories_title' => 'Stories',
@@ -89,10 +81,6 @@ return [
         'tagged' => 'Tagged “:tag”',
     ],
 
-    'diary' => [
-        'title' => 'Diary',
-        'lead' => 'Stories from the road, in chronological order.',
-    ],
 
     'preparation' => [
         'title' => 'Road to Hanoi',
@@ -100,13 +88,18 @@ return [
     ],
 
     'about' => [
+        'hand' => "hi, I'm Coen!",
+        'youtube' => "Watch my videos on YouTube",
         'title' => 'About the project',
         'lead' => 'Why walk from the Netherlands to Hanoi?',
-        'body' => "I’m Coen, from Lisse in the Netherlands. In :departure I plan to leave home and walk to Hanoi, Vietnam: as much as possible on foot and over land, using transport only when a border, visa, safety or geography really requires it.\n\nIt isn’t about ticking off tourist sights. I want countryside, nature, quiet roads, dirt tracks and small villages. I’ll camp a lot, cook for myself and keep the trip as cheap as it can be without making it unsafe.\n\nI’ve walked the Nijmegen Four Days Marches and finished an 80 km Kennedymars — and learned from my knees afterwards that walking far is one thing, and walking far day after day is another. That’s what the preparation is for.\n\nThis website is the home of the project: preparation first, then the journey itself, and afterwards the complete archive of the walk.",
+        'body' => "I’m Coen, from Lisse in the Netherlands. From :departure I walk from my front door to Hanoi, Vietnam: as much as possible on foot and over land, using transport only when a border, visa, safety or geography really requires it.\n\nIt isn’t about ticking off tourist sights. I want countryside, nature, quiet roads, dirt tracks and small villages. I camp a lot, cook for myself and keep the trip as cheap as it can be without making it unsafe.\n\nI’ve walked the Nijmegen Four Days Marches and finished an 80 km Kennedymars — and learned from my knees afterwards that walking far is one thing, and walking far day after day is another. That’s what the preparation is for.\n\nThis website is the home of the project: preparation first, then the journey itself, and afterwards the complete archive of the walk.",
         'uncertain' => 'Route, countries, distances and dates are plans, not promises. Where something is uncertain, this site says so.',
     ],
 
     'map' => [
+        'exit' => 'Crossed the border',
+        'zoom_hint' => 'Use Ctrl + scroll to zoom',
+        'delay_note' => 'My location runs :days days behind, for my safety.',
         'pieces_title' => 'The plan, piece by piece',
         'legend' => 'Legend',
         'open' => 'Still to be planned',
@@ -126,12 +119,6 @@ return [
         'km' => ':km km',
         'countries' => 'Countries',
     ],
-    'phase' => [
-        'preparation' => 'Preparing',
-        'journey' => 'On the road',
-        'archive' => 'Completed',
-    ],
-
     'live' => [
         'title' => 'Live location',
         'lead_public' => 'For safety, the public location runs :days days behind. Family can follow along live.',
@@ -160,28 +147,16 @@ return [
     ],
 
     'statistics' => [
-        'title' => 'Statistics',
-        'lead' => 'Calculated from the recorded days and tracking. Public statistics run :days days behind.',
-        'empty' => 'The statistics start when the walk begins.',
-        'distance' => 'Distance walked',
         'days' => 'Days on the road',
         'walking_days' => 'Walking days',
         'rest_days' => 'Rest days',
-        'transport_days' => 'Transport days',
         'average' => 'Average per walking day',
-        'longest' => 'Longest day',
         'hours' => 'Walking hours',
         'countries' => 'Countries walked',
-        'tent_nights' => 'Nights in the tent',
-        'highest' => 'Highest point',
-        'lowest' => 'Lowest point',
-        'planned' => 'Planned distance',
-        'difference' => 'Walked vs planned',
-        'per_country' => 'Per country',
-        'nights' => 'Where I slept',
     ],
 
     'equipment' => [
+        'hand' => 'everything I carry',
         'title' => 'Gear',
         'lead' => 'What I carry, why I chose it, and how it holds up.',
         'base_weight' => 'Base weight (in the pack)',
@@ -266,6 +241,30 @@ return [
         'lead' => 'Everything I write about the walk: the preparation and the journey itself.',
     ],
 
+    'errors' => [
+        'not_found_title' => 'Wrong turn',
+        'not_found_hand' => 'oops, this path leads nowhere!',
+        'not_found_lead' => 'This page does not exist (any more). Maybe the route changed, or the link has a typo. Back to familiar ground?',
+        'back_home' => 'Back home',
+    ],
+
+    'status_block' => [
+        'country' => 'Current country',
+        'live' => 'Live',
+        'to_hanoi' => 'To Hanoi (as the crow flies)',
+        'walking' => 'on the road',
+        'resting' => 'rest day',
+        'walked_km' => 'Walked',
+        'days' => 'Days on the road',
+        'as_of' => 'As of :date',
+    ],
+
+    'day_log' => [
+        'title' => 'Day by day',
+        'hand' => 'my logbook',
+    ],
+
+    'back_to_top' => 'Back to top',
     'coming_soon' => [
         'title' => 'Something is coming...',
         'hand' => 'lacing up my boots!',

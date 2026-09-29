@@ -57,11 +57,11 @@ class ArticleForm
                     ->schema([
                         Select::make('type')->label('Soort')
                             ->options(ArticleType::class)
-                            ->default(ArticleType::Preparation)
+                            ->default(ArticleType::Diary)
                             ->required(),
                         Select::make('status')->label('Status')
                             ->options(ArticleStatus::class)
-                            ->default(ArticleStatus::Draft)
+                            ->default(ArticleStatus::Published)
                             ->required(),
                         DateTimePicker::make('published_at')
                             ->label('Publicatiedatum')

@@ -44,7 +44,7 @@ class TrackingPrivacyTest extends TestCase
             $this->get($url)->assertOk()->assertDontSee('8.76543')->assertDontSee('47.12345');
         }
 
-        $this->getJson('/api/public/tracking')->assertJsonPath('last.lat', self::OLD[0])->assertJsonCount(1, 'points');
+        $this->getJson('/api/public/tracking')->assertJsonPath('last.lat', self::OLD[0])->assertJsonCount(0, 'lines'); // one old point: no line yet
     }
 
     public function test_private_api_requires_a_trusted_login(): void
@@ -54,7 +54,7 @@ class TrackingPrivacyTest extends TestCase
         $this->actingAs($this->trusted())->getJson('/api/private/tracking')
             ->assertOk()
             ->assertJsonPath('last.lat', self::RECENT[0])
-            ->assertJsonCount(2, 'points');
+            ->assertJsonCount(0, 'lines');
     }
 
     public function test_public_api_stays_delayed_even_when_logged_in(): void
@@ -107,6 +107,70 @@ class TrackingPrivacyTest extends TestCase
         $this->actingAs($this->trusted());
         $this->get($recent->url())->assertOk();
         $this->assertSame(2, \App\Models\GalleryItem::public()->count());
+    }
+
+    public function test_the_status_block_and_day_log_follow_the_delay(): void
+    {
+        $de = Country::create(['iso_code' => 'DE', 'name' => ['en' => 'Germany']]);
+        JourneyDay::create(['date' => now()->subDays(20), 'type' => DayType::Walk, 'distance_km' => 25, 'start_location' => 'Nijmegen', 'end_location' => 'Kleve', 'country_id' => $de->id]);
+        JourneyDay::create(['date' => now()->subDay(), 'type' => DayType::Rest, 'end_location' => 'Secret village', 'country_id' => $de->id]);
+
+        // Visitors: the day of 20 days ago, with the delay explained; the recent rest day stays hidden.
+        $this->get('/')->assertSee('Day 1')->assertSee('To Hanoi')->assertSee('runs 14 days behind')->assertDontSee('rest day');
+        $this->get('/journey')->assertSee('Day by day')->assertSee('Nijmegen')->assertSee('Kleve')->assertDontSee('Secret village');
+        $this->get('/')->assertDontSee('href="'.url('/live').'"', false);
+
+        // Family: live, without the delay note, and "Live" in the menu.
+        $this->actingAs($this->trusted());
+        $this->get('/')->assertSee('Day 2')->assertSee('rest day')->assertDontSee('runs 14 days behind')->assertSee('href="'.url('/live').'"', false);
+        $this->get('/journey')->assertSee('Secret village');
+    }
+
+    public function test_pages_have_a_share_preview_image(): void
+    {
+        Settings::set(['home_image' => 'site/hero.jpg']);
+
+        $this->get('/about')->assertSee('<meta property="og:image" content="'.url('/storage/site/hero.jpg').'">', false)->assertSee('summary_large_image');
+    }
+
+    public function test_the_walked_route_is_served_by_level_of_detail(): void
+    {
+        // A day of walking 20 days ago (visible to visitors) and one yesterday (family only), a point every minute.
+        foreach ([20, 1] as $daysAgo) {
+            app(\App\Services\TrackingRecorder::class)->store(collect(range(0, 300))->map(fn ($m) => [
+                'lat' => 51.0 + $m / 3000 + ($m % 2) / 20000, 'lng' => 10.0 + $m / 2000, 'time' => now()->subDays($daysAgo)->startOfDay()->addHours(8)->addMinutes($m),
+            ])->all(), 'test');
+        }
+        $count = fn ($level, $user = null) => collect(\App\Support\WalkedTrack::lines($user, $level))->sum(fn ($line) => count($line));
+
+        // Coarse levels are small; the finest keeps (almost) everything.
+        $this->assertLessThan(10, $count(1));
+        $this->assertGreaterThan(250, $count(4));
+
+        // Visitors: only the old day; family: both days.
+        $this->assertCount(1, \App\Support\WalkedTrack::lines(null, 2));
+        $this->assertCount(2, \App\Support\WalkedTrack::lines($this->trusted(), 2));
+
+        // Maps fetch detail for the visible area.
+        $this->getJson('/api/track?level=4&bbox=10,51,10.1,51.05')->assertOk()->assertJsonPath('features.0.properties.type', 'actual');
+        $this->getJson('/api/track?level=4&bbox=0,0,1,1')->assertOk()->assertJsonCount(0, 'features');
+        $this->getJson('/api/track?level=9&bbox=nope')->assertUnprocessable();
+    }
+
+    public function test_zoomed_in_maps_get_the_route_pieces_with_every_bend(): void
+    {
+        $country = Country::create(['iso_code' => 'DE', 'name' => ['en' => 'Germany'], 'is_published' => true]);
+        $route = $country->routes()->create(['type' => \App\Enums\RouteType::Planned, 'name' => 'Path']);
+        config(['travel.privacy_radius_m' => 0]); // the path starts at home
+        // A zigzag path of ~10 m steps: the page embeds it straightened, zoomed in every bend comes back.
+        foreach (range(0, 40) as $i) {
+            $route->points()->create(['latitude' => 51.0 + $i / 10000, 'longitude' => 10.0 + ($i % 2) / 10000, 'sequence' => $i]);
+        }
+        $planned = fn ($level, $bbox) => collect($this->getJson("/api/track?level={$level}&bbox={$bbox}")->json('features'))->where('properties.type', 'planned');
+
+        $this->assertCount(0, $planned(2, '9.9,50.9,10.1,51.1'));
+        $this->assertCount(41, $planned(4, '9.9,50.9,10.1,51.1')->first()['geometry']['coordinates'][0]);
+        $this->assertCount(0, $planned(4, '0,0,1,1'));
     }
 
     public function test_recent_journey_days_are_hidden_from_guest_statistics(): void
