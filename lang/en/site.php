@@ -264,6 +264,11 @@ return [
         'hand' => 'my logbook',
     ],
 
+    'story' => [
+        'note' => 'new story!',
+        'sticker' => 'read it here',
+    ],
+
     'back_to_top' => 'Back to top',
     'coming_soon' => [
         'title' => 'Something is coming...',

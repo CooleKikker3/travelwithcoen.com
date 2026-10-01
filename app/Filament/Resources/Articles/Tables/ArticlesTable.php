@@ -5,6 +5,8 @@ namespace App\Filament\Resources\Articles\Tables;
 use App\Enums\ArticleStatus;
 use App\Enums\ArticleType;
 use App\Models\Article;
+use App\Filament\Pages\InstaStory;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -43,6 +45,8 @@ class ArticlesTable
                 SelectFilter::make('status')->label('Status')->options(ArticleStatus::class),
             ])
             ->recordActions([
+                Action::make('story')->label('Insta-story')->icon('heroicon-o-camera')->color('gray')
+                    ->url(fn (Article $record) => InstaStory::getUrl(['article' => $record->id])),
                 EditAction::make(),
             ])
             ->toolbarActions([

@@ -102,6 +102,8 @@ class ContentTest extends TestCase
 
         $this->get('/admin')->assertDontSee('Laatste locatie-update');
         $this->get('/admin/statistics')->assertOk()->assertSee('Statistieken');
+        $story = \App\Models\Article::create(['type' => \App\Enums\ArticleType::Diary, 'title' => ['en' => 'Over the Alps', 'nl' => 'Over de Alpen']]);
+        $this->get('/admin/insta-story?article='.$story->id)->assertOk()->assertSee('Link kopiëren')->assertSee('Over de Alpen')->assertSee('nieuw verhaal!');
         Livewire::test(JourneyOverview::class)->assertOk()->assertSee('Laatste locatie-update');
         Livewire::test(SettingsPage::class)
             ->set('data.public_tracking_delay_hours', 168)

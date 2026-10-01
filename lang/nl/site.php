@@ -264,6 +264,11 @@ return [
         'hand' => 'mijn logboek',
     ],
 
+    'story' => [
+        'note' => 'nieuw verhaal!',
+        'sticker' => 'lees het hier',
+    ],
+
     'back_to_top' => 'Naar boven',
     'coming_soon' => [
         'title' => 'Er komt iets aan...',
