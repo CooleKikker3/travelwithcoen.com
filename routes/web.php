@@ -28,6 +28,7 @@ $publicRoutes = fn (string $locale) => function () use ($locale) {
     // The public statistics page was removed; keep old links working.
     Route::get($segment('statistics'), fn () => redirect(lroute('journey'), 301));
     Route::get($segment('equipment'), [PageController::class, 'equipment'])->name('equipment');
+    Route::get($segment('equipment').'/{slug}', [PageController::class, 'equipmentItem'])->name('equipment.show');
     Route::get($segment('gallery'), [PageController::class, 'gallery'])->name('gallery');
 
     Route::get($segment('stories'), [ArticleController::class, 'stories'])->name('stories');

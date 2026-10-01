@@ -56,21 +56,22 @@
                     <span class="-rotate-3 pb-1 font-hand text-3xl text-moss-600">{{ __('site.home.direction_hand') }}</span>
                 </div>
 
-                <ol class="relative mt-8 flex flex-wrap items-center gap-x-3 gap-y-8">
+                {{-- Phone: a zigzag down the page, one stop per row; wider: a row that wraps. --}}
+                <ol class="relative mt-8 flex flex-col items-center gap-y-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-8">
                     @foreach (preg_split('/\R+/', trim(__('site.home.direction'))) as $stop)
                         @php
                             // Stops that match a country on the site link to its page.
                             $link = $countryLinks[mb_strtolower(trim($stop))] ?? null;
                             $classes = 'stamp relative bg-white/80 text-moss-600'.($loop->first || $loop->last ? ' stamp--edge' : '').($link ? ' stamp--link' : '');
                         @endphp
-                        <li class="relative flex items-center gap-3" data-reveal style="--i: {{ $loop->index }}; --tilt: {{ [-3, 2, -1, 3, -2][$loop->index % 5] }}deg">
+                        <li @class(['relative flex flex-col items-center gap-1 sm:flex-row sm:gap-3', $loop->odd ? 'mr-16 sm:mr-0' : 'ml-16 sm:ml-0']) data-reveal style="--i: {{ $loop->index }}; --tilt: {{ [-3, 2, -1, 3, -2][$loop->index % 5] }}deg">
                             @if ($link)
                                 <a href="{{ $link }}" class="{{ $classes }}"><span class="stamp__nr">{{ $loop->iteration }}</span>{{ $stop }}</a>
                             @else
                                 <span class="{{ $classes }}"><span class="stamp__nr">{{ $loop->iteration }}</span>{{ $stop }}</span>
                             @endif
                             @unless ($loop->last)
-                                <svg class="h-4 w-10 text-olive-500" viewBox="0 0 40 16" fill="none" aria-hidden="true"><path d="M1 11c9-9 20-9 30-3" stroke="currentColor" stroke-width="2" stroke-dasharray="3 4" stroke-linecap="round"/><path d="M29 2l6 6-8 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                <svg @class(['h-4 w-10 text-olive-500 sm:translate-x-0 sm:rotate-0', $loop->odd ? 'rotate-[55deg] translate-x-6' : 'rotate-[125deg] -translate-x-6']) viewBox="0 0 40 16" fill="none" aria-hidden="true"><path d="M1 11c9-9 20-9 30-3" stroke="currentColor" stroke-width="2" stroke-dasharray="3 4" stroke-linecap="round"/><path d="M29 2l6 6-8 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             @endunless
                         </li>
                     @endforeach

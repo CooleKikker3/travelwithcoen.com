@@ -25,7 +25,7 @@ class CountryRouteForm
                         Select::make('country_id')
                             ->label('Land')
                             ->options(fn () => Country::orderBy('sort_order')->get()
-                                ->mapWithKeys(fn (Country $country) => [$country->id => $country->flag().' '.$country->translate('name', 'en')]))
+                                ->mapWithKeys(fn (Country $country) => [$country->id => $country->flag().' '.$country->translate('name', 'nl')]))
                             ->required()
                             ->searchable(),
                         Select::make('type')->label('Soort')

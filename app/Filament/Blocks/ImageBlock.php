@@ -45,10 +45,10 @@ class ImageBlock extends RichContentCustomBlock
                     ->imageResizeTargetHeight('2400')
                     ->imageResizeMode('contain')
                     ->imageResizeUpscale(false)
-                    ->directory('articles/images')
+                    ->directory(static::directory())
                     ->maxSize(20480)
                     ->required()
-                    ->helperText('Komt ook in de galerij. Locatiegegevens worden verwijderd.'),
+                    ->helperText(static::uploadHelp()),
                 TextInput::make('caption')->label('Bijschrift')
                     ->placeholder('bijv. Lopen over een zandweg bij Berlijn')
                     ->maxLength(300),
@@ -59,6 +59,17 @@ class ImageBlock extends RichContentCustomBlock
                     ->label('Gevoelige inhoud')
                     ->helperText('Bijv. een blessure: vervaagd met een waarschuwing tot de lezer hem wil zien.'),
             ]);
+    }
+
+    /** Where uploaded images go (media:prune keeps the ones still used). */
+    protected static function directory(): string
+    {
+        return 'articles/images';
+    }
+
+    protected static function uploadHelp(): string
+    {
+        return 'Komt ook in de galerij. Locatiegegevens worden verwijderd.';
     }
 
     public static function getPreviewLabel(array $config): string

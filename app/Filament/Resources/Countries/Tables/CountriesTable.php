@@ -21,7 +21,7 @@ class CountriesTable
             ->reorderRecordsTriggerAction(fn ($action, bool $isReordering) => $action->button()->label($isReordering ? 'Klaar' : 'Volgorde slepen'))
             ->columns([
                 TextColumn::make('name')->label('Naam')
-                    ->state(fn (Country $record) => $record->flag().' '.$record->translate('name', 'en')),
+                    ->state(fn (Country $record) => $record->flag().' '.$record->translate('name', 'nl')),
                 TextColumn::make('iso_code')->label('ISO'),
                 TextColumn::make('status')->label('Status')->badge(),
                 IconColumn::make('is_published')->label('Zichtbaar')->boolean(),

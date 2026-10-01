@@ -17,6 +17,9 @@ class JourneyEvent extends Model
 
     protected array $translatable = ['title', 'description'];
 
+    /** Written in Dutch first; English is optional (falls back to Dutch). */
+    protected string $mainLocale = 'nl';
+
     protected string $slugSource = 'title';
 
     protected function casts(): array

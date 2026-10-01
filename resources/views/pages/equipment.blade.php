@@ -1,22 +1,8 @@
 @php
-    $kg = fn ($grams) => \Illuminate\Support\Number::format($grams / 1000, precision: 2, locale: app()->getLocale()).' kg';
-@endphp
-@php
     $photo = ($path = \App\Support\Settings::get('gear_image')) ? \App\Support\MediaStorage::url($path) : null;
 @endphp
 <x-layouts.app :title="__('site.equipment.title')" :image="$photo">
-    <x-page-header :title="__('site.equipment.title')" :lead="__('site.equipment.lead')">
-        <dl class="mt-8 flex flex-wrap gap-3">
-            <div class="rounded-2xl bg-forest-700/70 px-4 py-3">
-                <dt class="text-xs font-semibold tracking-wide text-fern-300 uppercase">{{ __('site.equipment.base_weight') }}</dt>
-                <dd class="font-display text-xl text-white">{{ $kg($baseWeight) }} <span class="text-sm text-sage-200">· {{ __('site.equipment.target') }}</span></dd>
-            </div>
-            <div class="rounded-2xl bg-forest-700/70 px-4 py-3">
-                <dt class="text-xs font-semibold tracking-wide text-fern-300 uppercase">{{ __('site.equipment.worn_weight') }}</dt>
-                <dd class="font-display text-xl text-white">{{ $kg($wornWeight) }}</dd>
-            </div>
-        </dl>
-    </x-page-header>
+    <x-page-header :title="__('site.equipment.title')" :lead="__('site.equipment.lead')" />
 
     @if ($photo)
         {{-- Me with my gear: a polaroid over the edge of the header. --}}
@@ -32,35 +18,28 @@
         @forelse ($categories as $category => $items)
             <section>
                 <h2 class="text-3xl font-extrabold" data-reveal>{{ \App\Enums\EquipmentCategory::from($category)->getLabel() }}</h2>
-                <ul class="mt-5 grid gap-4 sm:grid-cols-2">
+                <ul class="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($items as $item)
-                        <li @class(['rounded-2xl bg-white p-5 shadow-sm ring-1 ring-sage-200 transition hover:-translate-y-0.5 hover:shadow-md', 'opacity-60' => $item->status === $replaced]) data-reveal style="--i: {{ min($loop->index, 6) }}">
-                            <div class="flex flex-wrap items-baseline justify-between gap-2">
-                                <div>
-                                    <span class="font-display text-lg font-semibold">{{ $item->translate('name') }}</span>
-                                    @if ($item->brand || $item->model)
-                                        <span class="text-moss-600">— {{ trim($item->brand.' '.$item->model) }}</span>
-                                    @endif
-                                </div>
-                                <div class="flex flex-wrap items-center gap-2 text-sm">
-                                    @if ($item->weight_g)
-                                        <span class="font-semibold">{{ \Illuminate\Support\Number::format($item->weight_g, locale: app()->getLocale()) }} g</span>
-                                    @endif
-                                    @if ($item->price)
-                                        <span class="text-moss-600">{{ \Illuminate\Support\Number::currency($item->price, 'EUR', app()->getLocale()) }}</span>
-                                    @endif
-                                    @if ($item->is_worn)
-                                        <span class="badge bg-sand-100 text-bark-700">{{ __('site.equipment.worn') }}</span>
-                                    @endif
-                                    <span class="badge">{{ $item->status->getLabel() }}</span>
-                                </div>
+                        <li class="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-sage-200 transition hover:-translate-y-1 hover:shadow-lg" data-reveal style="--i: {{ min($loop->index, 6) }}">
+                            <div class="relative aspect-[4/3] overflow-hidden bg-forest-800">
+                                @if ($item->coverUrl())
+                                    <img src="{{ $item->coverUrl() }}" alt="" class="size-full object-cover transition duration-500 group-hover:scale-105" loading="lazy">
+                                @else
+                                    <div class="topo absolute inset-0" aria-hidden="true"></div>
+                                @endif
                             </div>
-                            @if ($reason = $item->translate('reason'))
-                                <p class="mt-2 text-sm text-forest-700"><strong>{{ __('site.equipment.why') }}:</strong> {{ $reason }}</p>
-                            @endif
-                            @if ($review = $item->translate('review'))
-                                <p class="mt-1 text-sm text-forest-700"><strong>{{ __('site.equipment.review') }}:</strong> {{ $review }}</p>
-                            @endif
+                            <div class="flex flex-1 flex-col p-5">
+                                <h3 class="font-display text-xl font-bold">
+                                    <a href="{{ $item->url() }}" class="focus:outline-none after:absolute after:inset-0">{{ $item->translate('name') }}</a>
+                                </h3>
+                                @if ($item->brand || $item->model)
+                                    <p class="text-sm text-moss-600">{{ trim($item->brand.' '.$item->model) }}</p>
+                                @endif
+                                @if ($excerpt = $item->translate('excerpt'))
+                                    <p class="mt-2 text-sm text-forest-700">{{ $excerpt }}</p>
+                                @endif
+                                <span class="mt-auto pt-4 text-sm font-semibold text-moss-600 transition group-hover:translate-x-1" aria-hidden="true">{{ __('site.equipment.read_more') }} →</span>
+                            </div>
                         </li>
                     @endforeach
                 </ul>

@@ -21,7 +21,7 @@ class JourneyEventForm
                 TranslatableTabs::make(fn (string $locale, bool $isDefault) => [
                     TextInput::make("title.{$locale}")->label('Titel')->required($isDefault)->maxLength(150),
                     Textarea::make("description.{$locale}")->label('Beschrijving')->rows(3),
-                ]),
+                ], main: 'nl'),
                 DateTimePicker::make('occurred_at')->label('Wanneer')->required()->default(now()),
                 Select::make('type')->label('Soort')->options(EventType::class)->required(),
                 Select::make('country_id')->label('Land')->options(fn () => Options::countries())->searchable(),

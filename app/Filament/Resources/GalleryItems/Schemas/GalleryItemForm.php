@@ -63,7 +63,7 @@ class GalleryItemForm
                 ->placeholder('Een of twee zinnen (optioneel)')
                 ->rows(2)
                 ->maxLength(300),
-        ]);
+        ], main: 'nl');
     }
 
     /** Links to country/article/day, shared with the bulk upload action. */

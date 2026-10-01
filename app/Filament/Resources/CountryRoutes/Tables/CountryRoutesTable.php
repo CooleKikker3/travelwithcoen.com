@@ -28,7 +28,7 @@ class CountryRoutesTable
             ->recordUrl(fn (CountryRoute $record) => RoutePlanner::getUrl(['route' => $record->id]))
             ->columns([
                 TextColumn::make('country')->label('Land')
-                    ->state(fn (CountryRoute $record) => $record->country->flag().' '.$record->country->translate('name', 'en')),
+                    ->state(fn (CountryRoute $record) => $record->country->flag().' '.$record->country->translate('name', 'nl')),
                 TextColumn::make('type')->label('Soort')->badge(),
                 TextColumn::make('name')->label('Titel')->state(fn (CountryRoute $record) => $record->label())->searchable(),
                 TextColumn::make('segments_count')->label('Stukken')->numeric(),
@@ -39,7 +39,7 @@ class CountryRoutesTable
                 SelectFilter::make('type')->label('Soort')->options(RouteType::class),
                 SelectFilter::make('country_id')
                     ->label('Land')
-                    ->options(fn () => Country::orderBy('sort_order')->get()->mapWithKeys(fn (Country $c) => [$c->id => $c->translate('name', 'en')])),
+                    ->options(fn () => Country::orderBy('sort_order')->get()->mapWithKeys(fn (Country $c) => [$c->id => $c->translate('name', 'nl')])),
             ])
             ->headerActions([
                 Action::make('draw')->label('Nieuw routestuk')->icon('heroicon-o-plus')->url(RoutePlanner::getUrl()),

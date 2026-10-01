@@ -16,6 +16,9 @@ class Country extends Model
 
     protected array $translatable = ['name', 'slug', 'intro', 'story'];
 
+    /** Written in Dutch first; English is optional (falls back to Dutch). */
+    protected string $mainLocale = 'nl';
+
     protected string $slugSource = 'name';
 
     protected function casts(): array

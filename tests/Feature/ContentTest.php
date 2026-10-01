@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\EquipmentCategory;
-use App\Enums\EquipmentStatus;
 use App\Enums\Role;
 use App\Models\EquipmentItem;
 use App\Models\GalleryItem;
@@ -52,13 +51,35 @@ class ContentTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_equipment_page_shows_pack_weight(): void
+    public function test_gear_items_have_their_own_page_like_articles(): void
     {
-        EquipmentItem::create(['name' => ['en' => 'Tent'], 'category' => EquipmentCategory::Shelter, 'status' => EquipmentStatus::Carried, 'weight_g' => 1200]);
-        EquipmentItem::create(['name' => ['en' => 'Boots'], 'category' => EquipmentCategory::Footwear, 'status' => EquipmentStatus::Carried, 'weight_g' => 900, 'is_worn' => true]);
-        EquipmentItem::create(['name' => ['en' => 'Secret'], 'category' => EquipmentCategory::Other, 'status' => EquipmentStatus::Carried, 'weight_g' => 5000, 'is_public' => false]);
+        Storage::fake('public');
+        foreach (['equipment/covers/tent.jpg', 'equipment/images/tent.jpg'] as $path) {
+            ob_start();
+            imagejpeg(imagecreatetruecolor(3000, 1500));
+            Storage::disk('public')->put($path, ob_get_clean());
+        }
+        $config = e(json_encode(['path' => 'equipment/images/tent.jpg', 'caption' => 'Mijn tent bij zonsondergang']));
 
-        $this->get('/gear')->assertSee('Tent')->assertSee('1.20 kg')->assertSee('0.90 kg')->assertDontSee('Secret');
+        $tent = EquipmentItem::create([
+            'name' => ['nl' => 'Tent'], 'category' => EquipmentCategory::Shelter, 'brand' => 'Durston', 'model' => 'X-Mid',
+            'excerpt' => ['nl' => 'Mijn huis onderweg.'], 'cover_image' => 'equipment/covers/tent.jpg',
+            'specs' => [['label' => 'Gewicht', 'value' => '1150 g'], ['label' => 'Personen', 'value' => '1']],
+            'body' => ['nl' => "<p>Hij staat in twee minuten.</p><div data-type=\"customBlock\" data-config=\"{$config}\" data-id=\"image\"></div><p>En hij is licht.</p>"],
+        ]);
+        EquipmentItem::create(['name' => ['nl' => 'Geheim'], 'category' => EquipmentCategory::Other, 'is_public' => false]);
+
+        // Cover and photos are re-encoded like gallery photos.
+        $this->assertSame(2400, getimagesize(Storage::disk('public')->path('equipment/covers/tent.jpg'))[0]);
+        $this->assertSame(2400, getimagesize(Storage::disk('public')->path('equipment/images/tent.jpg'))[0]);
+
+        // Overview: cards with cover and short description, linking to the item; hidden items stay hidden.
+        $this->get('/nl/uitrusting')->assertOk()->assertSee('Durston X-Mid')->assertSee('Mijn huis onderweg.')->assertSee($tent->url('nl'))->assertDontSee('Geheim');
+
+        // Item page, also in English (Dutch text with a note).
+        $this->get($tent->url('nl'))->assertOk()->assertSee('equipment/covers/tent.jpg')->assertSeeInOrder(['Gewicht', '1150 g', 'Hij staat in twee minuten.', 'Mijn tent bij zonsondergang', 'En hij is licht.']);
+        $this->get($tent->url('en'))->assertOk()->assertSee('Hij staat in twee minuten.')->assertSee('You are reading the Dutch version');
+        $this->get('/sitemap.xml')->assertSee($tent->url('nl'));
     }
 
     public function test_uploaded_photos_are_resized_and_stripped(): void

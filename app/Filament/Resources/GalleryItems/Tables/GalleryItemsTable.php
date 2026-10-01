@@ -31,7 +31,7 @@ class GalleryItemsTable
                     'video' => 'warning',
                     default => 'success',
                 }),
-                TextColumn::make('caption')->label('Bijschrift')->state(fn (GalleryItem $record) => $record->translate('caption', 'en'))->placeholder('—')->wrap()->limit(80),
+                TextColumn::make('caption')->label('Bijschrift')->state(fn (GalleryItem $record) => $record->translate('caption', 'nl'))->placeholder('—')->wrap()->limit(80),
                 TextColumn::make('article')->label('Artikel')
                     ->state(fn (GalleryItem $record) => $record->article?->translate('title', 'nl'))
                     ->description(fn (GalleryItem $record) => $record->source === 'article' ? 'uit artikeltekst' : null)

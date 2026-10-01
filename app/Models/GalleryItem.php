@@ -27,6 +27,9 @@ class GalleryItem extends Model
 
     protected array $translatable = ['caption'];
 
+    /** Written in Dutch first; English is optional (falls back to Dutch). */
+    protected string $mainLocale = 'nl';
+
     protected string $slugSource = 'caption';
 
     protected function casts(): array

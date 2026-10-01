@@ -30,7 +30,7 @@ class JourneyOverview extends StatsOverviewWidget
         $current = Country::where('status', CountryStatus::Current)->first();
 
         return [
-            Stat::make('Huidig land', $current ? $current->translate('name', 'nl') ?? $current->translate('name', 'en') : '—')
+            Stat::make('Huidig land', $current ? $current->translate('name', 'nl') : '—')
                 ->description('Automatisch uit je laatste locatie'),
             Stat::make('Laatste locatie-update', $lastPoint?->recorded_at->diffForHumans() ?? '—')
                 ->description($lastPoint ? 'Ontvangen '.$lastPoint->received_at->diffForHumans() : 'Nog geen locaties ontvangen')

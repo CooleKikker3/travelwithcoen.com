@@ -159,12 +159,10 @@ return [
         'hand' => 'alles wat ik meesjouw',
         'title' => 'Uitrusting',
         'lead' => 'Wat ik meeneem, waarom ik het koos en hoe het bevalt.',
-        'base_weight' => 'Basisgewicht (in de rugzak)',
-        'worn_weight' => 'Aan het lijf',
-        'target' => 'Doel: 8–10 kg',
-        'why' => 'Waarom',
-        'review' => 'Ervaring',
-        'worn' => 'gedragen',
+        'specs' => 'Specificaties',
+        'back' => 'Alle uitrusting',
+        'read_more' => 'Lees meer',
+        'not_translated' => 'Deze pagina is nog niet in het Nederlands beschikbaar. Je leest de Engelse versie.',
         'empty' => 'De uitrustingslijst wordt nog samengesteld.',
     ],
 
@@ -227,13 +225,6 @@ return [
         'other' => 'Overig',
     ],
 
-    'gear_status' => [
-        'planned' => 'Overweeg ik',
-        'testing' => 'Aan het testen',
-        'carried' => 'In de rugzak',
-        'replaced' => 'Vervangen',
-        'retired' => 'Niet meer in gebruik',
-    ],
 
     'day_name' => 'Dag :number',
 

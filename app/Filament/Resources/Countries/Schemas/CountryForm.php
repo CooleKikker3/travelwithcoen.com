@@ -37,7 +37,7 @@ class CountryForm
                                 ->rows(3),
                             RichEditor::make("story.{$locale}")
                                 ->label('Mijn verhaal over dit land'),
-                        ]),
+                        ], main: 'nl'),
                     ]),
 
                 Section::make('Instellingen')

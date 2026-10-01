@@ -30,6 +30,14 @@ class SitemapController extends Controller
             ];
         }
 
+        foreach (\App\Models\EquipmentItem::public()->get() as $item) {
+            $pages[] = [
+                'urls' => collect($locales)->filter(fn ($locale) => $item->isTranslated($locale))
+                    ->mapWithKeys(fn ($locale) => [$locale => $item->url($locale)])->all(),
+                'lastmod' => $item->updated_at,
+            ];
+        }
+
         foreach (Article::published()->get() as $article) {
             $pages[] = [
                 // Only languages the story is actually written in.

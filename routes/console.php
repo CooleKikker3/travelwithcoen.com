@@ -86,15 +86,16 @@ Artisan::command('media:prune {--dry-run : Only list what would be deleted} {--d
     $used = collect([
         ...GalleryItem::whereNotNull('path')->pluck('path'),
         ...Article::whereNotNull('cover_image')->pluck('cover_image'),
+        ...\App\Models\EquipmentItem::whereNotNull('cover_image')->pluck('cover_image'),
         Settings::get('home_image'),
         Settings::get('about_image'),
         Settings::get('gear_image'),
         ...array_values(Settings::get('home_image_variants') ?? []),
     ])->filter()->flip();
     // Images placed in article text are referenced inside the (JSON) body.
-    $bodies = Article::pluck('body')->map(fn ($body) => json_encode($body, JSON_UNESCAPED_SLASHES))->join("\n");
+    $bodies = Article::pluck('body')->merge(\App\Models\EquipmentItem::pluck('body'))->map(fn ($body) => json_encode($body, JSON_UNESCAPED_SLASHES))->join("\n");
 
-    $orphans = collect(['articles/images', 'articles/covers', 'gallery', 'site'])
+    $orphans = collect(['articles/images', 'articles/covers', 'equipment/covers', 'equipment/images', 'gallery', 'site'])
         ->flatMap(fn ($directory) => $disk->allFiles($directory))
         ->reject(fn ($path) => $used->has($path) || str_contains($bodies, $path))
         ->filter(fn ($path) => $disk->lastModified($path) < $cutoff)
@@ -140,7 +141,7 @@ Artisan::command('media:cache-headers', function () {
     $bucket = config('filesystems.disks.r2.bucket');
     $fixed = 0;
 
-    foreach (['articles/images', 'articles/covers', 'gallery', 'site'] as $directory) {
+    foreach (['articles/images', 'articles/covers', 'equipment/covers', 'equipment/images', 'gallery', 'site'] as $directory) {
         foreach ($disk->allFiles($directory) as $path) {
             $head = $client->headObject(['Bucket' => $bucket, 'Key' => $path]);
             if (str_contains((string) ($head['CacheControl'] ?? ''), 'max-age')) {

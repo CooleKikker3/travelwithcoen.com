@@ -35,7 +35,7 @@ class ArticlesTable
                     ->state(fn (Article $record) => $record->isTranslated('en'))
                     ->boolean(),
                 TextColumn::make('country')->label('Land')
-                    ->state(fn (Article $record) => $record->country?->translate('name', 'en')),
+                    ->state(fn (Article $record) => $record->country?->translate('name', 'nl')),
                 TextColumn::make('published_at')->label('Gepubliceerd')
                     ->dateTime('j M Y, H:i')
                     ->sortable(),

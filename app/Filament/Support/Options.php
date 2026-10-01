@@ -12,7 +12,7 @@ class Options
     public static function countries(): array
     {
         return Country::orderBy('sort_order')->get()
-            ->mapWithKeys(fn (Country $country) => [$country->id => $country->flag().' '.$country->translate('name', 'en')])
+            ->mapWithKeys(fn (Country $country) => [$country->id => $country->flag().' '.$country->translate('name', 'nl')])
             ->all();
     }
 

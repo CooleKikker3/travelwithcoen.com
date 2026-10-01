@@ -159,12 +159,10 @@ return [
         'hand' => 'everything I carry',
         'title' => 'Gear',
         'lead' => 'What I carry, why I chose it, and how it holds up.',
-        'base_weight' => 'Base weight (in the pack)',
-        'worn_weight' => 'Worn',
-        'target' => 'Target: 8–10 kg',
-        'why' => 'Why',
-        'review' => 'Experience',
-        'worn' => 'worn',
+        'specs' => 'Specifications',
+        'back' => 'All gear',
+        'read_more' => 'Read more',
+        'not_translated' => 'This page is not yet available in English. You are reading the Dutch version.',
         'empty' => 'The gear list is still being put together.',
     ],
 
@@ -227,13 +225,6 @@ return [
         'other' => 'Other',
     ],
 
-    'gear_status' => [
-        'planned' => 'Considering',
-        'testing' => 'Testing',
-        'carried' => 'In the pack',
-        'replaced' => 'Replaced',
-        'retired' => 'No longer used',
-    ],
 
     'day_name' => 'Day :number',
 
