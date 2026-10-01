@@ -1,157 +1,573 @@
-# Live zetten — checklist
+# Travel with Coen online zetten — stap voor stap
 
-Alles wat goed moet staan als Travel with Coen online gaat. Werk het van boven naar beneden af en vink af.
-Tip: zet de website eerst **dicht** (stap 9), dan kun je rustig testen terwijl bezoekers "Er komt iets aan…" zien.
+Deze handleiding zet de site op je VPS (`217.154.118.71`, zie je VPS-handleiding), naast de andere projecten.
+Werk hem van boven naar beneden af. Elk commando kun je kopiëren en plakken.
+
+Afspraken in dit bestand:
+
+| | |
+| --- | --- |
+| Projectnaam (map, pool, socket, nginx, cron) | `travelwithcoen` |
+| Map op de server | `/var/www/travelwithcoen` |
+| Domein | `travelwithcoen.com` (+ `www.travelwithcoen.com`, dat doorstuurt) |
+| Tweede domein | `travelwithcoen.nl` (+ `www`): stuurt door naar de Nederlandse site, `travelwithcoen.com/nl` |
+| Domeinen geregistreerd bij | TransIP; DNS loopt via Cloudflare |
+| Foto's en video's | Cloudflare R2, bucket `travelwithcoen-live`, via `media.travelwithcoen.com` |
+| Database | SQLite (`database/database.sqlite`), leeg begonnen |
+
+Het plan heeft twee delen:
+
+- **Deel 1 (stap 1–3)** doe je in je browser, bij TransIP en Cloudflare. Begin hiermee: het omzetten van de domeinen kan een paar uur duren.
+- **Deel 2 (stap 4–18)** doe je op de server, ingelogd als root (`ssh root@217.154.118.71`).
+
+**Artisan draai je op de server altijd met `sudo -u www-data`** (zo blijven logbestanden en de database schrijfbaar voor de website). Uitzonderingen staan er steeds bij.
+
+> Plakken in de terminal zet er soms rommel voor, zoals `^[[200~`. Krijg je `command not found` op een commando dat gewoon bestaat: typ of plak het opnieuw.
+
+> De knoppen bij TransIP en Cloudflare heten soms net iets anders dan hier staat (hun schermen veranderen af en toe). Zoek dan naar het woord dat er het meest op lijkt.
 
 ---
 
-## 1. Server
+# Deel 1 — In je browser
 
-- [ ] PHP **8.5** met de extensies: `gd`, `exif`, `zip`, `mbstring`, `pdo_mysql` (of `pdo_sqlite`), `intl`, `fileinfo`, `curl`, `openssl`.
-- [ ] Composer, en Node 22+ (alleen nodig om de CSS/JS te bouwen; kan ook lokaal).
-- [ ] **ffmpeg** installeren (aanrader): dan wordt de locatie uit video's gehaald. Staat het niet op het standaardpad, zet dan `FFMPEG_PATH` in `.env`.
-- [ ] De webserver wijst naar de map **`public/`** (niet naar de hoofdmap van het project).
-- [ ] HTTPS (bij Cloudflare: SSL-modus **Full (strict)**).
-- [ ] PHP-uploadlimiet ruim genoeg voor video's: `upload_max_filesize` en `post_max_size` op bijv. `512M` (php.ini).
+## Stap 1 — Domeinen van TransIP naar Cloudflare
 
-## 2. Code en installatie
+De domeinen blijven geregistreerd bij TransIP (daar betaal je ze ook), maar Cloudflare gaat de DNS doen. Dat is nodig voor R2 (stap 3) en maakt de site sneller en veiliger.
+
+Doe deze stap **eerst voor `travelwithcoen.com`, daarna precies zo voor `travelwithcoen.nl`**.
+
+1. **Cloudflare**: log in op `dash.cloudflare.com` → **Add a domain** (of **Add site**) → vul `travelwithcoen.com` in → kies **Quick scan for DNS records** → **Continue** → kies het **Free**-plan.
+2. Cloudflare laat de DNS-records zien die hij bij TransIP vond.
+   - Gebruik je e-mail op dit domein (bijv. via TransIP)? Controleer dan dat de **MX**-records (en TXT-records met `spf`) in de lijst staan. Staan ze er niet: neem ze over uit TransIP (TransIP → domein → **DNS**).
+   - Verwijder A- en AAAA-records voor `@` en `www` die naar TransIP wijzen; de goede zet je in stap 2.
+3. Cloudflare toont nu **twee nameservers**, zoiets als `anna.ns.cloudflare.com` en `bob.ns.cloudflare.com`. Laat dit tabblad open.
+4. **TransIP**: log in op `transip.nl` → **Domeinen** → klik op `travelwithcoen.com`.
+   1. **DNSSEC uitzetten** (staat bij TransIP meestal aan). Doe je dit niet, dan werkt het domein na het omzetten niet meer. Opslaan.
+   2. Bij **Nameservers**: zet **"TransIP-instellingen gebruiken"** (of "Standaard nameservers") **uit** en vul de twee nameservers van Cloudflare in. De overige velden leeg laten. Opslaan.
+5. **Cloudflare**: klik op **Check nameservers** (of **Done, check nameservers**). Na een tijdje (meestal binnen een uur, soms langer) krijg je een mail en staat het domein op **Active**.
+6. Pas als het domein **Active** is: DNSSEC via Cloudflare weer aanzetten (aanrader, niet verplicht):
+   Cloudflare → domein → **DNS** → **Settings** → **DNSSEC** → **Enable**. Cloudflare toont een **DS-record**; zet de gegevens daarvan bij TransIP → domein → **DNSSEC** (TransIP vraagt om de *key tag*, het *algoritme* en de *public key* / *digest*; die staan allemaal in het scherm van Cloudflare).
+
+Herhaal 1 t/m 6 voor `travelwithcoen.nl`.
+
+## Stap 2 — DNS-records naar de server
+
+Cloudflare → `travelwithcoen.com` → **DNS** → **Records** → **Add record**. Voeg deze vier toe, **met het wolkje op grijs (DNS only)**. Certbot heeft in stap 10 een directe verbinding met de server nodig; in stap 11 zet je het wolkje op oranje.
+
+| Type | Name | IPv4/IPv6 address | Proxy status |
+| --- | --- | --- | --- |
+| A | `@` | `217.154.118.71` | DNS only (grijs) |
+| AAAA | `@` | `2a02:2479:13:7700::1` | DNS only (grijs) |
+| A | `www` | `217.154.118.71` | DNS only (grijs) |
+| AAAA | `www` | `2a02:2479:13:7700::1` | DNS only (grijs) |
+
+Doe daarna **precies hetzelfde** bij `travelwithcoen.nl`.
+
+Controle (op je eigen computer, kan even duren): `nslookup travelwithcoen.com` en `nslookup travelwithcoen.nl` moeten allebei `217.154.118.71` geven.
+
+## Stap 3 — Cloudflare R2 voor foto's en video's
+
+De site zet alle foto's en video's in R2, de opslag van Cloudflare. Online krijgt de site een **eigen, nieuwe bucket**. Je lokale site houdt de bucket `travelwithcoen` die je al had.
+
+> **Waarom twee buckets?** Elke week ruimt de site bestanden op die hij zelf niet (meer) gebruikt. Delen je lokale site en de online site één bucket, dan gooit de één de foto's van de ander weg. Zet dus **nooit** de gegevens van `travelwithcoen-live` in je lokale `.env`.
+
+**3a. Bucket aanmaken**
+
+1. Cloudflare → linkermenu **R2 Object Storage** (onder "Storage & Databases").
+2. **Create bucket** → naam `travelwithcoen-live` → Location: **Automatic** (of een hint "Western Europe") → **Create bucket**.
+3. Laat **Public Development URL** (`r2.dev`) **uit**: dat adres is traag en heeft een limiet. De site gebruikt een eigen domein (3b).
+
+**3b. Eigen domein voor de bestanden** (kan pas als `travelwithcoen.com` op **Active** staat, stap 1)
+
+1. R2 → bucket `travelwithcoen-live` → **Settings** → **Custom Domains** → **Add** (of **Connect Domain**).
+2. Vul `media.travelwithcoen.com` in → **Continue** → **Connect domain**. Cloudflare maakt het DNS-record zelf aan.
+3. Wacht tot de status **Active** is (een paar minuten).
+
+**3c. CORS** (anders blijven afbeeldingen in het beheer op "Loading" staan)
+
+1. R2 → bucket `travelwithcoen-live` → **Settings** → **CORS Policy** → **Add CORS policy** (of **Edit**).
+2. Vervang alles door dit en klik **Save**:
+
+   ```json
+   [
+     {
+       "AllowedOrigins": ["https://travelwithcoen.com"],
+       "AllowedMethods": ["GET", "HEAD"],
+       "AllowedHeaders": ["*"],
+       "MaxAgeSeconds": 3600
+     }
+   ]
+   ```
+
+**3d. Toegangssleutel voor de server**
+
+1. R2 → overzicht → **Manage API tokens** (rechts, of via **API** → **Manage API Tokens**) → **Create API token** (kies een *Account API token* als je de keuze krijgt).
+2. Instellingen:
+   - Token name: `travelwithcoen-live`
+   - Permissions: **Object Read & Write**
+   - Specify bucket(s): **Apply to specific buckets only** → `travelwithcoen-live`
+   - TTL: **Forever**
+3. **Create API Token**. Je ziet nu drie dingen. **Kopieer ze meteen naar je wachtwoordmanager: het geheim zie je maar één keer.**
+
+   | Cloudflare noemt het | Komt in `.env` (stap 6) als |
+   | --- | --- |
+   | Access Key ID | `R2_ACCESS_KEY_ID` |
+   | Secret Access Key | `R2_SECRET_ACCESS_KEY` |
+   | Endpoint voor S3 clients (`https://<lange code>.r2.cloudflarestorage.com`) | `R2_ENDPOINT` |
+
+---
+
+# Deel 2 — Op de server
+
+## Stap 4 — Eenmalig: wat deze site extra nodig heeft
 
 ```bash
-git clone https://github.com/CooleKikker3/travelwithcoen.com.git
-cd travelwithcoen.com
-composer install --no-dev --optimize-autoloader
-npm ci && npm run build          # of lokaal bouwen en public/build meesturen
-cp .env.example .env             # daarna invullen, zie stap 3
-php artisan key:generate         # alleen de eerste keer!
-php artisan migrate --force
-php artisan optimize             # config, routes, views en events cachen
+# PHP-extensies (exif en fileinfo zitten in php8.5-common)
+apt update
+apt install -y php8.5-gd php8.5-intl php8.5-zip php8.5-mbstring php8.5-sqlite3 php8.5-curl php8.5-xml php8.5-bcmath
+
+# ffmpeg: haalt de GPS-locatie uit video's
+apt install -y ffmpeg
+
+# Controle
+php -m | grep -Ei 'gd|intl|zip|mbstring|sqlite|curl|exif|bcmath'
+node -v        # v22.x: staat er al op, nodig om de CSS en JavaScript te bouwen
+ffmpeg -version | head -1
 ```
 
-Bij elke volgende update:
+Kijk ook even in `https://monitor.coenvink.com` (of met `free -h`) of er genoeg geheugen vrij is voor een extra project.
+
+**Swap (aanrader bij 2 GB geheugen of minder):** het bouwen van de CSS/JS (`npm run build`) en video-'s verwerken met ffmpeg kunnen even veel geheugen vragen. Zonder swap breekt Linux dan een proces af. Staat er bij `free -h` op de regel `Swap` `0B`, maak dan eenmalig 2 GB swap aan (geldt voor de hele server):
 
 ```bash
-git pull
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+echo 'vm.swappiness=10' > /etc/sysctl.d/99-swappiness.conf
+sysctl -p /etc/sysctl.d/99-swappiness.conf
+free -h      # Swap: 2.0Gi
+```
+
+## Stap 5 — Code op de server
+
+```bash
+git clone https://github.com/CooleKikker3/travelwithcoen.com /var/www/travelwithcoen
+cd /var/www/travelwithcoen
 composer install --no-dev --optimize-autoloader
 npm ci && npm run build
-php artisan migrate --force
-php artisan optimize
 ```
 
-> Na een wijziging in `.env` altijd opnieuw `php artisan optimize` draaien: de instellingen staan gecachet.
+> Is de repository privé? Maak dan een deploy key, zoals in `UpManagerAPI/DEPLOY.md` stap 5.
 
-## 3. `.env` op de server
+## Stap 6 — `.env` invullen
 
-| Instelling | Waarde |
-|---|---|
-| `APP_ENV` | `production` |
-| `APP_DEBUG` | `false` (**nooit** `true` online: dan zie je foutmeldingen met geheimen) |
-| `APP_URL` | `https://travelwithcoen.com` |
-| `DB_CONNECTION` + `DB_*` | database van de host (MySQL/MariaDB), of `sqlite` |
-| `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` | eerste beheerder (daarna kun je het wachtwoord in het beheer wijzigen) |
-| `TRACKING_INGEST_TOKEN` | lange willekeurige code voor de locatie-app (`php -r "echo bin2hex(random_bytes(32));"`) |
-| `YOUTUBE_CHANNEL` | je kanaal, bijv. `https://www.youtube.com/@...` |
-| `SESSION_LIFETIME` | `10080` (7 dagen ingelogd blijven, handig bij slecht bereik) |
-| `PREVIEW_IPS` | `127.0.0.1,::1,<je eigen IP>` (ziet de site ook als die dicht staat) |
-| `TRUSTED_PROXIES` | `*` als de site achter Cloudflare staat (zie stap 5) |
-| `R2_ENABLED` + `R2_*` | zie stap 4; `R2_URL` = je eigen media-domein |
-| `MAIL_*` | zie stap 8 |
+```bash
+cp .env.example .env
+nano .env
+```
 
-## 4. Foto's en video's (Cloudflare R2)
+Zet of wijzig deze regels (de rest mag blijven staan):
 
-- [ ] **Eigen domein aan de bucket koppelen** (belangrijk voor snelheid): Cloudflare → R2 → bucket `travelwithcoen` → Settings → **Custom Domains** → bijv. `media.travelwithcoen.com`.
-  Het `r2.dev`-adres is alleen voor testen: geen caching op het netwerk van Cloudflare en een snelheidslimiet.
-- [ ] `R2_URL=https://media.travelwithcoen.com` in `.env`, daarna `php artisan optimize`.
-- [ ] Oude `r2.dev`-adressen: die staan nergens vast in de database (adressen worden steeds uit `R2_URL` gemaakt), dus niets om om te zetten.
-- [ ] **CORS** voor het beheer (anders blijven afbeeldingen in het beheer op "Loading" staan): `php artisan media:cors https://travelwithcoen.com` — of plak de getoonde JSON in Cloudflare → R2 → bucket → Settings → CORS policy.
-- [ ] Cachetijd staat al goed: elke upload krijgt een jaar (`Cache-Control: immutable`). Oudere bestanden: `php artisan media:cache-headers`.
-- [ ] Controle: `php artisan media:check`.
+```dotenv
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://travelwithcoen.com
+LOG_LEVEL=warning
 
-## 5. Cloudflare voor de website
+DB_CONNECTION=sqlite
+QUEUE_CONNECTION=sync
 
-- [ ] Domein via Cloudflare (proxy aan, oranje wolkje).
-- [ ] `TRUSTED_PROXIES=*` in `.env`. Zonder deze instelling ziet de site het IP van Cloudflare in plaats van de bezoeker, en werken `PREVIEW_IPS` en de herkenning van Nederlandse bezoekers niet goed.
-  Zet dit alleen als de server **uitsluitend** via Cloudflare bereikbaar is.
-- [ ] Cloudflare stuurt het land van de bezoeker mee (`CF-IPCountry`): Nederlandse bezoekers komen dan automatisch op `/nl`. Dit staat standaard aan.
+ADMIN_NAME="Coen"
+ADMIN_EMAIL=jouw@mailadres.nl
+ADMIN_PASSWORD=een-sterk-wachtwoord
 
-## 6. Cachetijden van de eigen bestanden
+TRACKING_INGEST_TOKEN=
+YOUTUBE_CHANNEL=https://www.youtube.com/@jouwkanaal
+SESSION_LIFETIME=10080
 
-CSS, JavaScript en lettertypes in `public/build` krijgen per versie een unieke naam, dus browsers mogen ze een jaar bewaren.
+# Zie de site ook als hij dicht staat (je eigen IP thuis; komma's ertussen)
+PREVIEW_IPS=127.0.0.1,::1,<jouw IP>
 
-- **Apache**: staat al in `public/.htaccess` (vereist `mod_headers`; bij de meeste hosts aan).
-- **nginx**: voeg toe in het `server`-blok:
+# De site staat achter Cloudflare (oranje wolkje, stap 11)
+TRUSTED_PROXIES=*
+
+# Foto's en video's: de gegevens uit stap 3d
+R2_ENABLED=true
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET=travelwithcoen-live
+R2_ENDPOINT=
+R2_URL=https://media.travelwithcoen.com
+
+# Garmin inReach (stap 18; mag later)
+GARMIN_MAPSHARE_URL=
+GARMIN_MAPSHARE_PASSWORD=
+
+# E-mail voor "wachtwoord vergeten" (stap 16; mag later)
+MAIL_MAILER=smtp
+MAIL_HOST=
+MAIL_PORT=587
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_FROM_ADDRESS=noreply@travelwithcoen.com
+MAIL_FROM_NAME="Travel with Coen"
+```
+
+Een lange code voor `TRACKING_INGEST_TOKEN` maak je zo:
+
+```bash
+php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
+```
+
+Je eigen IP (voor `PREVIEW_IPS`) zie je op je eigen computer op `https://ifconfig.me`.
+
+Dan de sleutel en de rechten (als root, dit is de uitzondering):
+
+```bash
+php artisan key:generate
+
+chmod 755 /var/www/travelwithcoen
+chown root:www-data .env
+chmod 640 .env
+```
+
+> **Bewaar de hele `.env` in je wachtwoordmanager**, vooral `APP_KEY`: zonder die sleutel kan niemand meer inloggen.
+
+## Stap 7 — De database (leeg)
+
+```bash
+cd /var/www/travelwithcoen
+touch database/database.sqlite
+chown -R www-data:www-data storage bootstrap/cache database
+sudo -u www-data php artisan migrate --force --seed
+sudo -u www-data php artisan optimize
+```
+
+`--seed` maakt je beheerdersaccount (uit `ADMIN_EMAIL` / `ADMIN_PASSWORD`) en zet de landen uit het globale plan klaar (Nederland, Duitsland, Turkije, China, Vietnam; nog niet gepubliceerd). Routes, teksten, foto's en instellingen voer je daarna in via het beheer.
+
+> Eerst `--seed`, dan `optimize`: na `optimize` leest de seeder de `.env` niet meer.
+
+## Stap 8 — PHP-FPM-pool
+
+```bash
+nano /etc/php/8.5/fpm/pool.d/travelwithcoen.conf
+```
+
+```ini
+[travelwithcoen]
+user = www-data
+group = www-data
+
+listen = /run/php/php8.5-fpm-travelwithcoen.sock
+listen.owner = www-data
+listen.group = www-data
+listen.mode = 0660
+
+pm = ondemand
+pm.max_children = 5
+pm.process_idle_timeout = 30s
+pm.max_requests = 500
+
+php_admin_value[error_log] = /var/log/php-fpm-travelwithcoen.log
+php_admin_flag[log_errors] = on
+php_admin_value[expose_php] = off
+
+; Video's uploaden en verwerken (ffmpeg) kost ruimte en tijd
+php_admin_value[upload_max_filesize] = 512M
+php_admin_value[post_max_size] = 512M
+php_admin_value[memory_limit] = 256M
+php_admin_value[max_execution_time] = 300
+```
+
+```bash
+systemctl restart php8.5-fpm
+```
+
+## Stap 9 — nginx
+
+```bash
+nano /etc/nginx/sites-available/travelwithcoen
+```
 
 ```nginx
-location /build/ {
-    add_header Cache-Control "public, max-age=31536000, immutable";
-    try_files $uri =404;
+server {
+    listen 80;
+    listen [::]:80;
+    server_name travelwithcoen.com www.travelwithcoen.com;
+
+    # www → zonder www
+    if ($host = www.travelwithcoen.com) {
+        return 301 https://travelwithcoen.com$request_uri;
+    }
+
+    root /var/www/travelwithcoen/public;
+    index index.php;
+
+    charset utf-8;
+    client_max_body_size 512M;
+
+    access_log /var/log/nginx/travelwithcoen.access.log;
+    error_log  /var/log/nginx/travelwithcoen.error.log;
+
+    # CSS/JS/lettertypes hebben per versie een unieke naam: browsers mogen ze een jaar bewaren
+    location /build/ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        try_files $uri =404;
+    }
+    location /brand/ {
+        add_header Cache-Control "public, max-age=604800";
+        try_files $uri =404;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.5-fpm-travelwithcoen.sock;
+        fastcgi_hide_header X-Powered-By;
+        fastcgi_read_timeout 300;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
 }
-location /brand/ {
-    add_header Cache-Control "public, max-age=604800";
-    try_files $uri =404;
+
+# travelwithcoen.nl → de Nederlandse site op travelwithcoen.com (één adres voor Google, geen dubbele inhoud)
+server {
+    listen 80;
+    listen [::]:80;
+    server_name travelwithcoen.nl www.travelwithcoen.nl;
+
+    access_log /var/log/nginx/travelwithcoen.access.log;
+    error_log  /var/log/nginx/travelwithcoen.error.log;
+
+    location = / {
+        return 301 https://travelwithcoen.com/nl;
+    }
+    # Adressen die al "/nl" hebben, en het beheer: alleen het domein wisselen
+    location ~ ^/(nl|admin|login|livewire)(/|$) {
+        return 301 https://travelwithcoen.com$request_uri;
+    }
+    location / {
+        return 301 https://travelwithcoen.com/nl$request_uri;
+    }
 }
 ```
 
-- [ ] Controle: `curl -I https://travelwithcoen.com/build/assets/<een bestand uit public/build/assets>` moet `Cache-Control: public, max-age=31536000, immutable` tonen.
+```bash
+ln -s /etc/nginx/sites-available/travelwithcoen /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx
+curl -i http://travelwithcoen.com/up
+curl -I http://travelwithcoen.nl/     # 301 naar https://travelwithcoen.com/nl
+```
 
-## 7. Geplande taken (scheduler)
+Bij `travelwithcoen.com/up` moet je een `200` zien. Zo niet: kijk in de tabel "Wat je ziet" in je VPS-handleiding, en in
+`tail -50 /var/log/nginx/travelwithcoen.error.log` en `tail -50 storage/logs/laravel.log`.
 
-Eén cronjob, elke minuut:
+## Stap 10 — HTTPS
+
+```bash
+certbot --nginx -d travelwithcoen.com -d www.travelwithcoen.com
+certbot --nginx -d travelwithcoen.nl -d www.travelwithcoen.nl
+curl -I https://travelwithcoen.com/up
+curl -I https://travelwithcoen.nl/    # 301 naar https://travelwithcoen.com/nl
+```
+
+> Twee aparte certificaten: certbot zet elk in het juiste `server`-blok. Vraagt certbot welk blok hij moet aanpassen, kies dan het blok met dezelfde `server_name`.
+
+> Faalt certbot op IPv6: haal de AAAA-records in Cloudflare even weg, probeer opnieuw en zet ze terug.
+
+## Stap 11 — Cloudflare-proxy aan
+
+1. Cloudflare → `travelwithcoen.com` → **DNS** → **Records** → bij de vier records uit stap 2 op **Edit** → **Proxy status** op **Proxied** (oranje wolkje) → **Save**.
+2. Cloudflare → `travelwithcoen.com` → **SSL/TLS** → **Overview** → modus **Full (strict)**.
+3. Doe 1 en 2 ook bij `travelwithcoen.nl`.
+
+`TRUSTED_PROXIES=*` staat al in `.env`: daardoor ziet de site het IP van de bezoeker in plaats van dat van Cloudflare (nodig voor `PREVIEW_IPS` en het doorsturen van Nederlandse bezoekers naar `/nl`).
+
+## Stap 12 — Controle foto's en video's
+
+```bash
+cd /var/www/travelwithcoen
+sudo -u www-data php artisan media:check
+```
+
+Dit schrijft een testbestand naar R2, leest het terug via `media.travelwithcoen.com` en ruimt het op. Gaat er iets mis, dan zegt het commando wat: meestal een typfout in de `R2_*`-regels (daarna `sudo -u www-data php artisan optimize`) of het eigen domein uit stap 3b is nog niet **Active**.
+
+## Stap 13 — Geplande taken
+
+```bash
+nano /etc/cron.d/travelwithcoen
+```
 
 ```cron
-* * * * * cd /pad/naar/travelwithcoen.com && php artisan schedule:run >> /dev/null 2>&1
+* * * * * www-data cd /var/www/travelwithcoen && php artisan schedule:run >> /dev/null 2>&1
+
 ```
 
-Die draait automatisch:
+(Laat de lege regel onderaan staan, anders slaat cron het bestand over.)
+
+Controle: `sudo -u www-data php artisan schedule:list`. Dit draait er automatisch:
+
+- `garmin:sync` — elke 10 minuten nieuwe posities van je Garmin inReach;
 - `youtube:sync` — elk uur nieuwe YouTube-video's in de galerij;
 - `media:prune` — maandag 04:00, ongebruikte bestanden opruimen;
-- `geo:countries` — maandag 04:30, route- en GPS-punten aan het juiste land koppelen;
-- `garmin:sync` — elke 10 minuten nieuwe posities van je Garmin inReach (stap 12).
+- `geo:countries` — maandag 04:30, punten aan het juiste land koppelen.
 
-- [ ] Controle: `php artisan schedule:list`.
+## Stap 14 — Back-up van de database
 
-## 8. E-mail (wachtwoord vergeten)
+```bash
+nano /usr/local/bin/backup-travelwithcoen
+```
+
+```bash
+#!/bin/bash
+set -e
+DOEL=/var/backups/travelwithcoen
+mkdir -p "$DOEL"
+sqlite3 /var/www/travelwithcoen/database/database.sqlite ".backup '$DOEL/database-$(date +%F).sqlite'"
+find "$DOEL" -name 'database-*.sqlite' -mtime +30 -delete
+```
+
+```bash
+chmod +x /usr/local/bin/backup-travelwithcoen
+echo '15 4 * * * root /usr/local/bin/backup-travelwithcoen' > /etc/cron.d/backup-travelwithcoen
+/usr/local/bin/backup-travelwithcoen && ls -l /var/backups/travelwithcoen
+```
+
+Af en toe een kopie naar je eigen computer halen (op je eigen computer):
+
+```bash
+scp root@217.154.118.71:/var/backups/travelwithcoen/*.sqlite .
+```
+
+Foto's en video's staan in R2 (Cloudflare bewaart die redundant); die zitten niet in deze back-up.
+
+## Stap 15 — In de monitor zetten
+
+```bash
+nano /var/www/monitor/projects.json
+```
+
+Zet dit blok achteraan in de lijst, met een komma na het blok ervoor:
+
+```json
+  {
+    "name": "travelwithcoen",
+    "label": "Travel with Coen",
+    "type": "laravel",
+    "domain": "travelwithcoen.com",
+    "url": "https://travelwithcoen.com/up",
+    "dir": "/var/www/travelwithcoen",
+    "pool": "travelwithcoen"
+  }
+```
+
+```bash
+systemctl restart monitor
+journalctl -u monitor -n 20 --no-pager
+```
+
+Staat er `Kon .../projects.json niet lezen`: typfout in de JSON, meestal een komma.
+Verander `name` hierna niet meer: de historie wordt onder die naam bewaard.
+
+## Stap 16 — E-mail (wachtwoord vergeten)
 
 Zonder e-mail werkt "wachtwoord vergeten" niet — en onderweg kan niemand je dan helpen.
 
-- [ ] `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS` invullen (bijv. via de host, Postmark of Brevo).
-- [ ] Testen: uitloggen → "Wachtwoord vergeten" → mail komt aan.
+1. Vul de `MAIL_*`-regels in `.env` in (bijv. via Brevo of Postmark; die geven je de host, poort, gebruikersnaam en wachtwoord).
+2. `sudo -u www-data php artisan optimize`
+3. Testen: uitloggen → "Wachtwoord vergeten" → komt de mail aan?
 
-## 9. Eerste start
+## Stap 17 — Eerste start (met de site nog dicht)
 
-- [ ] Inloggen op `/admin` met `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
-- [ ] **Instellingen → Website is open: uit** zolang je nog test. Beheerders en `PREVIEW_IPS` zien de hele site.
-- [ ] Hoofdfoto en vertraging van je locatie controleren.
-- [ ] Een foto uploaden → verschijnt de preview in het beheer (CORS) en op de site (R2)?
+- [ ] Inloggen op `https://travelwithcoen.com/admin` met `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+- [ ] **Instellingen → Website is open: uit.** Bezoekers zien dan "Er komt iets aan…"; jij (ingelogd) en `PREVIEW_IPS` zien alles.
+- [ ] De site vullen: landen publiceren, routes in de routeplanner, hoofdfoto, teksten, uitrusting.
+- [ ] Een foto uploaden → verschijnt de preview in het beheer (CORS, stap 3c) en op de site?
 - [ ] `https://travelwithcoen.com/sitemap.xml` en `/robots.txt` openen.
-- [ ] Klaar? **Website is open: aan**. Daarna de sitemap indienen in Google Search Console.
+- [ ] `https://travelwithcoen.nl` en `https://www.travelwithcoen.nl/verhalen` openen: je komt uit op `travelwithcoen.com/nl` en `travelwithcoen.com/nl/verhalen`.
+- [ ] Cachetijd: een bestand uit `public/build/assets` geeft bij `curl -I https://travelwithcoen.com/build/assets/<bestand>` de regel `Cache-Control: public, max-age=31536000, immutable`.
+- [ ] Vul in je VPS-handleiding de tabel "Wat al draait" aan: `| Travel with Coen | Laravel | travelwithcoen.com | /var/www/travelwithcoen | travelwithcoen | pool travelwithcoen |`.
+- [ ] Klaar om open te gaan? **Website is open: aan**, en de sitemap indienen in Google Search Console.
 
-## 10. Back-ups
-
-- [ ] **Database**: dagelijkse back-up via de host, of een cronjob met `mysqldump` (SQLite: kopie van `database/database.sqlite`). Bewaar ook een kopie buiten de server.
-- [ ] **`.env`**: veilig bewaren (wachtwoordmanager). Zonder `APP_KEY` zijn sessies en versleutelde gegevens niet te herstellen.
-- [ ] **Foto's/video's** staan in R2; Cloudflare bewaart die redundant. Een extra kopie is optioneel.
-- [ ] Een keer een terugzet-test doen vóór vertrek.
-
-## 11. Tijdens de reis
-
-- [ ] **Monitoring**: een gratis dienst (bijv. UptimeRobot) die `https://travelwithcoen.com/up` elke 5 minuten controleert en je mailt als de site plat ligt.
-- [ ] Iemand thuis met toegang tot de host en deze checklist, voor als het misgaat.
-- [ ] Domeinnaam en hosting **automatisch verlengen** (anders loopt het af terwijl je in Azië bent).
-- [ ] Beveiligingsupdates: af en toe `composer update` + tests (`php artisan test`) + deploy.
-
-## 12. Garmin inReach koppelen
+## Stap 18 — Garmin inReach koppelen
 
 Uitgebreide uitleg met foutoplossing: [`docs/garmin-inreach.md`](docs/garmin-inreach.md).
 
-De site haalt elke 10 minuten nieuwe posities op uit je **MapShare**-feed (via de scheduler, stap 7).
+- [ ] explore.garmin.com → **Social** (of **MapShare**) → MapShare **aanzetten**. Je pagina wordt `share.garmin.com/<naam>`.
+- [ ] Optioneel een **MapShare-wachtwoord** (aanrader: dan ziet niemand je live positie via Garmin; de website doet de vertraging).
+- [ ] In `.env`: `GARMIN_MAPSHARE_URL=https://share.garmin.com/Feed/Share/<naam>` en eventueel `GARMIN_MAPSHARE_PASSWORD=...`, daarna `sudo -u www-data php artisan optimize`.
+- [ ] Op het apparaat: **Tracking aan**, interval 10 minuten.
+- [ ] Testen: een kwartier wachten, dan `sudo -u www-data php artisan garmin:sync` → posities onder **Locatiepunten** in het beheer.
 
-- [ ] explore.garmin.com → **Social** (of **MapShare**) → MapShare **aanzetten**. Kies een MapShare-naam; je pagina wordt `share.garmin.com/<naam>`.
-- [ ] Optioneel een **MapShare-wachtwoord** instellen (aanrader: dan kan niemand je live positie via Garmin zien; de website doet de vertraging).
-- [ ] In `.env`: `GARMIN_MAPSHARE_URL=https://share.garmin.com/Feed/Share/<naam>` en eventueel `GARMIN_MAPSHARE_PASSWORD=<wachtwoord>`, daarna `php artisan optimize`.
-- [ ] Op het apparaat: **Tracking aan** met een interval (10 min is een goede balans tussen detail, batterij en abonnement).
-- [ ] Testen: tracking even aan, een kwartier wachten, dan `php artisan garmin:sync` → posities verschijnen onder **Locatiepunten** in het beheer.
+---
 
-## 13. Nog te regelen vóór het echt live gaat
+## Een nieuwe versie uitrollen
+
+Eenmalig het script aanmaken:
+
+```bash
+nano /var/www/travelwithcoen/deploy.sh
+```
+
+```bash
+#!/bin/bash
+set -e
+cd /var/www/travelwithcoen
+
+sudo -u www-data php artisan down || true
+git pull origin main
+composer install --no-dev --optimize-autoloader
+npm ci && npm run build
+chown -R www-data:www-data storage bootstrap/cache database
+sudo -u www-data php artisan migrate --force
+sudo -u www-data php artisan optimize
+sudo -u www-data php artisan up
+```
+
+```bash
+chmod +x /var/www/travelwithcoen/deploy.sh
+```
+
+Daarna is elke update (nadat de code op GitHub staat):
+
+```bash
+/var/www/travelwithcoen/deploy.sh
+```
+
+> Een wijziging in `.env` doet pas iets na `sudo -u www-data php artisan optimize`.
+
+## Als er iets misgaat
+
+| Wat je ziet | Oplossing |
+| --- | --- |
+| Domein doet niets meer na het omzetten | DNSSEC stond nog aan bij TransIP (stap 1.4): uitzetten, en na **Active** via Cloudflare opnieuw instellen |
+| `attempt to write a readonly database` / `Permission denied` | `cd /var/www/travelwithcoen && chown -R www-data:www-data storage bootstrap/cache database` |
+| Wijziging in `.env` werkt niet | `sudo -u www-data php artisan optimize` |
+| Upload van een video mislukt | limieten in stap 8 (pool) en `client_max_body_size` in stap 9; Cloudflare laat op het gratis plan maximaal **100 MB** per upload door |
+| Afbeeldingen in het beheer blijven "Loading" | CORS, stap 3c |
+| Foto's laden niet op de site | `sudo -u www-data php artisan media:check` (stap 12) |
+| Iedereen krijgt "Er komt iets aan", ook jij | inloggen op `/admin`, of je IP in `PREVIEW_IPS` (+ `TRUSTED_PROXIES=*` achter Cloudflare) |
+
+```bash
+tail -f /var/www/travelwithcoen/storage/logs/laravel.log
+tail -f /var/log/nginx/travelwithcoen.error.log
+```
+
+## Tijdens de reis
+
+- [ ] **Monitoring**: `monitor.coenvink.com` volgt de site (stap 15), maar draait op dezelfde server: ligt de hele VPS plat, dan ziet hij dat niet. Zet daarom ook een gratis dienst van buitenaf (bijv. UptimeRobot) op `https://travelwithcoen.com/up`, die je mailt als de site plat ligt.
+- [ ] Iemand thuis met toegang tot de server, TransIP, Cloudflare en dit bestand, voor als het misgaat.
+- [ ] Beide domeinnamen (`.com` en `.nl`) bij TransIP en de VPS **automatisch verlengen** (anders loopt het af terwijl je in Azië bent).
+- [ ] Een keer een back-up terugzetten als test, vóór vertrek.
+
+## Nog te regelen vóór de site echt open gaat
 
 - [ ] **Voorwaarden kaartbeelden**: de scherpe satellietbeelden bij inzoomen komen van Esri (World Imagery). Controleer of hun voorwaarden dit gebruik toestaan. NASA (uitgezoomd) en OpenFreeMap (plaatsnamen) zijn vrij te gebruiken.
-- [ ] Garmin koppelen (stap 12). Andere locatie-apps kunnen posities sturen naar `POST /api/tracking` met `TRACKING_INGEST_TOKEN`.
+- [ ] Garmin koppelen (stap 18). Andere locatie-apps kunnen posities sturen naar `POST /api/tracking` met `TRACKING_INGEST_TOKEN`.

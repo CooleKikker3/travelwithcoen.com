@@ -19,8 +19,8 @@ class ComingSoon
             return $next($request);
         }
 
-        // 503 + Retry-After: search engines keep the placeholder out of their index and come back later.
-        return response()->view('pages.coming-soon', [], 503)->header('Retry-After', 86400);
+        // 200 (a 503 shows up as an error in the server monitor) with noindex: search engines keep the placeholder out of their index.
+        return response()->view('pages.coming-soon')->header('X-Robots-Tag', 'noindex, nofollow');
     }
 
     public static function canPreview(Request $request): bool
