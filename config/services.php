@@ -18,6 +18,13 @@ return [
         'key' => env('POSTMARK_API_KEY'),
     ],
 
+    // Automatic Dutch → English translations (App\Services\GoogleTranslate): Cloud Translation API key.
+    'google_translate' => [
+        'key' => env('GOOGLE_TRANSLATE_KEY'),
+        // What the translations cost: linked from the "Vertalingen" page.
+        'billing_url' => env('GOOGLE_BILLING_URL', 'https://console.cloud.google.com/billing/0114D4-D24B5E-64CFB7?project=travelwithcoen'),
+    ],
+
     'resend' => [
         'key' => env('RESEND_API_KEY'),
     ],

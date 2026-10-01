@@ -30,6 +30,9 @@ class GalleryItem extends Model
     /** Written in Dutch first; English is optional (falls back to Dutch). */
     protected string $mainLocale = 'nl';
 
+    /** Translated automatically to English, checked on the "Vertalingen" page. */
+    protected array $autoTranslate = ['caption'];
+
     protected string $slugSource = 'caption';
 
     protected function casts(): array
@@ -102,6 +105,11 @@ class GalleryItem extends Model
     }
 
     /** Public items, newest first; images from articles only once that article is published. */
+    public function autoTranslateFields(): array
+    {
+        return in_array($this->source, ['article', 'youtube'], true) ? [] : $this->autoTranslate;
+    }
+
     public function scopePublic(Builder $query): Builder
     {
         return $query->where('is_public', true)

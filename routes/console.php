@@ -172,6 +172,17 @@ Artisan::command('garmin:sync', function () {
 })->purpose('Fetch new Garmin inReach positions from MapShare');
 Schedule::command('garmin:sync')->everyTenMinutes()->withoutOverlapping();
 
+// Dutch texts → English suggestions, to check on the "Vertalingen" page (App\Services\AutoTranslation).
+Artisan::command('translations:run', function () {
+    $this->info(app(\App\Services\AutoTranslation::class)->run().' texts translated.');
+})->purpose('Translate the queued Dutch texts to English (to be checked in the admin)');
+
+Artisan::command('translations:queue-missing', function () {
+    $this->info(app(\App\Services\AutoTranslation::class)->queueMissing().' texts queued for translation.');
+})->purpose('Queue all Dutch texts that have no English yet');
+
+Schedule::command('translations:run')->everyMinute()->withoutOverlapping();
+
 // Test data for trying out and performance checks (see App\Support\TestData). Never on the live site.
 Artisan::command('testdata:add {days=60 : Number of journey days} {--interval=10 : Minutes between GPS points (e.g. 0.5)}', function () {
     if (app()->isProduction() && ! $this->confirm('This is the live site. Add test data anyway?')) {

@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
  *  - $translatable: the translatable attributes
  *  - $slugSource:   the attribute a missing slug is generated from
  *  - $mainLocale:   optional, the language the content is written in first (default: the site's default locale)
+ *  - $autoTranslate: optional, fields translated automatically from Dutch (App\Services\AutoTranslation)
  */
 trait HasTranslations
 {
@@ -23,6 +24,23 @@ trait HasTranslations
     public static function bootHasTranslations(): void
     {
         static::saving(fn ($model) => $model->fillMissingSlugs());
+        // No return value: a listener returning false would stop the model's other saved/deleted listeners.
+        static::saved(function ($model): void {
+            if ($model->autoTranslateFields()) {
+                app(\App\Services\AutoTranslation::class)->queueModel($model);
+            }
+        });
+        static::deleted(function ($model): void {
+            if ($model->autoTranslateFields()) {
+                app(\App\Services\AutoTranslation::class)->forget($model);
+            }
+        });
+    }
+
+    /** @return list<string> fields translated automatically from Dutch to English */
+    public function autoTranslateFields(): array
+    {
+        return property_exists($this, 'autoTranslate') ? $this->autoTranslate : [];
     }
 
     /**
@@ -34,7 +52,7 @@ trait HasTranslations
         $locales = $fallback ? [$locale ?? app()->getLocale(), ...$this->fallbackLocales()] : [$locale ?? app()->getLocale()];
 
         foreach ($locales as $candidate) {
-            if (filled($values[$candidate] ?? null)) {
+            if (! static::isEmptyText($values[$candidate] ?? null)) {
                 return $values[$candidate];
             }
         }
@@ -59,6 +77,12 @@ trait HasTranslations
     /**
      * Whether the model has its own (non-fallback) content in the given locale.
      */
+    /** Empty, or only empty paragraphs/line breaks (the rich text editor saves an empty tab as "<p></p>"). */
+    public static function isEmptyText(mixed $value): bool
+    {
+        return ! is_string($value) || preg_replace('/<\/?(p|br)\b[^>]*>|&nbsp;|\s/iu', '', $value) === '';
+    }
+
     public function isTranslated(string $locale): bool
     {
         return filled($this->translate($this->slugSource, $locale, fallback: false));

@@ -19,6 +19,9 @@ class Country extends Model
     /** Written in Dutch first; English is optional (falls back to Dutch). */
     protected string $mainLocale = 'nl';
 
+    /** Translated automatically to English, checked on the "Vertalingen" page. */
+    protected array $autoTranslate = ['name', 'intro', 'story'];
+
     protected string $slugSource = 'name';
 
     protected function casts(): array

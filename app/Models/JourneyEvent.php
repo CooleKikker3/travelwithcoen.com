@@ -20,6 +20,9 @@ class JourneyEvent extends Model
     /** Written in Dutch first; English is optional (falls back to Dutch). */
     protected string $mainLocale = 'nl';
 
+    /** Translated automatically to English, checked on the "Vertalingen" page. */
+    protected array $autoTranslate = ['title', 'description'];
+
     protected string $slugSource = 'title';
 
     protected function casts(): array

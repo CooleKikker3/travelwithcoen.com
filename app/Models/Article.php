@@ -29,6 +29,9 @@ class Article extends Model
     /** Coen writes in Dutch first; English is optional (the English site then shows the Dutch text with a note). */
     protected string $mainLocale = 'nl';
 
+    /** Translated automatically to English, checked on the "Vertalingen" page. */
+    protected array $autoTranslate = ['title', 'excerpt', 'body'];
+
     protected function casts(): array
     {
         return [

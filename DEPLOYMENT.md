@@ -205,6 +205,9 @@ R2_URL=https://media.travelwithcoen.com
 GARMIN_MAPSHARE_URL=
 GARMIN_MAPSHARE_PASSWORD=
 
+# Automatische vertalingen Nederlands → Engels (stap 19; mag later)
+GOOGLE_TRANSLATE_KEY=
+
 # E-mail voor "wachtwoord vergeten" (stap 16; mag later)
 MAIL_MAILER=smtp
 MAIL_HOST=
@@ -505,6 +508,31 @@ Uitgebreide uitleg met foutoplossing: [`docs/garmin-inreach.md`](docs/garmin-inr
 - [ ] In `.env`: `GARMIN_MAPSHARE_URL=https://share.garmin.com/Feed/Share/<naam>` en eventueel `GARMIN_MAPSHARE_PASSWORD=...`, daarna `sudo -u www-data php artisan optimize`.
 - [ ] Op het apparaat: **Tracking aan**, interval 10 minuten.
 - [ ] Testen: een kwartier wachten, dan `sudo -u www-data php artisan garmin:sync` → posities onder **Locatiepunten** in het beheer.
+
+## Stap 19 — Automatische vertalingen (Google)
+
+Alles wat je in het Nederlands schrijft, vertaalt de server naar het Engels. Het gaat pas online als je het hebt
+nagekeken op de pagina **Vertalingen** in het beheer (daar staat ook een teller in het menu).
+
+1. Google Cloud Console → je project → **APIs & Services** → **Library** → **Cloud Translation API** → **Enable**.
+   Het project moet een betaalrekening hebben (**Billing**).
+2. **APIs & Services** → **Credentials** → **Create credentials** → **API key**. Beperk de sleutel:
+   - **API restrictions**: alleen **Cloud Translation API**;
+   - **Application restrictions** → **IP addresses**: `217.154.118.71` en `2a02:2479:13:7700::1`.
+3. In `.env`: `GOOGLE_TRANSLATE_KEY=<de sleutel>`, daarna `sudo -u www-data php artisan optimize`.
+4. Het vertalen loopt elke minuut via de geplande taken (stap 13): `translations:run`.
+5. Bestaande teksten die nog geen Engels hebben, eenmalig in de wachtrij zetten:
+
+   ```bash
+   sudo -u www-data php artisan translations:queue-missing
+   ```
+
+6. Controle: schrijf een zin in het Nederlands (bijv. een bijschrift), wacht een minuut en kijk op **Vertalingen**.
+   Staat er "Vertalen lukte niet", dan staat de reden erbij (meestal de sleutel of de beperkingen).
+
+Kosten: Google rekent per teken. Er staat een budgetwaarschuwing op € 5. Wat je verbruikt zie je via de knop
+**Kosten bij Google** op de pagina **Vertalingen**, of direct:
+<https://console.cloud.google.com/billing/0114D4-D24B5E-64CFB7?project=travelwithcoen>
 
 ---
 

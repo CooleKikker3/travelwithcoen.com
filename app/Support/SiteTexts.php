@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\SiteText;
+use App\Services\AutoTranslation;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
@@ -40,10 +41,28 @@ class SiteTexts
      *
      * @param  array<string, array<string, ?string>>  $texts  "group.key" => [locale => text]
      */
+    /** Set one language of a text (e.g. an approved translation), keeping the other. */
+    public static function setTranslation(string $key, string $locale, string $text): void
+    {
+        $override = SiteText::firstOrNew(['key' => $key]);
+        $override->value = [...($override->value ?? []), $locale => $text];
+        $override->save();
+        Cache::forget(self::CACHE_KEY);
+    }
+
     public static function save(array $texts): void
     {
+        $before = self::overrides();
+
         foreach ($texts as $key => $values) {
             [$group, $path] = explode('.', $key, 2);
+
+            // Dutch changed (and the English not by hand): translate it, to be checked on the "Vertalingen" page.
+            $current = fn (string $locale) => $before[$key][$locale] ?? self::defaults($group, $locale)[$path] ?? null;
+            $new = fn (string $locale) => filled($values[$locale] ?? null) ? $values[$locale] : (self::defaults($group, $locale)[$path] ?? null);
+            if ($new('nl') !== $current('nl') && $new('en') === $current('en')) {
+                app(AutoTranslation::class)->queue(AutoTranslation::SITE_TEXT, 0, $key, $new('nl'));
+            }
 
             $changed = collect($values)
                 ->filter(fn (?string $text, string $locale) => filled($text) && $text !== (self::defaults($group, $locale)[$path] ?? null))
