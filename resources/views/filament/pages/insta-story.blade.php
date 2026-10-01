@@ -11,8 +11,9 @@
                 <span>Taal</span>
                 <x-filament::input.wrapper>
                     <x-filament::input.select data-locale>
-                        <option value="nl">Nederlands</option>
-                        <option value="en">Engels</option>
+                        @foreach (array_keys($this->storyData()['locales']) as $locale)
+                            <option value="{{ $locale }}">{{ ['nl' => 'Nederlands', 'en' => 'Engels'][$locale] }}</option>
+                        @endforeach
                     </x-filament::input.select>
                 </x-filament::input.wrapper>
             </label>
@@ -27,6 +28,7 @@
                 <x-filament::button data-copy icon="heroicon-o-link" color="gray">1. Link kopiëren</x-filament::button>
                 <x-filament::button data-share icon="heroicon-o-share">2. Delen</x-filament::button>
                 <x-filament::button data-download icon="heroicon-o-arrow-down-tray" color="gray">Downloaden</x-filament::button>
+                <x-filament::button data-tape icon="heroicon-o-arrow-path" color="gray">Ander tapeje</x-filament::button>
             </div>
             <p data-status style="font-size:.875rem;color:rgb(22 163 74);min-height:1.25rem"></p>
 

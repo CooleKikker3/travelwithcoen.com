@@ -16,7 +16,7 @@ class JourneyEventsTable
             ->defaultSort('occurred_at', 'desc')
             ->columns([
                 TextColumn::make('occurred_at')->label('Wanneer')->dateTime('j M Y, H:i')->sortable(),
-                TextColumn::make('title')->label('Titel')->state(fn (JourneyEvent $record) => $record->translate('title', 'en'))->wrap(),
+                TextColumn::make('title')->label('Titel')->state(fn (JourneyEvent $record) => $record->translate('title', 'nl'))->wrap(),
                 TextColumn::make('type')->label('Soort')->badge(),
                 TextColumn::make('country.iso_code')->label('Land'),
                 IconColumn::make('is_public')->label('Openbaar')->boolean(),

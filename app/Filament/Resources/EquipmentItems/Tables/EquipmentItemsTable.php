@@ -22,7 +22,7 @@ class EquipmentItemsTable
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
             ->columns([
-                TextColumn::make('name')->label('Naam')->state(fn (EquipmentItem $record) => $record->translate('name', 'en'))
+                TextColumn::make('name')->label('Naam')->state(fn (EquipmentItem $record) => $record->translate('name', 'nl'))
                     ->description(fn (EquipmentItem $record) => trim($record->brand.' '.$record->model) ?: null),
                 TextColumn::make('category')->label('Categorie')->badge(),
                 TextColumn::make('status')->label('Status')->badge(),

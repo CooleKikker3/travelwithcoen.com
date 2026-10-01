@@ -48,6 +48,9 @@ foreach (array_keys(config('travel.locales')) as $locale) {
         : Route::prefix($locale)->name("{$locale}.")->middleware(["locale:{$locale}", 'coming-soon'])->group($publicRoutes($locale));
 }
 
+// Link in an Instagram story's link sticker: counts the click and redirects to the article (InstaStory).
+Route::get('s/{article}/{locale}', \App\Http\Controllers\StoryLinkController::class)->whereNumber('article')->whereIn('locale', ['en', 'nl'])->name('story.link');
+
 Route::get('sitemap.xml', SitemapController::class)->middleware(['locale:en', 'coming-soon'])->name('sitemap');
 // robots.txt as a route, so it can point search engines to the sitemap with the full (environment) URL.
 Route::get('robots.txt', fn () => response(

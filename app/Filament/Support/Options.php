@@ -19,7 +19,7 @@ class Options
     public static function articles(): array
     {
         return Article::latest('published_at')->get()
-            ->mapWithKeys(fn (Article $article) => [$article->id => $article->translate('title', 'en')])
+            ->mapWithKeys(fn (Article $article) => [$article->id => $article->translate('title', 'nl')])
             ->all();
     }
 

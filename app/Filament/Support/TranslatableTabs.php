@@ -12,12 +12,14 @@ use Filament\Schemas\Components\Tabs\Tab;
  */
 class TranslatableTabs
 {
-    public static function make(Closure $fields): Tabs
+    /** $main: the language that comes first and is required (default: the site's default locale). */
+    public static function make(Closure $fields, ?string $main = null): Tabs
     {
-        $default = config('app.fallback_locale');
+        $default = $main ?? config('app.fallback_locale');
 
         return Tabs::make('Translations')
             ->tabs(collect(config('travel.locales'))
+                ->sortBy(fn (string $label, string $locale) => $locale === $default ? 0 : 1)
                 ->map(fn (string $label, string $locale) => Tab::make($label)
                     ->schema($fields($locale, $locale === $default)))
                 ->values()

@@ -26,6 +26,9 @@ class Article extends Model
 
     protected string $slugSource = 'title';
 
+    /** Coen writes in Dutch first; English is optional (the English site then shows the Dutch text with a note). */
+    protected string $mainLocale = 'nl';
+
     protected function casts(): array
     {
         return [
@@ -73,6 +76,11 @@ class Article extends Model
     }
 
     /** Gallery items linked to this article: uploads and YouTube videos (images in the text are shown there already). */
+    public function storyClicks(): HasMany
+    {
+        return $this->hasMany(StoryClick::class);
+    }
+
     public function gallery(): HasMany
     {
         return $this->hasMany(GalleryItem::class)->where('is_public', true)->where('source', '!=', 'article')->oldest('taken_at');

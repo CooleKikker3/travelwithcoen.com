@@ -33,7 +33,7 @@ class GalleryItemsTable
                 }),
                 TextColumn::make('caption')->label('Bijschrift')->state(fn (GalleryItem $record) => $record->translate('caption', 'en'))->placeholder('—')->wrap()->limit(80),
                 TextColumn::make('article')->label('Artikel')
-                    ->state(fn (GalleryItem $record) => $record->article?->translate('title', 'en'))
+                    ->state(fn (GalleryItem $record) => $record->article?->translate('title', 'nl'))
                     ->description(fn (GalleryItem $record) => $record->source === 'article' ? 'uit artikeltekst' : null)
                     ->placeholder('—'),
                 TextColumn::make('taken_at')->label('Datum')->dateTime('j M Y')->sortable(),

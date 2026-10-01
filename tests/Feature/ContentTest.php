@@ -93,6 +93,28 @@ class ContentTest extends TestCase
         $this->assertStringStartsWith('/storage/gallery/remote.jpg', parse_url($item->url(), PHP_URL_PATH));
     }
 
+    public function test_articles_are_written_in_dutch_first_and_story_links_count_clicks(): void
+    {
+        $article = \App\Models\Article::create([
+            'type' => \App\Enums\ArticleType::Preparation, 'title' => ['nl' => 'Mijn nieuwe schoenen'], 'body' => ['nl' => '<p>Ze lopen fijn.</p>'],
+            'status' => \App\Enums\ArticleStatus::Published, 'published_at' => now()->subDay(),
+        ]);
+
+        // The English site shows the Dutch text with a note; both languages have a URL.
+        $this->get($article->url('en'))->assertOk()->assertSee('Mijn nieuwe schoenen')->assertSee('Ze lopen fijn.')->assertSee('You are reading the Dutch version');
+        $this->get($article->url('nl'))->assertOk()->assertDontSee('Je leest de Engelse versie');
+
+        // The story link counts people, not link previews, and leads to the article.
+        $this->get('/s/'.$article->id.'/nl')->assertRedirect($article->url('nl'));
+        $this->withHeader('User-Agent', 'facebookexternalhit/1.1')->get('/s/'.$article->id.'/en')->assertRedirect($article->url('en'));
+        $this->assertSame(1, \App\Models\StoryClick::count());
+
+        $this->actingAs(User::factory()->create(['role' => Role::Admin]));
+        $this->get('/admin/statistics')->assertOk();
+        Livewire::test(\App\Filament\Widgets\StoryClicks::class)->assertSee('Insta-story-klikken')->assertSee('Mijn nieuwe schoenen');
+        $this->get('/admin/insta-story?article='.$article->id)->assertSee('\/s\/'.$article->id.'\/nl', false); // the tracking link (JSON in the page)
+    }
+
     public function test_all_cms_screens_render(): void
     {
         $this->actingAs(User::factory()->create(['role' => Role::Admin]));
@@ -104,6 +126,8 @@ class ContentTest extends TestCase
         $this->get('/admin/statistics')->assertOk()->assertSee('Statistieken');
         $story = \App\Models\Article::create(['type' => \App\Enums\ArticleType::Diary, 'title' => ['en' => 'Over the Alps', 'nl' => 'Over de Alpen']]);
         $this->get('/admin/insta-story?article='.$story->id)->assertOk()->assertSee('Link kopiëren')->assertSee('Over de Alpen')->assertSee('nieuw verhaal!');
+        $dutchOnly = \App\Models\Article::create(['type' => \App\Enums\ArticleType::Diary, 'title' => ['nl' => 'Alleen Nederlands']]);
+        $this->get('/admin/insta-story?article='.$dutchOnly->id)->assertOk()->assertSee('Alleen Nederlands')->assertDontSee('<option value="en">', false);
         Livewire::test(JourneyOverview::class)->assertOk()->assertSee('Laatste locatie-update');
         Livewire::test(SettingsPage::class)
             ->set('data.public_tracking_delay_hours', 168)

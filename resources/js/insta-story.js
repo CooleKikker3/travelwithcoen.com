@@ -9,7 +9,8 @@ const C = {
     fern300: '#a6cf92',
     olive300: '#c2c07a',
     sand100: '#eee8d8',
-    tape: 'rgba(194, 192, 122, 0.8)',
+    // Washi tape colours (semi-transparent, like the real thing).
+    tapes: ['rgba(194, 192, 122, 0.82)', 'rgba(166, 207, 146, 0.78)', 'rgba(238, 232, 216, 0.85)', 'rgba(214, 160, 140, 0.75)', 'rgba(150, 190, 205, 0.75)'],
 };
 const FONTS = { display: '"Bricolage Grotesque", sans-serif', hand: 'Caveat, cursive', body: 'Nunito, sans-serif' };
 
@@ -34,7 +35,12 @@ async function init(root) {
     await Promise.all([`800 80px ${FONTS.display}`, `700 80px ${FONTS.hand}`, `800 30px ${FONTS.body}`].map((font) => document.fonts.load(font).catch(() => {})));
 
     const texts = () => data.locales[localeSelect.value];
-    const draw = () => render(canvas.getContext('2d'), { ...texts(), note: noteInput.value || texts().note }, cover);
+    let tape = randomTape();
+    const draw = () => render(canvas.getContext('2d'), { ...texts(), note: noteInput.value || texts().note }, cover, tape);
+    root.querySelector('[data-tape]').addEventListener('click', () => {
+        tape = randomTape();
+        draw();
+    });
 
     localeSelect.addEventListener('change', () => {
         noteInput.value = texts().note;
@@ -75,7 +81,51 @@ async function init(root) {
     });
 }
 
-function render(ctx, t, cover) {
+// A random piece of tape: colour, angle, place, size, stripes and torn ends differ every time.
+function randomTape() {
+    const between = (min, max) => min + Math.random() * (max - min);
+    return {
+        color: C.tapes[Math.floor(Math.random() * C.tapes.length)],
+        angle: between(-9, 9),
+        x: between(-150, 150),
+        width: between(220, 330),
+        height: between(62, 84),
+        stripes: Math.random() < 0.35,
+        ends: Array.from({ length: 2 }, () => Array.from({ length: 7 }, () => between(-7, 7))),
+    };
+}
+
+function drawTape(ctx, tape, top) {
+    const { width: w, height: h } = tape;
+    ctx.save();
+    ctx.translate(tape.x, top + h / 2 - 34);
+    ctx.rotate((tape.angle * Math.PI) / 180);
+    ctx.beginPath();
+    ctx.moveTo(-w / 2, -h / 2);
+    ctx.lineTo(w / 2, -h / 2);
+    tape.ends[1].forEach((dx, i) => ctx.lineTo(w / 2 + dx, -h / 2 + (h * (i + 1)) / 8)); // torn right end
+    ctx.lineTo(w / 2, h / 2);
+    ctx.lineTo(-w / 2, h / 2);
+    tape.ends[0].forEach((dx, i) => ctx.lineTo(-w / 2 + dx, h / 2 - (h * (i + 1)) / 8)); // torn left end
+    ctx.closePath();
+    ctx.fillStyle = tape.color;
+    ctx.fill();
+    if (tape.stripes) {
+        ctx.clip();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+        for (let x = -w; x < w; x += 34) {
+            ctx.beginPath();
+            ctx.moveTo(x, -h / 2);
+            ctx.lineTo(x + 14, -h / 2);
+            ctx.lineTo(x + 14 + h, h / 2);
+            ctx.lineTo(x + h, h / 2);
+            ctx.fill();
+        }
+    }
+    ctx.restore();
+}
+
+function render(ctx, t, cover, tape) {
     ctx.save();
     ctx.clearRect(0, 0, W, H);
 
@@ -138,9 +188,7 @@ function render(ctx, t, cover) {
     ctx.fillStyle = C.forest800;
     ctx.font = `700 64px ${FONTS.hand}`;
     fitText(ctx, t.caption || '', 0, ph / 2 - 52, photo);
-    ctx.rotate((5 * Math.PI) / 180);
-    ctx.fillStyle = C.tape;
-    ctx.fillRect(-140, -ph / 2 - 40, 280, 76);
+    drawTape(ctx, tape, -ph / 2);
     ctx.restore();
 
     // Title.

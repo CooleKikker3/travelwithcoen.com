@@ -71,7 +71,7 @@ return [
 
     'articles' => [
         'read_more' => 'Read more',
-        'not_translated' => 'This article is not yet available in English. You are reading the original version.',
+        'not_translated' => 'This story is not yet available in English. You are reading the Dutch version.',
         'published' => 'Published :date',
         'country' => 'Country',
         'tags' => 'Tags',

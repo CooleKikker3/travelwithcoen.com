@@ -24,15 +24,15 @@ class ArticlesTable
             ->defaultSort('published_at', 'desc')
             ->columns([
                 TextColumn::make('title')->label('Titel')
-                    ->state(fn (Article $record) => $record->translate('title', 'en'))
+                    ->state(fn (Article $record) => $record->translate('title', 'nl'))
                     ->searchable(query: fn (Builder $query, string $search) => $query->where('title', 'like', "%{$search}%"))
                     ->wrap(),
                 TextColumn::make('type')->label('Soort')->badge(),
                 TextColumn::make('status')->label('Status')->badge(),
                 TextColumn::make('tags')->label('Tags')->badge()->separator(',')->toggleable(),
-                IconColumn::make('dutch')
-                    ->label('NL')
-                    ->state(fn (Article $record) => $record->isTranslated('nl'))
+                IconColumn::make('english')
+                    ->label('EN')
+                    ->state(fn (Article $record) => $record->isTranslated('en'))
                     ->boolean(),
                 TextColumn::make('country')->label('Land')
                     ->state(fn (Article $record) => $record->country?->translate('name', 'en')),

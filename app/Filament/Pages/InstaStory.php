@@ -9,7 +9,7 @@ use Livewire\Attributes\Url;
 /**
  * Instagram story for an article, in the site's style (resources/js/insta-story.js draws it on a canvas in the
  * browser). Instagram has no links in images: the story gets a marked spot for the link sticker, and the page
- * copies the article link to paste into that sticker. Opened from the article list / edit page.
+ * copies a tracking link (/s/{article}/{locale}, counted in StoryClicks) to paste into that sticker. Opened from the article list / edit page.
  */
 class InstaStory extends Page
 {
@@ -29,9 +29,11 @@ class InstaStory extends Page
 
         return [
             'cover' => $article->coverUrl(),
-            'locales' => collect(['nl', 'en'])->mapWithKeys(fn (string $locale) => [$locale => [
+            // Only the languages the article is written in.
+            'locales' => collect(['nl', 'en'])->filter(fn (string $locale) => $article->isTranslated($locale))->mapWithKeys(fn (string $locale) => [$locale => [
                 'title' => $article->translate('title', $locale),
-                'url' => $article->url($locale),
+                // Through the tracking link, so the clicks show up under Statistieken.
+                'url' => route('story.link', [$article->id, $locale]),
                 'caption' => collect([
                     $article->journeyDay ? __('site.day_name', ['number' => $article->journeyDay->number()], $locale) : null,
                     $article->country?->translate('name', $locale),

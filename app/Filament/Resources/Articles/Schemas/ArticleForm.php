@@ -27,7 +27,7 @@ class ArticleForm
             ->columns(3)
             ->components([
                 Section::make('Inhoud')
-                    ->description('Engels is verplicht. Laat je Nederlands leeg, dan toont de site de Engelse versie met een melding.')
+                    ->description('Nederlands is verplicht. Laat je Engels leeg, dan toont de Engelse site de Nederlandse versie met een melding.')
                     ->columnSpan(2)
                     ->schema([
                         TranslatableTabs::make(fn (string $locale, bool $isDefault) => [
@@ -49,7 +49,7 @@ class ArticleForm
                                 ->helperText('Gebruik het blok "Afbeelding met bijschrift" (werkbalk, blokken-icoon) om foto\'s in de tekst te zetten. Ze komen ook in de galerij.')
                                 ->customBlocks([ImageBlock::class])
                                 ->fileAttachments(false),
-                        ]),
+                        ], main: 'nl'),
                     ]),
 
                 Section::make('Publicatie')

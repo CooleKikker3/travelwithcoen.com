@@ -22,6 +22,6 @@ class Statistics extends Page
 
     protected function getHeaderWidgets(): array
     {
-        return [JourneyOverview::class];
+        return [JourneyOverview::class, \App\Filament\Widgets\StoryClicks::class];
     }
 }

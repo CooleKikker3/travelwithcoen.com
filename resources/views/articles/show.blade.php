@@ -1,5 +1,5 @@
 @php
-    $default = config('app.fallback_locale');
+    $default = $article->originalLocale();
     $contentLocale = $isTranslated ? app()->getLocale() : $default;
 @endphp
 <x-layouts.app

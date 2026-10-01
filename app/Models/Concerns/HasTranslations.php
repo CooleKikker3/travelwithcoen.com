@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
  * Models define:
  *  - $translatable: the translatable attributes
  *  - $slugSource:   the attribute a missing slug is generated from
+ *  - $mainLocale:   optional, the language the content is written in first (default: the site's default locale)
  */
 trait HasTranslations
 {
@@ -25,18 +26,34 @@ trait HasTranslations
     }
 
     /**
-     * The value in the given locale, falling back to the default locale when it is empty.
+     * The value in the given locale; when it is empty, the value in the main language, then in any other language.
      */
     public function translate(string $attribute, ?string $locale = null, bool $fallback = true): ?string
     {
         $values = $this->getAttribute($attribute) ?? [];
-        $value = $values[$locale ?? app()->getLocale()] ?? null;
+        $locales = $fallback ? [$locale ?? app()->getLocale(), ...$this->fallbackLocales()] : [$locale ?? app()->getLocale()];
 
-        if (blank($value) && $fallback) {
-            $value = $values[config('app.fallback_locale')] ?? null;
+        foreach ($locales as $candidate) {
+            if (filled($values[$candidate] ?? null)) {
+                return $values[$candidate];
+            }
         }
 
-        return blank($value) ? null : $value;
+        return null;
+    }
+
+    /** The language the content was written in: the main language if filled, otherwise the first filled one. */
+    public function originalLocale(): string
+    {
+        return collect($this->fallbackLocales())->first(fn (string $locale) => $this->isTranslated($locale)) ?? $this->fallbackLocales()[0];
+    }
+
+    /** @return list<string> main language first, then the site default, then the rest */
+    protected function fallbackLocales(): array
+    {
+        $main = property_exists($this, 'mainLocale') ? $this->mainLocale : config('app.fallback_locale');
+
+        return array_values(array_unique([$main, config('app.fallback_locale'), ...array_keys(config('travel.locales'))]));
     }
 
     /**
@@ -62,7 +79,7 @@ trait HasTranslations
         $slugs = $this->slug ?? [];
 
         foreach (array_keys(config('travel.locales')) as $locale) {
-            $source = $this->translate($this->slugSource, $locale, fallback: false);
+            $source = $this->translate($this->slugSource, $locale);
 
             if (blank($slugs[$locale] ?? null) && filled($source)) {
                 $slugs[$locale] = $this->uniqueSlug(Str::slug($source), $locale);
