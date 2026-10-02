@@ -56,7 +56,7 @@
                 </ul>
             @endif
 
-            <a href="{{ stories_url() }}" class="btn-outline mt-12">← {{ __('site.articles.back') }}</a>
+            <a href="{{ stories_url() }}" class="btn-outline mt-12"><x-icons.arrow left /> {{ __('site.articles.back') }}</a>
         </div>
     </article>
 </x-layouts.app>

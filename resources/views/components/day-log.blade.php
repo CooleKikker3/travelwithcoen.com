@@ -13,7 +13,7 @@
                     <span class="w-32 text-sm text-moss-600">{{ $day->date->translatedFormat('D j M Y') }}</span>
                     <span class="min-w-0 flex-1 font-semibold">
                         @if ($day->start_location || $day->end_location)
-                            {{ $day->start_location ?? '…' }} <span class="text-olive-500" aria-hidden="true">→</span> {{ $day->end_location ?? '…' }}
+                            {{ $day->start_location ?? '…' }} <span class="text-olive-500" aria-hidden="true"><x-icons.arrow /></span> {{ $day->end_location ?? '…' }}
                         @else
                             {{ $day->type->getLabel() }}
                         @endif

@@ -38,7 +38,7 @@
                                 @if ($excerpt = $item->translate('excerpt'))
                                     <p class="mt-2 text-sm text-forest-700">{{ $excerpt }}</p>
                                 @endif
-                                <span class="mt-auto pt-4 text-sm font-semibold text-moss-600 transition group-hover:translate-x-1" aria-hidden="true">{{ __('site.equipment.read_more') }} →</span>
+                                <span class="mt-auto pt-4 text-sm font-semibold text-moss-600 transition group-hover:translate-x-1" aria-hidden="true">{{ __('site.equipment.read_more') }} <x-icons.arrow /></span>
                             </div>
                         </li>
                     @endforeach

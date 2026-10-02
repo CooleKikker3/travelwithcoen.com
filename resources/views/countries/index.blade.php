@@ -43,7 +43,7 @@
                     </div>
                     <div class="mt-2 flex items-end gap-4">
                         <p class="max-w-2xl text-sage-200">{{ __('site.preparation.lead') }}</p>
-                        <span class="ml-auto font-semibold text-fern-300 transition duration-300 group-hover:translate-x-1" aria-hidden="true">→</span>
+                        <span class="ml-auto font-semibold text-fern-300 transition duration-300 group-hover:translate-x-1" aria-hidden="true"><x-icons.arrow /></span>
                     </div>
                 </article>
             </li>
@@ -72,7 +72,7 @@
                                     @if ($planned > 0)<div><dt class="inline text-moss-600">{{ __('site.stats.planned') }}:</dt> <dd class="inline font-semibold">{{ $km($planned) }}</dd></div>@endif
                                     @if ($actual > 0)<div><dt class="inline text-moss-600">{{ __('site.stats.walked') }}:</dt> <dd class="inline font-semibold">{{ $km($actual) }}</dd></div>@endif
                                     <div class="text-moss-600">{{ trans_choice('site.journey.stories', $country->articles_count) }}</div>
-                                    <div class="ml-auto font-semibold text-moss-600 transition duration-300 group-hover:translate-x-1" aria-hidden="true">→</div>
+                                    <div class="ml-auto font-semibold text-moss-600 transition duration-300 group-hover:translate-x-1" aria-hidden="true"><x-icons.arrow /></div>
                                 </dl>
                             </div>
                             <div class="overflow-hidden">
@@ -92,7 +92,7 @@
         <section class="container-page mt-20">
             <div class="flex flex-wrap items-end justify-between gap-4" data-reveal>
                 <h2 class="text-4xl font-extrabold sm:text-5xl">{{ __('site.journey.stories_title') }}</h2>
-                <a href="{{ stories_url() }}" class="btn-outline">{{ __('site.journey.all_stories') }} →</a>
+                <a href="{{ stories_url() }}" class="btn-outline">{{ __('site.journey.all_stories') }} <x-icons.arrow /></a>
             </div>
             <div class="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($latest as $article)

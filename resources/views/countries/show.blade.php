@@ -81,6 +81,6 @@
     @endif
 
     <div class="container-page mt-12">
-        <a href="{{ lroute('journey') }}" class="font-semibold text-moss-600 hover:text-forest-700">← {{ __('site.country.back') }}</a>
+        <a href="{{ lroute('journey') }}" class="font-semibold text-moss-600 hover:text-forest-700"><x-icons.arrow left /> {{ __('site.country.back') }}</a>
     </div>
 </x-layouts.app>

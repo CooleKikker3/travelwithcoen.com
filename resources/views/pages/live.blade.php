@@ -30,7 +30,7 @@
 
                     @unless ($live)
                         <p class="mt-2 text-xs text-sage-200">{{ __('site.live.lead_public', ['days' => $delayDays]) }}</p>
-                        <a href="{{ lroute('login') }}" class="mt-3 inline-block text-sm font-bold text-fern-300 hover:text-white">{{ __('site.live.family') }} →</a>
+                        <a href="{{ lroute('login') }}" class="mt-3 inline-block text-sm font-bold text-fern-300 hover:text-white">{{ __('site.live.family') }} <x-icons.arrow /></a>
                     @endunless
                 </div>
             </div>

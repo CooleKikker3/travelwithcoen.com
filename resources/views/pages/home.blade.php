@@ -28,7 +28,7 @@
                 <p class="rise mt-6 max-w-xl text-lg text-sage-100" style="--d: .25s">{{ $lead }}</p>
 
                 <div class="rise mt-8 flex flex-wrap gap-3" style="--d: .4s">
-                    <a href="{{ stories_url('preparation') }}" class="btn-primary">{{ __('site.home.cta_preparation') }} →</a>
+                    <a href="{{ stories_url('preparation') }}" class="btn-primary">{{ __('site.home.cta_preparation') }} <x-icons.arrow /></a>
 
                     <a href="{{ lroute('about') }}" class="btn-ghost">{{ __('site.home.cta_about') }}</a>
                 </div>
@@ -92,7 +92,7 @@
                         <p class="mt-2 text-sm text-sage-200">{{ __('site.home.last_seen', ['date' => $lastLocation->recorded_at->translatedFormat('j F Y')]) }}</p>
                     @endif
                 </div>
-                <a href="{{ lroute('journey') }}" class="btn-ghost">{{ __('site.journey.title') }} →</a>
+                <a href="{{ lroute('journey') }}" class="btn-ghost">{{ __('site.journey.title') }} <x-icons.arrow /></a>
             </div>
             <x-route-map :geojson="$overview" :track-level="1" :delay-days="$delayDays" class="mt-8 h-[26rem] rounded-3xl shadow-2xl shadow-black/40 ring-4 ring-forest-700 sm:h-[34rem]" data-reveal />
             <x-delay-note class="mt-4 text-sage-200" />
@@ -106,7 +106,7 @@
                 <h2 class="text-4xl font-extrabold sm:text-5xl">{{ __('site.home.news_title') }}</h2>
                 <span class="-rotate-3 pb-1 font-hand text-3xl text-moss-600">{{ __('site.home.news_hand') }}</span>
             </div>
-            <a href="{{ stories_url() }}" class="btn-outline">{{ __('site.home.all_updates') }} →</a>
+            <a href="{{ stories_url() }}" class="btn-outline">{{ __('site.home.all_updates') }} <x-icons.arrow /></a>
         </div>
         @if ($latest->isEmpty())
             <p class="mt-8 rounded-2xl border border-dashed border-sage-200 p-8 text-center text-moss-600">{{ __('site.home.empty') }}</p>
@@ -128,7 +128,7 @@
                         <h2 class="text-4xl font-extrabold sm:text-5xl">{{ __('site.home.photos_title') }}</h2>
                         <span class="-rotate-3 pb-1 font-hand text-3xl text-moss-600">{{ __('site.home.photos_hand') }}</span>
                     </div>
-                    <a href="{{ lroute('gallery') }}" class="btn-outline">{{ __('site.media.title') }} →</a>
+                    <a href="{{ lroute('gallery') }}" class="btn-outline">{{ __('site.media.title') }} <x-icons.arrow /></a>
                 </div>
                 <x-gallery-wall :items="$gallery" />
             </div>

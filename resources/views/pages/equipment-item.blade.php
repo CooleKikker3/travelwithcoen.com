@@ -53,7 +53,7 @@
                 {!! $item->bodyHtml() !!}
             </div>
 
-            <a href="{{ lroute('equipment') }}" class="btn-outline mt-12">← {{ __('site.equipment.back') }}</a>
+            <a href="{{ lroute('equipment') }}" class="btn-outline mt-12"><x-icons.arrow left /> {{ __('site.equipment.back') }}</a>
         </div>
     </article>
 </x-layouts.app>

@@ -26,7 +26,7 @@
 
             <div class="rise mt-10 flex flex-wrap justify-center gap-3" style="--d: .6s">
                 <a href="{{ lroute('home') }}" class="btn-primary">{{ __('site.errors.back_home') }}</a>
-                <a href="{{ lroute('journey') }}" class="btn-outline">{{ __('site.journey.title') }} →</a>
+                <a href="{{ lroute('journey') }}" class="btn-outline">{{ __('site.journey.title') }} <x-icons.arrow /></a>
             </div>
         </div>
     </section>
