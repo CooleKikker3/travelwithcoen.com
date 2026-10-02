@@ -20,6 +20,7 @@
                     ['Gebeurtenis toevoegen', \App\Filament\Resources\JourneyEvents\JourneyEventResource::getUrl('create'), 'heroicon-o-flag'],
                     ['Reisdag toevoegen', \App\Filament\Resources\JourneyDays\JourneyDayResource::getUrl('create'), 'heroicon-o-calendar-days'],
                     ['Route tekenen', \App\Filament\Pages\RoutePlanner::getUrl(), 'heroicon-o-map'],
+                    ['Teller-story', \App\Filament\Pages\CounterStory::getUrl(), 'heroicon-o-chart-bar'],
                 ] as [$label, $url, $icon])
                     <x-filament::button tag="a" :href="$url" :icon="$icon" color="gray" size="lg" style="width:100%">{{ $label }}</x-filament::button>
                 @endforeach

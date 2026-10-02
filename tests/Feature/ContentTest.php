@@ -149,6 +149,24 @@ class ContentTest extends TestCase
         $this->get('/admin/insta-story?article='.$story->id)->assertOk()->assertSee('Link kopiëren')->assertSee('Over de Alpen')->assertSee('nieuw verhaal!');
         $dutchOnly = \App\Models\Article::create(['type' => \App\Enums\ArticleType::Diary, 'title' => ['nl' => 'Alleen Nederlands']]);
         $this->get('/admin/insta-story?article='.$dutchOnly->id)->assertOk()->assertSee('Alleen Nederlands')->assertDontSee('<option value="en">', false);
+        $this->get('/admin/counter-story')->assertOk()->assertSee('Tot nu toe (all-time)'); // no journey days yet
+
+        // Counter story: today's numbers and straight-line distances from home (Lisse) to the newest GPS point.
+        $start = \App\Models\TrackingPoint::create(['latitude' => 52.2575, 'longitude' => 4.5570, 'recorded_at' => now()->subHours(8), 'received_at' => now(), 'source' => 'manual']);
+        $end = \App\Models\TrackingPoint::create(['latitude' => 52.3676, 'longitude' => 4.9041, 'recorded_at' => now()->subHour(), 'received_at' => now(), 'source' => 'manual']);
+        \App\Models\JourneyDay::create(['date' => now()->toDateString(), 'type' => \App\Enums\DayType::Walk, 'distance_km' => 31.5, 'walking_minutes' => 412,
+            'start_point_id' => $start->id, 'end_point_id' => $end->id, 'start_location' => 'Lisse', 'end_location' => 'Amsterdam']);
+        $story = (new \App\Filament\Pages\CounterStory)->storyData();
+        $data = $story['variants']['live'];
+        $today = collect($data['locales']['nl']['today']['items'])->pluck('value', 'key');
+        $this->assertSame(['Dag 1', '31,5', '6:52', '26,6', '27'], [$data['locales']['nl']['today']['headline'], $today['km'], $today['time'], $today['crow_day'], $today['crow_home']]);
+        $this->assertSame('Lisse → Amsterdam', $data['locales']['nl']['today']['route']);
+        $this->assertSame('so far', strtolower($data['locales']['en']['total']['headline']));
+        $this->assertGreaterThan(0, $data['crow']);
+        // With the delay (default) visitors' numbers: today's walk is not visible yet.
+        $this->assertSame('Vandaag', $story['variants']['delayed']['locales']['nl']['today']['headline']);
+        $this->assertSame([], $story['variants']['delayed']['locales']['nl']['today']['items']);
+        $this->get('/admin/counter-story')->assertSee('Met vertraging, zoals bezoekers het zien (14 dagen terug)')->assertSee('Uit de galerij');
         Livewire::test(JourneyOverview::class)->assertOk()->assertSee('Laatste locatie-update');
         Livewire::test(SettingsPage::class)
             ->set('data.public_tracking_delay_hours', 168)

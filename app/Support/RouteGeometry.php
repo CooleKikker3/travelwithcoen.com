@@ -328,7 +328,8 @@ class RouteGeometry
         return abs($dy * $p[1] - $dx * $p[0] + $b[1] * $a[0] - $b[0] * $a[1]) / hypot($dx, $dy);
     }
 
-    private static function haversine(array $a, array $b): float
+    /** Straight-line ("as the crow flies") distance in km between two [lat, lng] points. */
+    public static function haversine(array $a, array $b): float
     {
         [$lat1, $lat2] = [deg2rad($a[0]), deg2rad($b[0])];
         $dLat = $lat2 - $lat1;
