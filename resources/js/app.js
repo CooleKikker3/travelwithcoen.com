@@ -88,7 +88,9 @@ if (analyticsId) {
         const button = event.target.closest('[data-cookie-choice]');
         if (!button) return;
         storage.set(button.dataset.cookieChoice);
-        banner.hidden = true;
+        // Fly off (app.css), then hide; straight away when motion is reduced.
+        banner.classList.add('is-leaving');
+        setTimeout(() => { banner.hidden = true; banner.classList.remove('is-leaving'); }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 500);
         if (button.dataset.cookieChoice === 'yes') load();
         else {
             // Saying no after yes: remove GA's cookies (set on the main domain) and stop the script.

@@ -175,12 +175,13 @@
     </footer>
 
     @if ($analytics)
-        {{-- Google Analytics only after "yes" (app.js remembers the choice; "Cookies" in the footer asks again). --}}
-        <div class="cookie-banner" data-cookie-banner hidden role="dialog" aria-label="{{ __('site.footer.cookies') }}">
-            <p>{{ __('site.cookies.text') }}</p>
-            <div class="flex gap-2">
-                <button type="button" class="btn-primary !px-4 !py-2" data-cookie-choice="yes">{{ __('site.cookies.accept') }}</button>
-                <button type="button" class="btn-outline !px-4 !py-2" data-cookie-choice="no">{{ __('site.cookies.decline') }}</button>
+        {{-- Cookie notice; Google Analytics only after "yes" (app.js remembers the choice; "Cookies" in the footer asks again). --}}
+        <div class="cookie-banner" data-cookie-banner hidden role="dialog" aria-labelledby="cookie-title">
+            <p id="cookie-title" class="-rotate-2 font-hand text-[2rem] leading-none text-forest-900">{{ __('site.cookies.title') }}</p>
+            <p class="mt-3 text-[.95rem] leading-[1.55rem]">{{ __('site.cookies.text') }}</p>
+            <div class="mt-5 flex flex-wrap items-center gap-2">
+                <button type="button" class="btn-primary !px-5 !py-2.5" data-cookie-choice="yes">{{ __('site.cookies.accept') }}</button>
+                <button type="button" class="btn-outline !px-5 !py-2" data-cookie-choice="no">{{ __('site.cookies.decline') }}</button>
             </div>
         </div>
     @endif

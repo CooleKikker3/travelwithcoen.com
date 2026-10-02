@@ -548,8 +548,34 @@ main:has(> .blend-footer:last-child) ~ footer { margin-top: -80px; position: rel
 .gear-story figure img { width: 100%; max-height: 32rem; object-fit: cover; border-radius: .75rem; margin: 0; }
 .gear-story figcaption { margin-top: .35rem; font-family: var(--font-hand); font-size: 1.4rem; line-height: 1.2; color: var(--color-forest-800); }
 
-/* Cookie question for Google Analytics (layouts/app.blade.php, app.js): a small note bottom left, like a sticky note. */
-.cookie-banner { position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 1001; display: flex; flex-direction: column; gap: .75rem;
-    max-width: 24rem; padding: 1rem 1.1rem; border-radius: 1rem; background: var(--color-mist-50); color: var(--color-forest-800);
-    font-size: .9rem; box-shadow: 0 12px 30px -8px rgb(0 0 0 / .35); outline: 2px dashed var(--color-moss-400); outline-offset: -6px; }
+/* Cookie notice (layouts/app.blade.php, app.js): a lined journal note taped to the screen, bottom left.
+   It flutters in, the tape is slapped on, it nudges once after a few seconds, straightens on hover and flies off after a choice. */
+.cookie-banner { --tilt: -1.2deg; position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 1001; max-width: 27rem;
+    padding: 1.6rem 1.4rem 1.3rem 1.4rem; border-radius: .35rem; color: var(--color-forest-800);
+    background: repeating-linear-gradient(transparent 0 1.55rem, rgb(166 207 146 / .35) 1.55rem calc(1.55rem + 1px)) 0 .9rem / 100% auto, var(--color-mist-50);
+    box-shadow: 0 1px 0 rgb(0 0 0 / .05), 0 22px 50px -14px rgb(20 42 28 / .55);
+    transform: rotate(var(--tilt)); transform-origin: 50% 0;
+    transition: transform .4s cubic-bezier(.2, .9, .3, 1.4), box-shadow .4s;
+    animation: cookie-in .9s cubic-bezier(.2, .9, .3, 1.2) backwards, cookie-nudge .8s ease-in-out 6s; }
 .cookie-banner[hidden] { display: none; }
+.cookie-banner:hover, .cookie-banner:focus-within { transform: translateY(-6px) rotate(0deg) scale(1.02); box-shadow: 0 1px 0 rgb(0 0 0 / .05), 0 30px 60px -14px rgb(20 42 28 / .6); }
+/* Washi tape, like on the polaroids; slapped on after the note lands, lifts a little on hover. */
+.cookie-banner::before { content: ''; position: absolute; top: -13px; left: 50%; width: 112px; height: 28px; transform: translateX(-50%) rotate(3deg);
+    background: repeating-linear-gradient(-45deg, rgb(194 192 122 / .6) 0 6px, rgb(238 232 216 / .92) 6px 12px);
+    -webkit-mask: conic-gradient(from -45deg at left, #0000 25%, #000 0) left / 51% 7px repeat-y, conic-gradient(from 135deg at right, #0000 25%, #000 0) right / 51% 7px repeat-y;
+    mask: conic-gradient(from -45deg at left, #0000 25%, #000 0) left / 51% 7px repeat-y, conic-gradient(from 135deg at right, #0000 25%, #000 0) right / 51% 7px repeat-y;
+    filter: drop-shadow(0 1px 1px rgb(0 0 0 / .15)); transition: transform .35s cubic-bezier(.2, .9, .3, 1.6);
+    animation: cookie-tape .45s cubic-bezier(.3, 1.6, .5, 1) .75s backwards; }
+.cookie-banner:hover::before { transform: translateX(-50%) rotate(-5deg) scale(1.08); }
+/* After a choice: peeled off and blown away (app.js hides it when this ends). */
+.cookie-banner.is-leaving { animation: cookie-out .5s cubic-bezier(.5, 0, .8, .4) both; pointer-events: none; }
+@keyframes cookie-in {
+    0% { opacity: 0; transform: translate(-2rem, 8rem) rotate(14deg); }
+    55% { opacity: 1; transform: translate(.3rem, -.6rem) rotate(-5deg); }
+    75% { transform: translate(0, .2rem) rotate(1.5deg); }
+    100% { transform: rotate(var(--tilt)); } }
+@keyframes cookie-tape { from { opacity: 0; transform: translateX(-50%) translateY(-14px) rotate(-14deg) scale(1.4); } }
+@keyframes cookie-nudge { 0%, 100% { transform: rotate(var(--tilt)); } 25% { transform: rotate(2deg) translateY(-4px); } 50% { transform: rotate(-3deg); } 75% { transform: rotate(.5deg); } }
+@keyframes cookie-out { to { opacity: 0; transform: translate(4rem, 10rem) rotate(22deg) scale(.9); } }
+@media (min-width: 640px) { .cookie-banner { left: 1.5rem; bottom: 1.5rem; right: auto; } }
+@media (prefers-reduced-motion: reduce) { .cookie-banner, .cookie-banner::before, .cookie-banner.is-leaving { animation: none; transition: none; } }

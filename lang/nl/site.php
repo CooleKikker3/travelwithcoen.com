@@ -282,8 +282,9 @@ return [
     ],
 
     'cookies' => [
-        'text' => 'Mag ik bezoeken tellen met Google Analytics? Zo zie ik wat je graag leest. Geen advertenties, niets wordt verkocht.',
-        'accept' => 'Prima',
-        'decline' => 'Liever niet',
+        'title' => 'Een koekje voor onderweg?',
+        'text' => 'Deze website gebruikt cookies om te zien hoe vaak verhalen gelezen worden en wat je leuk vindt. Daarmee kan ik onderweg betere verhalen schrijven. Geen advertenties, er wordt niets verkocht.',
+        'accept' => 'Cookies accepteren',
+        'decline' => 'Alleen noodzakelijke',
     ],
 ];

@@ -282,8 +282,9 @@ return [
     ],
 
     'cookies' => [
-        'text' => 'May I count visits with Google Analytics? That helps me see what you like to read. No ads, nothing sold.',
-        'accept' => 'Sure',
-        'decline' => 'No thanks',
+        'title' => 'A cookie for the road?',
+        'text' => 'This website uses cookies to see how often stories are read and what you enjoy. That helps me write better stories along the way. No ads, nothing is sold.',
+        'accept' => 'Accept cookies',
+        'decline' => 'Only necessary cookies',
     ],
 ];

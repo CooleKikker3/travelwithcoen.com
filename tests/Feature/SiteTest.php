@@ -327,6 +327,7 @@ class SiteTest extends TestCase
 
     public function test_social_links_and_analytics(): void
     {
+        config(['services.google_analytics.id' => null]); // not from the local .env
         $this->get('/about')->assertDontSee('instagram.com')->assertDontSee('data-analytics', false);
 
         \App\Support\Settings::set(['instagram_url' => 'https://instagram.com/coen', 'facebook_url' => null]);
