@@ -32,21 +32,19 @@
             {{-- First stop on the timeline: the preparation, before the first country. --}}
             <li class="relative">
                 <span class="absolute top-7 -left-[33px] size-4 rounded-full border-4 border-mist-50 bg-olive-500 sm:-left-[49px]" aria-hidden="true"></span>
-                <article class="topo rounded-2xl bg-forest-800 p-6 text-sage-100">
+                {{-- One card to all preparation stories (no list of titles: there will be dozens). --}}
+                <article class="topo group relative rounded-2xl bg-forest-800 p-6 text-sage-100 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-forest-900/20 focus-within:ring-2 focus-within:ring-fern-300">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <h3 class="font-display text-2xl font-semibold text-white">
-                            <a href="{{ stories_url('preparation') }}" class="hover:text-fern-300">{{ __('site.preparation.title') }}</a>
+                            {{-- The link covers the whole card. --}}
+                            <a href="{{ stories_url('preparation') }}" class="transition group-hover:text-fern-300 focus:outline-none after:absolute after:inset-0 after:rounded-2xl">{{ __('site.preparation.title') }}</a>
                         </h3>
                         <span class="badge bg-forest-700 text-fern-300">{{ trans_choice('site.journey.stories', $preparationCount) }}</span>
                     </div>
-                    <p class="mt-2 max-w-2xl text-sage-200">{{ __('site.preparation.lead') }}</p>
-                    @if ($preparation->isNotEmpty())
-                        <ul class="mt-4 space-y-1">
-                            @foreach ($preparation as $story)
-                                <li><a href="{{ $story->url() }}" class="font-semibold text-fern-300 hover:text-white">{{ $story->translate('title') }} →</a></li>
-                            @endforeach
-                        </ul>
-                    @endif
+                    <div class="mt-2 flex items-end gap-4">
+                        <p class="max-w-2xl text-sage-200">{{ __('site.preparation.lead') }}</p>
+                        <span class="ml-auto font-semibold text-fern-300 transition duration-300 group-hover:translate-x-1" aria-hidden="true">→</span>
+                    </div>
                 </article>
             </li>
 

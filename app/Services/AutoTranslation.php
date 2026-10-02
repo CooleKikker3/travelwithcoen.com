@@ -144,7 +144,8 @@ class AutoTranslation
             }
             $out = $this->google->translate([$prepared])[0];
             $out = preg_replace('/<\/?span[^>]*>/i', '', $out);
-            $out = preg_replace('/[ \t]*<br\s*\/?>\s?/i', "\n", $out);
+            // Google puts a space after every line break: drop it.
+            $out = preg_replace('/[ \t]*<br\s*\/?>[ \t]*\n?[ \t]*/i', "\n", $out);
 
             return trim(html_entity_decode($out, ENT_QUOTES | ENT_HTML5));
         }
@@ -172,7 +173,21 @@ class AutoTranslation
             $configs[$i][$key] = html_entity_decode($out[$j + 1], ENT_QUOTES | ENT_HTML5);
         }
 
-        return preg_replace_callback('/\sdata-n="(\d+)"/', fn (array $m) => ' data-config="'.e(json_encode($configs[(int) $m[1]] ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)).'"', $out[0]);
+        $html = preg_replace_callback('/\sdata-n="(\d+)"/', fn (array $m) => ' data-config="'.e(json_encode($configs[(int) $m[1]] ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)).'"', $out[0]);
+
+        return self::tidy($html);
+    }
+
+    /** Google adds spaces after line breaks and around paragraphs; in the editor they show at the start of every line. */
+    public static function tidy(string $html): string
+    {
+        $block = '(?:p|h[1-6]|li|ul|ol|blockquote|div)';
+
+        $html = preg_replace('/\s*(<br\s*\/?>)\s*/i', '$1', $html);
+        $html = preg_replace("/(<{$block}(?:\s[^>]*)?>)\s+/i", '$1', $html);
+        $html = preg_replace("/\s+(<\/{$block}>)/i", '$1', $html);
+
+        return preg_replace("/(<\/{$block}>)\s+(<)/i", '$1$2', $html);
     }
 
     private function values(mixed $value): array

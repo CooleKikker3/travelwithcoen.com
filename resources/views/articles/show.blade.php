@@ -51,7 +51,7 @@
             @if ($article->tags)
                 <ul class="mt-10 flex flex-wrap gap-2" aria-label="{{ __('site.articles.tags') }}">
                     @foreach ($article->tags as $tag)
-                        <li><a href="{{ stories_url(null, $tag) }}" class="badge hover:bg-sage-200">#{{ $tag }}</a></li>
+                        <li><span class="badge">#{{ $tag }}</span></li>
                     @endforeach
                 </ul>
             @endif

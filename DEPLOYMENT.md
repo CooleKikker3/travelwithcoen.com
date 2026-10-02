@@ -208,6 +208,9 @@ GARMIN_MAPSHARE_PASSWORD=
 # Automatische vertalingen Nederlands → Engels (stap 19; mag later)
 GOOGLE_TRANSLATE_KEY=
 
+# Google Analytics, metings-ID G-... (stap 20; mag later)
+GOOGLE_ANALYTICS_ID=
+
 # E-mail voor "wachtwoord vergeten" (stap 16; mag later)
 MAIL_MAILER=smtp
 MAIL_HOST=
@@ -533,6 +536,22 @@ nagekeken op de pagina **Vertalingen** in het beheer (daar staat ook een teller 
 Kosten: Google rekent per teken. Er staat een budgetwaarschuwing op € 5. Wat je verbruikt zie je via de knop
 **Kosten bij Google** op de pagina **Vertalingen**, of direct:
 <https://console.cloud.google.com/billing/0114D4-D24B5E-64CFB7?project=travelwithcoen>
+
+## Stap 20 — Google Analytics (mag later)
+
+Bezoekers krijgen eerst een kleine vraag of ze geteld mogen worden; Google Analytics laadt pas na "Prima".
+Als je zelf ingelogd bent als beheerder, telt Analytics je niet mee.
+
+1. <https://analytics.google.com> → **Beheer** → **Property maken** (naam: Travel with Coen, tijdzone Nederland).
+2. **Gegevensstreams** → **Web** → URL `https://travelwithcoen.com` → **Stream maken**.
+3. Kopieer de **Metings-ID** (begint met `G-`).
+4. In `.env`: `GOOGLE_ANALYTICS_ID=G-...`, daarna `sudo -u www-data php artisan optimize`.
+5. Controle: open de site in een privévenster, klik op **Prima** en kijk in Analytics bij **Rapporten** → **Realtime**.
+
+Tip: zet in Analytics bij **Beheer** → **Gegevensverzameling en -aanpassing** → **Gegevensbewaring** op 2 maanden
+(het kortst mogelijke) en laat "Google-signalen" uit.
+
+Social-medialinks (Facebook, Instagram, YouTube) vul je zelf in het beheer in: **Instellingen** → **Social media**.
 
 ---
 

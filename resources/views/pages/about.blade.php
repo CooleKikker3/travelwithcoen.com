@@ -1,6 +1,5 @@
 @php
     $photo = ($path = \App\Support\Settings::get('about_image')) ? \App\Support\MediaStorage::url($path) : null;
-    $youtube = config('travel.youtube_channel');
 @endphp
 <x-layouts.app :title="__('site.about.title')" :image="$photo">
     <x-page-header :title="__('site.about.title')" :lead="__('site.about.lead')" />
@@ -15,8 +14,11 @@
                 @endforeach
             </div>
             <p class="mt-8 rounded-2xl bg-sand-100 p-5 text-sm text-bark-700">{{ __('site.about.uncertain') }}</p>
-            @if ($youtube)
-                <a href="{{ str_starts_with($youtube, 'http') ? $youtube : 'https://www.youtube.com/'.ltrim($youtube, '/') }}" class="btn-outline mt-8" rel="noopener" target="_blank">{{ __('site.about.youtube') }} →</a>
+            @if (\App\Support\Settings::socialLinks())
+                <div class="mt-8 flex flex-wrap items-center gap-4">
+                    <p class="-rotate-2 font-hand text-3xl text-moss-600">{{ __('site.social.title') }}</p>
+                    <x-social-links class="text-forest-800" />
+                </div>
             @endif
         </div>
         @if ($photo)

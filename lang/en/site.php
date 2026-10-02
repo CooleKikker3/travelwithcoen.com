@@ -89,7 +89,6 @@ return [
 
     'about' => [
         'hand' => "hi, I'm Coen!",
-        'youtube' => "Watch my videos on YouTube",
         'title' => 'About the project',
         'lead' => 'Why walk from the Netherlands to Hanoi?',
         'body' => "I’m Coen, from Lisse in the Netherlands. From :departure I walk from my front door to Hanoi, Vietnam: as much as possible on foot and over land, using transport only when a border, visa, safety or geography really requires it.\n\nIt isn’t about ticking off tourist sights. I want countryside, nature, quiet roads, dirt tracks and small villages. I camp a lot, cook for myself and keep the trip as cheap as it can be without making it unsafe.\n\nI’ve walked the Nijmegen Four Days Marches and finished an 80 km Kennedymars — and learned from my knees afterwards that walking far is one thing, and walking far day after day is another. That’s what the preparation is for.\n\nThis website is the home of the project: preparation first, then the journey itself, and afterwards the complete archive of the walk.",
@@ -272,5 +271,19 @@ return [
         'hand' => 'see you on the road!',
         'made_by' => 'Made by',
         'sitemap' => 'Sitemap',
+        'cookies' => 'Cookies',
+    ],
+
+    'social' => [
+        'title' => 'Follow along',
+        'facebook' => 'Facebook',
+        'instagram' => 'Instagram',
+        'youtube' => 'YouTube',
+    ],
+
+    'cookies' => [
+        'text' => 'May I count visits with Google Analytics? That helps me see what you like to read. No ads, nothing sold.',
+        'accept' => 'Sure',
+        'decline' => 'No thanks',
     ],
 ];

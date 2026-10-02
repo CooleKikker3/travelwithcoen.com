@@ -69,7 +69,8 @@
     <script>document.documentElement.classList.add('js')</script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="flex min-h-screen flex-col">
+@php($analytics = auth()->user()?->isAdmin() ? null : config('services.google_analytics.id'))
+<body class="flex min-h-screen flex-col" @if ($analytics) data-analytics="{{ $analytics }}" @endif>
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">{{ __('site.skip') }}</a>
 
     {{-- Floating navigation: transparent over the dark top of every page, a blurred green pill once scrolled (js in app.js). --}}
@@ -153,6 +154,7 @@
             </nav>
 
             <div class="flex flex-col items-start gap-3 text-sm lg:items-end">
+                <x-social-links class="text-fern-300" />
                 @auth
                     <span>{{ __('site.login.logged_in_as', ['name' => auth()->user()->name]) }}</span>
                     <form method="POST" action="{{ lroute('logout') }}">@csrf<button class="btn-ghost">{{ __('site.login.logout') }}</button></form>
@@ -164,10 +166,23 @@
 
         <div class="border-t border-dashed border-forest-700">
             <div class="container-page flex flex-col gap-2 py-5 text-xs sm:flex-row sm:items-center sm:justify-between">
-                <p>&copy; {{ now()->year > 2026 ? '2026–'.now()->year : '2026' }} {{ __('site.name') }} · <a href="{{ route('sitemap') }}" class="hover:text-white">{{ __('site.footer.sitemap') }}</a></p>
+                <p>&copy; {{ now()->year > 2026 ? '2026–'.now()->year : '2026' }} {{ __('site.name') }} · <a href="{{ route('sitemap') }}" class="hover:text-white">{{ __('site.footer.sitemap') }}</a>
+                    @if ($analytics) · <button type="button" data-cookie-settings class="hover:text-white">{{ __('site.footer.cookies') }}</button>@endif
+                </p>
                 <p>{{ __('site.footer.made_by') }} <a href="https://coenvink.com" target="_blank" rel="noopener" class="font-bold text-fern-300 hover:text-white">coenvink.com</a></p>
             </div>
         </div>
     </footer>
+
+    @if ($analytics)
+        {{-- Google Analytics only after "yes" (app.js remembers the choice; "Cookies" in the footer asks again). --}}
+        <div class="cookie-banner" data-cookie-banner hidden role="dialog" aria-label="{{ __('site.footer.cookies') }}">
+            <p>{{ __('site.cookies.text') }}</p>
+            <div class="flex gap-2">
+                <button type="button" class="btn-primary !px-4 !py-2" data-cookie-choice="yes">{{ __('site.cookies.accept') }}</button>
+                <button type="button" class="btn-outline !px-4 !py-2" data-cookie-choice="no">{{ __('site.cookies.decline') }}</button>
+            </div>
+        </div>
+    @endif
 </body>
 </html>

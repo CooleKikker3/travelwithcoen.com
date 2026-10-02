@@ -32,6 +32,12 @@ class Country extends Model
         ];
     }
 
+    /** The country Coen is in now (set from the newest GPS point), if any. */
+    public static function current(): ?self
+    {
+        return static::where('status', CountryStatus::Current)->first();
+    }
+
     public function articles(): HasMany
     {
         return $this->hasMany(Article::class);

@@ -309,4 +309,32 @@ class SiteTest extends TestCase
         $this->get('/admin/site-texts')->assertOk()->assertSee('site__home__title');
         $this->get("/admin/articles/{$article->id}/edit")->assertOk()->assertSee('First night in the tent');
     }
+
+    public function test_article_views_are_counted_once_per_visit_without_bots_or_admins(): void
+    {
+        $article = $this->article();
+
+        $this->get('/preparation/first-night-in-the-tent')->assertOk();
+        $this->get('/preparation/first-night-in-the-tent')->assertOk(); // same visit
+        $this->flushSession()->withHeader('User-Agent', 'Googlebot/2.1')->get('/preparation/first-night-in-the-tent')->assertOk();
+        $this->flushSession()->withHeader('User-Agent', 'Mozilla/5.0')->actingAs(User::factory()->create(['role' => Role::Admin]))
+            ->get('/preparation/first-night-in-the-tent')->assertOk();
+
+        $this->assertSame(1, $article->fresh()->views);
+        $this->get('/admin/articles')->assertOk()->assertSee('Gelezen');
+        $this->get('/admin/articles/create')->assertOk();
+    }
+
+    public function test_social_links_and_analytics(): void
+    {
+        $this->get('/about')->assertDontSee('instagram.com')->assertDontSee('data-analytics', false);
+
+        \App\Support\Settings::set(['instagram_url' => 'https://instagram.com/coen', 'facebook_url' => null]);
+        config(['services.google_analytics.id' => 'G-TEST123']);
+
+        $this->get('/about')->assertSee('https://instagram.com/coen')->assertDontSee('facebook.com')
+            ->assertSee('data-analytics="G-TEST123"', false)->assertSee('data-cookie-banner', false);
+        $this->get('/')->assertSee('https://instagram.com/coen'); // footer on every page
+        $this->actingAs(User::factory()->create(['role' => Role::Admin]))->get('/')->assertDontSee('data-analytics', false);
+    }
 }

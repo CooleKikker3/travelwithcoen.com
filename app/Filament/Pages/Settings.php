@@ -66,6 +66,14 @@ class Settings extends Page
                     self::photo('about_image', 'Foto op de pagina "Over"', 'Een foto van jezelf.'),
                     self::photo('gear_image', 'Foto op de pagina "Uitrusting"', 'Jij met je spullen.'),
                 ]),
+                Section::make('Social media')
+                    ->description('Staan als icoontjes onderaan elke pagina en op de pagina "Over". Laat leeg om te verbergen.')
+                    ->columns(3)
+                    ->schema([
+                        TextInput::make('facebook_url')->label('Facebook')->url()->placeholder('https://facebook.com/...'),
+                        TextInput::make('instagram_url')->label('Instagram')->url()->placeholder('https://instagram.com/...'),
+                        TextInput::make('youtube_url')->label('YouTube')->url()->placeholder('https://youtube.com/@...'),
+                    ]),
                 Section::make('Privacy van je locatie')->columns(2)->schema([
                     Select::make('public_tracking_delay_hours')
                         ->label('Bezoekers zien je locatie van')

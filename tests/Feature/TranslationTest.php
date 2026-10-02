@@ -137,4 +137,13 @@ class TranslationTest extends TestCase
         $this->assertSame('Along the dikes', Article::first()->translate('title', 'en'));
         $this->assertNull(Translations::getNavigationBadge());
     }
+
+    public function test_spaces_google_adds_after_line_breaks_are_removed(): void
+    {
+        $this->mock(\App\Services\GoogleTranslate::class)->allows('translate')->andReturn(['Line one<br> Line two<br> <br> Line four']);
+        $this->assertSame("Line one\nLine two\n\nLine four", app(AutoTranslation::class)->translate("Regel een\nRegel twee\n\nRegel vier", false));
+
+        $this->assertSame('<p>One<br>two</p><p>Three <strong>bold</strong></p>',
+            AutoTranslation::tidy('<p> One<br> two </p> <p>Three <strong>bold</strong></p>'));
+    }
 }

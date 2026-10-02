@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ArticleType;
 use App\Models\Article;
+use App\Support\Bots;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,7 +20,6 @@ class ArticleController extends Controller
         return view('articles.index', [
             'type' => $type,
             'tag' => $tag,
-            'tags' => Article::published()->pluck('tags')->flatten()->filter()->unique()->sort()->values(),
             'articles' => Article::published()
                 ->when($type, fn ($q) => $q->where('type', $type))
                 ->when($tag, fn ($q) => $q->whereJsonContains('tags', $tag))
@@ -52,11 +52,26 @@ class ArticleController extends Controller
             return redirect($article->url(), 301);
         }
 
+        $this->countView($request, $article);
+
         return view('articles.show', [
             'article' => $article,
             'isTranslated' => $article->isTranslated($locale),
             'alternates' => $this->alternates($article),
         ]);
+    }
+
+    /** One view per visitor session; bots and admins (Coen checking his own story) are not counted. */
+    private function countView(Request $request, Article $article): void
+    {
+        $seen = $request->session()->get('viewed_articles', []);
+
+        if (in_array($article->id, $seen, true) || Bots::is($request) || $request->user()?->isAdmin()) {
+            return;
+        }
+
+        $request->session()->push('viewed_articles', $article->id);
+        Article::whereKey($article->id)->toBase()->increment('views'); // no updated_at change
     }
 
     /** Locale => URL, only for locales the article is actually written in. */

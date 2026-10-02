@@ -24,6 +24,16 @@ class Settings
         return self::all()[$key] ?? self::DEFAULTS[$key] ?? null;
     }
 
+    /** Filled-in social media links, network => URL (footer and About page). */
+    public static function socialLinks(): array
+    {
+        return array_filter([
+            'facebook' => self::get('facebook_url'),
+            'instagram' => self::get('instagram_url'),
+            'youtube' => self::get('youtube_url'),
+        ]);
+    }
+
     public static function all(): array
     {
         try {

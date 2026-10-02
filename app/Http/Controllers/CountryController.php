@@ -47,7 +47,6 @@ class CountryController extends Controller
                 'countries' => $stats['countries'],
             ],
             // First timeline item: the preparation, before the first country.
-            'preparation' => Article::published()->where('type', ArticleType::Preparation)->limit(3)->get(),
             'preparationCount' => Article::published()->where('type', ArticleType::Preparation)->count(),
             'latest' => Article::published()->with('country')->limit(3)->get(),
             // Day by day (visitors after the delay), newest first.

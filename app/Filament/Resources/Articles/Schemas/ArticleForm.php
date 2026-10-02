@@ -8,6 +8,7 @@ use App\Filament\Blocks\ImageBlock;
 use App\Filament\Support\Options;
 use App\Filament\Support\TranslatableTabs;
 use App\Models\Article;
+use App\Models\Country;
 use App\Support\MediaStorage;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
@@ -17,6 +18,8 @@ use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 
 class ArticleForm
@@ -58,7 +61,10 @@ class ArticleForm
                         Select::make('type')->label('Soort')
                             ->options(ArticleType::class)
                             ->default(ArticleType::Diary)
-                            ->required(),
+                            ->required()
+                            ->live()
+                            // Preparation stories belong to no country unless Coen picks one; diary stories to where he is.
+                            ->afterStateUpdated(fn (Set $set, $state) => $set('country_id', self::isPreparation($state) ? null : Country::current()?->id)),
                         Select::make('status')->label('Status')
                             ->options(ArticleStatus::class)
                             ->default(ArticleStatus::Published)
@@ -69,10 +75,12 @@ class ArticleForm
                             ->helperText('Een datum in de toekomst plant het artikel in. Dagboekverhalen zien bezoekers pas na de vertraging van je locatie.'),
                         TagsInput::make('tags')->label('Tags')
                             ->suggestions(fn () => Article::allTags())
-                            ->helperText('Bijv. uitrusting, training, kamperen, visa. Bezoekers kunnen op tags filteren.'),
+                            ->helperText('Bijv. uitrusting, training, kamperen, visa.'),
                         Select::make('country_id')
                             ->label('Land')
                             ->options(fn () => Options::countries())
+                            ->default(fn () => Country::current()?->id)
+                            ->helperText(fn (Get $get) => self::isPreparation($get('type')) ? 'Voorbereidingsverhalen horen standaard bij geen land.' : null)
                             ->searchable(),
                         Select::make('journey_day_id')
                             ->label('Reisdag')
@@ -90,5 +98,10 @@ class ArticleForm
                             ->maxSize(8192),
                     ]),
             ]);
+    }
+
+    private static function isPreparation(mixed $type): bool
+    {
+        return ($type instanceof ArticleType ? $type : ArticleType::tryFrom((string) $type)) === ArticleType::Preparation;
     }
 }

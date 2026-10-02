@@ -10,9 +10,6 @@
             @foreach (\App\Enums\ArticleType::cases() as $case)
                 <a href="{{ stories_url($case->value) }}" class="rounded-full px-3 py-1.5 text-sm font-semibold {{ $chip($type === $case && ! $tag) }}">{{ $case->getLabel() }}</a>
             @endforeach
-            @foreach ($tags as $t)
-                <a href="{{ stories_url($type?->value, $t) }}" class="rounded-full px-3 py-1.5 text-sm font-semibold {{ $chip($tag === $t) }}">#{{ $t }}</a>
-            @endforeach
         </nav>
 
         @if ($articles->isEmpty())

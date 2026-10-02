@@ -25,6 +25,11 @@ return [
         'billing_url' => env('GOOGLE_BILLING_URL', 'https://console.cloud.google.com/billing/0114D4-D24B5E-64CFB7?project=travelwithcoen'),
     ],
 
+    // Google Analytics 4 (measurement ID "G-..."). Empty = off. Only loaded after the visitor accepts the cookie banner.
+    'google_analytics' => [
+        'id' => env('GOOGLE_ANALYTICS_ID'),
+    ],
+
     'resend' => [
         'key' => env('RESEND_API_KEY'),
     ],

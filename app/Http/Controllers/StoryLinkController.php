@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\StoryClick;
+use App\Support\Bots;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -13,11 +14,9 @@ use Illuminate\Http\Request;
  */
 class StoryLinkController extends Controller
 {
-    private const BOTS = '/bot|crawl|spider|preview|facebookexternalhit|meta-external|slurp|curl|wget|python|headless/i';
-
     public function __invoke(Request $request, Article $article, string $locale): RedirectResponse
     {
-        if (! preg_match(self::BOTS, (string) $request->userAgent())) {
+        if (! Bots::is($request)) {
             StoryClick::create(['article_id' => $article->id, 'locale' => $locale, 'clicked_at' => now()]);
         }
 

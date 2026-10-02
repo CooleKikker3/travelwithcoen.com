@@ -89,7 +89,6 @@ return [
 
     'about' => [
         'hand' => "hoi, ik ben Coen!",
-        'youtube' => "Bekijk mijn video's op YouTube",
         'title' => 'Over het project',
         'lead' => 'Waarom van Nederland naar Hanoi lopen?',
         'body' => "Ik ben Coen, uit Lisse. Vanaf :departure loop ik van mijn voordeur naar Hanoi, Vietnam: zoveel mogelijk te voet en over land, en ik gebruik alleen vervoer als een grens, visum, veiligheid of geografie dat echt nodig maakt.\n\nHet gaat me niet om toeristische hoogtepunten. Ik zoek platteland, natuur, rustige wegen, onverharde paden en kleine dorpen. Ik kampeer veel, kook zelf en houd de reis zo goedkoop als kan zonder hem onveilig te maken.\n\nIk heb de Nijmeegse Vierdaagse gelopen en een Kennedymars van 80 km uitgelopen — en daarna van mijn knieën geleerd dat één keer ver lopen iets anders is dan dag na dag ver lopen. Daar is de voorbereiding voor.\n\nDeze website is de thuisbasis van het project: eerst de voorbereiding, dan de reis zelf, en daarna het complete archief van de tocht.",
@@ -272,5 +271,19 @@ return [
         'hand' => 'tot ziens onderweg!',
         'made_by' => 'Gemaakt door',
         'sitemap' => 'Sitemap',
+        'cookies' => 'Cookies',
+    ],
+
+    'social' => [
+        'title' => 'Volg de reis',
+        'facebook' => 'Facebook',
+        'instagram' => 'Instagram',
+        'youtube' => 'YouTube',
+    ],
+
+    'cookies' => [
+        'text' => 'Mag ik bezoeken tellen met Google Analytics? Zo zie ik wat je graag leest. Geen advertenties, niets wordt verkocht.',
+        'accept' => 'Prima',
+        'decline' => 'Liever niet',
     ],
 ];

@@ -62,3 +62,43 @@ if (counters.length && !window.matchMedia('(prefers-reduced-motion: reduce)').ma
     }, { threshold: 0.5 });
     counters.forEach((el) => counter.observe(el));
 }
+// Google Analytics: only after the visitor says yes (banner in the layout); the choice is kept in this browser.
+const analyticsId = document.body.dataset.analytics;
+if (analyticsId) {
+    const banner = document.querySelector('[data-cookie-banner]');
+    const storage = {
+        get: () => { try { return localStorage.getItem('twc-analytics'); } catch { return null; } },
+        set: (value) => { try { localStorage.setItem('twc-analytics', value); } catch { /* blocked */ } },
+    };
+    const load = () => {
+        if (window.gtag) return;
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        window.gtag('js', new Date());
+        window.gtag('config', analyticsId);
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(analyticsId)}`;
+        document.head.append(script);
+    };
+    const choice = storage.get();
+    if (choice === 'yes') load();
+    if (!choice && banner) banner.hidden = false;
+    banner?.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-cookie-choice]');
+        if (!button) return;
+        storage.set(button.dataset.cookieChoice);
+        banner.hidden = true;
+        if (button.dataset.cookieChoice === 'yes') load();
+        else {
+            // Saying no after yes: remove GA's cookies (set on the main domain) and stop the script.
+            const domain = location.hostname.replace(/^www\./, '');
+            document.cookie.split(';').map((c) => c.trim().split('=')[0]).filter((name) => name.startsWith('_ga'))
+                .forEach((name) => [domain, `.${domain}`, ''].forEach((d) => {
+                    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/${d ? `; domain=${d}` : ''}`;
+                }));
+            if (window.gtag) window.location.reload();
+        }
+    });
+    document.querySelector('[data-cookie-settings]')?.addEventListener('click', () => { if (banner) banner.hidden = false; });
+}
