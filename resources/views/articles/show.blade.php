@@ -31,6 +31,8 @@
         </header>
 
         <div class="container-page mt-10 max-w-3xl">
+            <x-reading-guide :article="$article" :locale="$contentLocale" class="mb-8" />
+
             @unless ($isTranslated)
                 <p class="mb-8 rounded-2xl bg-sand-100 p-4 text-sm text-bark-700" role="note">{{ __('site.articles.not_translated') }}</p>
             @endunless

@@ -79,6 +79,11 @@ return [
         'empty' => 'Nog geen artikelen.',
         'all_tags' => 'Alles',
         'tagged' => 'Met tag “:tag”',
+        'guide' => 'leeswijzer',
+        'reading_time' => ':minutes min lezen',
+        'views' => ':count keer gelezen|:count keer gelezen',
+        'photos' => ":count foto|:count foto's",
+        'day' => ':day van de reis',
     ],
 
 

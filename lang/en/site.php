@@ -79,6 +79,11 @@ return [
         'empty' => 'No articles yet.',
         'all_tags' => 'All',
         'tagged' => 'Tagged “:tag”',
+        'guide' => 'reading guide',
+        'reading_time' => ':minutes min read',
+        'views' => 'read :count time|read :count times',
+        'photos' => ':count photo|:count photos',
+        'day' => ':day of the walk',
     ],
 
 

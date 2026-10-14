@@ -314,7 +314,8 @@ class SiteTest extends TestCase
     {
         $article = $this->article();
 
-        $this->get('/preparation/first-night-in-the-tent')->assertOk();
+        // The reading guide shows the reading time and the count (this visit included).
+        $this->get('/preparation/first-night-in-the-tent')->assertOk()->assertSee('aria-label="reading guide"', false)->assertSee('1 min read')->assertSee('read 1 time');
         $this->get('/preparation/first-night-in-the-tent')->assertOk(); // same visit
         $this->flushSession()->withHeader('User-Agent', 'Googlebot/2.1')->get('/preparation/first-night-in-the-tent')->assertOk();
         $this->flushSession()->withHeader('User-Agent', 'Mozilla/5.0')->actingAs(User::factory()->create(['role' => Role::Admin]))

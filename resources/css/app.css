@@ -579,3 +579,7 @@ main:has(> .blend-footer:last-child) ~ footer { margin-top: -80px; position: rel
 @keyframes cookie-out { to { opacity: 0; transform: translate(4rem, 10rem) rotate(22deg) scale(.9); } }
 @media (min-width: 640px) { .cookie-banner { left: 1.5rem; bottom: 1.5rem; right: auto; } }
 @media (prefers-reduced-motion: reduce) { .cookie-banner, .cookie-banner::before, .cookie-banner.is-leaving { animation: none; transition: none; } }
+
+/* Reading guide at the top of an article (x-reading-guide): a warm note, slightly crooked. */
+.reading-guide { position: relative; padding: 1.1rem 1.25rem; border-radius: 1rem; background: var(--color-sand-100);
+    box-shadow: 0 1px 0 rgb(0 0 0 / .04), 0 14px 30px -18px rgb(20 42 28 / .45); transform: rotate(-.6deg); }

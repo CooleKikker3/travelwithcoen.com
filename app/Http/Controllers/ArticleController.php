@@ -44,7 +44,7 @@ class ArticleController extends Controller
         $article = Article::published()
             ->where('type', $type)
             ->where(fn ($query) => $query->whereSlug($slug, $locale)->orWhere(fn ($query) => $query->whereSlug($slug, $fallback)))
-            ->with(['country', 'gallery'])
+            ->with(['country', 'gallery', 'journeyDay'])
             ->firstOrFail();
 
         // Always serve an article on its own slug for this locale.
@@ -72,6 +72,7 @@ class ArticleController extends Controller
 
         $request->session()->push('viewed_articles', $article->id);
         Article::whereKey($article->id)->toBase()->increment('views'); // no updated_at change
+        $article->views++; // shown in the reading guide
     }
 
     /** Locale => URL, only for locales the article is actually written in. */

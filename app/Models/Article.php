@@ -125,6 +125,26 @@ class Article extends Model
             ->toUnsafeHtml();
     }
 
+    /** Words per minute a visitor reads (Dutch words are longer, so a bit slower). */
+    private const WORDS_PER_MINUTE = ['nl' => 210, 'en' => 238];
+
+    /** Estimated reading time in whole minutes (at least 1): words in the given language plus ~10 seconds per photo. */
+    public function readingMinutes(?string $locale = null): int
+    {
+        $locale ??= app()->getLocale();
+        $text = strip_tags($this->bodyHtml($locale)).' '.$this->translate('excerpt', $locale);
+        $words = count(preg_split('/\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY));
+        $seconds = $words / (self::WORDS_PER_MINUTE[$locale] ?? 220) * 60 + $this->photoCount($locale) * 10;
+
+        return max(1, (int) round($seconds / 60));
+    }
+
+    /** Photos in the text plus linked gallery photos. */
+    public function photoCount(?string $locale = null): int
+    {
+        return substr_count($this->bodyHtml($locale), '<img') + $this->gallery->where('kind', 'image')->count();
+    }
+
     /** Tags as a flat list. */
     public static function allTags(): array
     {
