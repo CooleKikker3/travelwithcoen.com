@@ -12,7 +12,7 @@
     <article>
         <header class="wave-bottom relative isolate overflow-hidden bg-forest-800 text-sage-100">
             @if ($article->coverUrl())
-                <img src="{{ $article->coverUrl() }}" alt="" class="absolute inset-0 -z-20 size-full object-cover" fetchpriority="high">
+                <img src="{{ $article->coverUrl() }}" alt="" class="absolute inset-0 -z-20 size-full object-cover" style="object-position: {{ $article->coverPosition() }}" fetchpriority="high">
                 <div class="absolute inset-0 -z-10 bg-gradient-to-t from-forest-950/90 via-forest-900/60 to-forest-900/30"></div>
             @endif
             <div class="topo absolute inset-0 -z-10" aria-hidden="true"></div>

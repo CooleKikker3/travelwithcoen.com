@@ -2,7 +2,7 @@
 <article class="polaroid group flex flex-col rounded-md bg-white p-3 pb-4 shadow-md ring-1 ring-sage-200/70 focus-within:ring-2 focus-within:ring-moss-500" data-reveal style="--i: {{ $index ?? 0 }}">
     <div class="aspect-[4/3] overflow-hidden rounded-sm bg-sage-100">
         @if ($article->coverUrl())
-            <img src="{{ $article->coverUrl() }}" alt="" loading="lazy" class="size-full object-cover transition duration-500 group-hover:scale-105">
+            <img src="{{ $article->coverUrl() }}" alt="" loading="lazy" style="object-position: {{ $article->coverPosition() }}" class="size-full object-cover transition duration-500 group-hover:scale-105">
         @else
             <div class="topo size-full bg-forest-700"></div>
         @endif

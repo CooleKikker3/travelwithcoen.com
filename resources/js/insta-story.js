@@ -59,6 +59,7 @@ async function init(root) {
     const say = (text) => (status.textContent = text);
 
     const [cover, flag, ...photos] = await Promise.all([loadImage(data.cover, true), loadFlag(data.flag), ...(data.photos || []).map((url) => loadImage(url, true))]);
+    if (cover) cover.focus = data.coverFocus;
     await Promise.all([`800 80px ${FONTS.display}`, `700 80px ${FONTS.hand}`, `800 30px ${FONTS.body}`, `700 30px ${FONTS.body}`].map((font) => document.fonts.load(font).catch(() => {})));
 
     const texts = () => data.locales[localeSelect.value];
@@ -256,7 +257,9 @@ function photo(ctx, cover, x, y, w, h) {
         const scale = Math.max(w / cover.naturalWidth, h / cover.naturalHeight);
         const sw = w / scale;
         const sh = h / scale;
-        ctx.drawImage(cover, (cover.naturalWidth - sw) / 2, (cover.naturalHeight - sh) / 2, sw, sh, x, y, w, h);
+        // The cover's focus point (chosen in the CMS) stays in view; other photos are cropped from the middle.
+        const [fx, fy] = cover.focus ?? [0.5, 0.5];
+        ctx.drawImage(cover, (cover.naturalWidth - sw) * fx, (cover.naturalHeight - sh) * fy, sw, sh, x, y, w, h);
         return;
     }
     ctx.save();

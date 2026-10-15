@@ -4,6 +4,7 @@ namespace App\Filament\Resources\EquipmentItems\Schemas;
 
 use App\Enums\EquipmentCategory;
 use App\Filament\Blocks\GearImageBlock;
+use App\Filament\Support\CoverFocus;
 use App\Filament\Support\TranslatableTabs;
 use App\Support\MediaStorage;
 use Filament\Forms\Components\FileUpload;
@@ -61,6 +62,7 @@ class EquipmentItemForm
                             ->imageResizeUpscale(false)
                             ->directory('equipment/covers')
                             ->maxSize(8192),
+                        CoverFocus::make(),
                         Repeater::make('specs')->label('Specificaties')
                             ->schema([
                                 TextInput::make('label')->label('Wat')->placeholder('bijv. Gewicht')->required()->maxLength(60),

@@ -23,7 +23,7 @@
                         <li class="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-sage-200 transition hover:-translate-y-1 hover:shadow-lg" data-reveal style="--i: {{ min($loop->index, 6) }}">
                             <div class="relative aspect-[4/3] overflow-hidden bg-forest-800">
                                 @if ($item->coverUrl())
-                                    <img src="{{ $item->coverUrl() }}" alt="" class="size-full object-cover transition duration-500 group-hover:scale-105" loading="lazy">
+                                    <img src="{{ $item->coverUrl() }}" alt="" style="object-position: {{ $item->coverPosition() }}" class="size-full object-cover transition duration-500 group-hover:scale-105" loading="lazy">
                                 @else
                                     <div class="topo absolute inset-0" aria-hidden="true"></div>
                                 @endif

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Articles\Schemas;
 use App\Enums\ArticleStatus;
 use App\Enums\ArticleType;
 use App\Filament\Blocks\ImageBlock;
+use App\Filament\Support\CoverFocus;
 use App\Filament\Support\Options;
 use App\Filament\Support\TranslatableTabs;
 use App\Models\Article;
@@ -96,6 +97,7 @@ class ArticleForm
                             ->imageResizeUpscale(false)
                             ->directory('articles/covers')
                             ->maxSize(8192),
+                        CoverFocus::make(),
                     ]),
             ]);
     }

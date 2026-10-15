@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ArticleStatus;
 use App\Enums\ArticleType;
 use App\Filament\Blocks\ImageBlock;
+use App\Models\Concerns\HasCoverFocus;
 use App\Models\Concerns\HasTranslations;
 use App\Services\ArticleGallerySync;
 use App\Services\ImageProcessor;
@@ -17,9 +18,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['type', 'title', 'slug', 'excerpt', 'body', 'status', 'published_at', 'country_id', 'journey_day_id', 'cover_image', 'tags'])]
+#[Fillable(['type', 'title', 'slug', 'excerpt', 'body', 'status', 'published_at', 'country_id', 'journey_day_id', 'cover_image', 'cover_focus', 'tags'])]
 class Article extends Model
 {
+    use HasCoverFocus;
     use HasTranslations;
 
     protected array $translatable = ['title', 'slug', 'excerpt', 'body'];

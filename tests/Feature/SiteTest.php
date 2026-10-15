@@ -326,6 +326,23 @@ class SiteTest extends TestCase
         $this->get('/admin/articles/create')->assertOk();
     }
 
+    public function test_the_chosen_part_of_a_cover_photo_stays_in_view(): void
+    {
+        $article = $this->article(['cover_focus' => '40% 15%']);
+        \Illuminate\Support\Facades\DB::table('articles')->where('id', $article->id)->update(['cover_image' => 'articles/covers/kennedymars.jpg']);
+
+        $this->get('/preparation/first-night-in-the-tent')->assertSee('object-position: 40% 15%', false);
+        $this->assertSame('50% 50%', (new Article(['cover_focus' => 'url(evil)']))->coverPosition()); // only "x% y%"
+
+        // In the CMS: click on the photo (picker with previews), only once a cover is saved.
+        $this->actingAs(User::factory()->create(['role' => Role::Admin]))
+            ->get("/admin/articles/{$article->id}/edit")->assertOk()->assertSee('Wat moet in beeld blijven?');
+        $this->get('/admin/articles/create')->assertOk()->assertDontSee('Wat moet in beeld blijven?');
+        Livewire::test(\App\Filament\Resources\Articles\Pages\EditArticle::class, ['record' => $article->id])
+            ->set('data.cover_focus', '30% 20%')->call('save')->assertHasNoErrors();
+        $this->assertSame('30% 20%', $article->fresh()->cover_focus);
+    }
+
     public function test_social_links_and_analytics(): void
     {
         config(['services.google_analytics.id' => null]); // not from the local .env

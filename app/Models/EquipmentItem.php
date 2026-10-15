@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\EquipmentCategory;
 use App\Filament\Blocks\GearImageBlock;
+use App\Models\Concerns\HasCoverFocus;
 use App\Models\Concerns\HasTranslations;
 use App\Services\ArticleGallerySync;
 use App\Services\ImageProcessor;
@@ -17,9 +18,10 @@ use Illuminate\Database\Eloquent\Model;
  * A piece of gear, with its own page like an article: cover photo, short and long description (photos between
  * the text via GearImageBlock) and free specifications ([{label, value}], e.g. "Gewicht: 1150 g").
  */
-#[Fillable(['category', 'name', 'slug', 'brand', 'model', 'excerpt', 'cover_image', 'specs', 'body', 'is_public', 'sort_order'])]
+#[Fillable(['category', 'name', 'slug', 'brand', 'model', 'excerpt', 'cover_image', 'cover_focus', 'specs', 'body', 'is_public', 'sort_order'])]
 class EquipmentItem extends Model
 {
+    use HasCoverFocus;
     use HasTranslations;
 
     protected array $translatable = ['name', 'slug', 'excerpt', 'body'];

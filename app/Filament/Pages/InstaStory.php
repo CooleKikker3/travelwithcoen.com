@@ -43,6 +43,8 @@ class InstaStory extends Page
 
         return [
             'cover' => $article->coverUrl(),
+            // The chosen focus point as fractions [x, y], so the story crops the cover like the website.
+            'coverFocus' => array_map(fn (string $percent) => (int) $percent / 100, explode(' ', $article->coverPosition())),
             // More photos for the collage: the photos in the story's text and linked uploads (no sensitive ones).
             'photos' => GalleryItem::where('article_id', $article->id)->where('kind', 'image')->where('is_sensitive', false)
                 ->whereNotNull('path')->oldest('taken_at')->limit(6)->pluck('path')
