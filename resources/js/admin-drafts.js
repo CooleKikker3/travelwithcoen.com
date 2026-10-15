@@ -82,3 +82,42 @@ function offerRestore(root, wire, key, saved) {
 }
 
 window.Livewire?.all?.().length ? start() : document.addEventListener('livewire:initialized', start);
+
+// Connection warning: when the CMS can't reach the server (no signal, or a request that breaks off), say so instead of
+// failing silently, so a save that did not arrive is noticed. It disappears with the next request that does arrive.
+// Drafts (above) keep the form in this browser meanwhile.
+const connection = (() => {
+    let banner;
+    const show = (text) => {
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.setAttribute('role', 'alert');
+            banner.style.cssText = 'position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:9999;max-width:calc(100% - 2rem);padding:.75rem 1rem;border-radius:.75rem;background:#7f1d1d;color:#fff;font-size:.875rem;font-weight:600;box-shadow:0 10px 30px rgb(0 0 0 / .3)';
+            document.body.append(banner);
+        }
+        banner.textContent = text;
+        banner.hidden = false;
+    };
+    const hide = () => banner && (banner.hidden = true);
+    return { show, hide };
+})();
+const NO_SIGNAL = 'Geen verbinding: wat je nu opslaat komt niet aan. Je wijzigingen blijven in deze browser bewaard; probeer het opnieuw zodra je bereik hebt.';
+window.addEventListener('offline', () => connection.show(NO_SIGNAL));
+window.addEventListener('online', () => connection.hide());
+if (!navigator.onLine) connection.show(NO_SIGNAL);
+
+// Livewire talks to the server with fetch: a rejected request means it never arrived.
+const originalFetch = window.fetch;
+window.fetch = async (...args) => {
+    const url = String(args[0]?.url ?? args[0] ?? '');
+    try {
+        const response = await originalFetch(...args);
+        if (url.includes('/livewire')) {
+            response.status >= 500 ? connection.show('De server gaf een fout; je wijziging is misschien niet opgeslagen. Probeer het opnieuw.') : connection.hide();
+        }
+        return response;
+    } catch (error) {
+        if (url.includes('/livewire')) connection.show(NO_SIGNAL);
+        throw error;
+    }
+};

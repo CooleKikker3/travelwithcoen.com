@@ -50,8 +50,11 @@ class GalleryItemForm
             ->imageResizeMode('contain')
             ->imageResizeUpscale(false)
             ->directory('gallery')
-            ->maxSize(512000)
-            ->helperText('Foto\'s worden verkleind en locatiegegevens (GPS) worden verwijderd.');
+            // Cloudflare lets at most 100 MB per upload through: refuse bigger files before they are sent (saves data).
+            ->maxSize(102400)
+            // One at a time: on a weak connection each file finishes sooner, and a failed one can be retried on its own.
+            ->maxParallelUploads(1)
+            ->helperText('Foto\'s worden verkleind en locatiegegevens (GPS) worden verwijderd. Video\'s maximaal 100 MB; langere video\'s liever via YouTube.');
     }
 
     /** One or two sentences about the photo or video, per language. */

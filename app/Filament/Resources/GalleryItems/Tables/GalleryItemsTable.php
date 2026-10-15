@@ -25,7 +25,9 @@ class GalleryItemsTable
             ->defaultSort('taken_at', 'desc')
             ->columns([
                 ImageColumn::make('thumbnail')->label('')->square()
-                    ->state(fn (GalleryItem $record) => $record->thumbnailUrl()),
+                    ->state(fn (GalleryItem $record) => $record->thumbnailUrl())
+                    // Full-size photos (no small versions): only load the ones scrolled into view.
+                    ->extraImgAttributes(['loading' => 'lazy']),
                 TextColumn::make('kind')->label('Soort')->badge()->color(fn (string $state) => match ($state) {
                     'youtube' => 'danger',
                     'video' => 'warning',
