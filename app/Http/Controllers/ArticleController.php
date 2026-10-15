@@ -58,6 +58,8 @@ class ArticleController extends Controller
             'article' => $article,
             'isTranslated' => $article->isTranslated($locale),
             'alternates' => $this->alternates($article),
+            // The language switch always stays on this story (an untranslated one shows the original with a note).
+            'switchUrls' => collect(array_keys(config('travel.locales')))->mapWithKeys(fn (string $l) => [$l => $article->url($l)])->all(),
         ]);
     }
 

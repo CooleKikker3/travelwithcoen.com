@@ -142,6 +142,7 @@ class ContentTest extends TestCase
 
         $this->get('/admin')->assertOk()->assertSee('Snel naar')->assertSee('admin-drafts', false);
         $this->get('/admin/settings')->assertOk()->assertSee('Bezoekers zien je locatie van');
+        $this->get('/admin/useful-links')->assertOk()->assertSee('Map Animator')->assertSee('https://mapanimator.baldinger.se/');
 
         $this->get('/admin')->assertDontSee('Laatste locatie-update');
         $this->get('/admin/statistics')->assertOk()->assertSee('Statistieken');

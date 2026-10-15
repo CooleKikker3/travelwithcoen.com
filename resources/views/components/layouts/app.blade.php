@@ -1,4 +1,4 @@
-@props(['title' => null, 'description' => null, 'alternates' => null, 'canonical' => null, 'solidNav' => false, 'image' => null])
+@props(['title' => null, 'description' => null, 'alternates' => null, 'switchUrls' => null, 'canonical' => null, 'solidNav' => false, 'image' => null])
 @php
     $locale = app()->getLocale();
     $locales = config('travel.locales');
@@ -101,7 +101,8 @@
                         @if ($l === $locale)
                             <span class="rounded-full bg-fern-300 px-2.5 py-1 text-forest-950" aria-current="true" title="{{ $label }}">{{ strtoupper($l) }}</span>
                         @else
-                            <a href="{{ ($alternates[$l] ?? lroute('home', [], $l)).'?lang='.$l }}" hreflang="{{ $l }}" lang="{{ $l }}" class="rounded-full px-2.5 py-1 text-sage-200 transition hover:-rotate-6 hover:text-white" title="{{ $label }}">{{ strtoupper($l) }}</a>
+                            {{-- The same page in the other language (also when it is not translated: that page shows the original with a note). --}}
+                            <a href="{{ ($switchUrls[$l] ?? $alternates[$l] ?? lroute('home', [], $l)).'?lang='.$l }}" hreflang="{{ $l }}" lang="{{ $l }}" class="rounded-full px-2.5 py-1 text-sage-200 transition hover:-rotate-6 hover:text-white" title="{{ $label }}">{{ strtoupper($l) }}</a>
                         @endif
                     @endforeach
                 </div>

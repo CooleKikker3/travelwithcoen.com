@@ -6,6 +6,7 @@
     :title="$article->translate('title')"
     :description="$article->translate('excerpt')"
     :alternates="$alternates"
+    :switch-urls="$switchUrls"
     :canonical="$isTranslated ? null : $article->url($default)"
     :image="$article->coverUrl()"
 >

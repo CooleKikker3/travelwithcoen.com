@@ -326,6 +326,15 @@ class SiteTest extends TestCase
         $this->get('/admin/articles/create')->assertOk();
     }
 
+    public function test_the_language_switch_stays_on_an_untranslated_story(): void
+    {
+        $article = $this->article(['title' => ['nl' => 'Alleen in het Nederlands'], 'body' => ['nl' => '<p>Hoi.</p>']]);
+
+        // On the Dutch page, "EN" leads to the same story on the English site (Dutch text with a note), not to the home page.
+        $this->get($article->url('nl'))->assertOk()->assertSee('href="'.$article->url('en').'?lang=en"', false);
+        $this->get($article->url('en'))->assertOk()->assertSee('href="'.$article->url('nl').'?lang=nl"', false);
+    }
+
     public function test_every_page_title_reads_site_name_then_page(): void
     {
         $this->article();

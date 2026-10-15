@@ -39,6 +39,8 @@ class PageController extends Controller
             'isTranslated' => $item->isTranslated($locale),
             'alternates' => collect(array_keys(config('travel.locales')))->filter(fn (string $l) => $item->isTranslated($l))
                 ->mapWithKeys(fn (string $l) => [$l => $item->url($l)])->all(),
+            // The language switch always stays on this item (an untranslated one shows the original with a note).
+            'switchUrls' => collect(array_keys(config('travel.locales')))->mapWithKeys(fn (string $l) => [$l => $item->url($l)])->all(),
         ]);
     }
 

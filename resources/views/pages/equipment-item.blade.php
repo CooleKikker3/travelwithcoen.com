@@ -7,6 +7,7 @@
     :title="$item->translate('name')"
     :description="$item->translate('excerpt')"
     :alternates="$alternates"
+    :switch-urls="$switchUrls"
     :canonical="$isTranslated ? null : $item->url($default)"
     :image="$item->coverUrl()"
 >
