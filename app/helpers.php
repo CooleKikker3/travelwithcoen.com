@@ -24,3 +24,17 @@ if (! function_exists('stories_url')) {
         return lroute('stories', array_filter(['type' => $type, 'tag' => $tag]), $locale);
     }
 }
+
+if (! function_exists('page_title')) {
+    /**
+     * The browser title, the same everywhere (site, admin, coming-soon page): "Travel with Coen | <page>".
+     * The pattern is the website text site.title_format (editable in the CMS); without a page the tagline is used.
+     */
+    function page_title(?string $page = null, ?string $locale = null): string
+    {
+        return __('site.title_format', [
+            'site' => __('site.name', [], $locale),
+            'page' => filled($page) ? trim(strip_tags($page)) : __('site.tagline', [], $locale),
+        ], $locale);
+    }
+}

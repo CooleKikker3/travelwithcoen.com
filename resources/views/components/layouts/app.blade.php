@@ -13,7 +13,7 @@
     }
 
     $canonical ??= $alternates[$locale] ?? $alternates[$default] ?? url()->current();
-    $pageTitle = $title ? $title.' · '.__('site.name') : __('site.name').' — '.__('site.tagline');
+    $pageTitle = page_title($title);
     $description ??= __('site.description');
 
     $nav = [

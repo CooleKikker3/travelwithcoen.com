@@ -3,6 +3,8 @@
 return [
     'name' => 'Travel with Coen',
     'tagline' => 'Te voet van Nederland naar Hanoi',
+    // Browser title on every page: :site = the name above, :page = the page title.
+    'title_format' => ':site | :page',
     'departure' => 'eind juni 2027',
     'description' => 'Coen loopt van Nederland naar Hanoi, Vietnam: zoveel mogelijk te voet, over land, met een lichte rugzak en een tent.',
     'skip' => 'Naar de inhoud',

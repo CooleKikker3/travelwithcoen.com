@@ -3,6 +3,8 @@
 return [
     'name' => 'Travel with Coen',
     'tagline' => 'Walking from the Netherlands to Hanoi',
+    // Browser title on every page: :site = the name above, :page = the page title.
+    'title_format' => ':site | :page',
     'departure' => 'late June 2027',
     'description' => 'Coen walks from the Netherlands to Hanoi, Vietnam: mostly on foot, over land, with a light backpack and a tent.',
     'skip' => 'Skip to content',

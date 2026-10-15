@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
-    <title>{{ __('site.name') }} — {{ __('site.coming_soon.title') }}</title>
+    <title>{{ page_title(__('site.coming_soon.title')) }}</title>
     <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=bricolage-grotesque:500,700,800|caveat:600,700|nunito:400,600,700,800&display=swap" rel="stylesheet">

@@ -326,6 +326,17 @@ class SiteTest extends TestCase
         $this->get('/admin/articles/create')->assertOk();
     }
 
+    public function test_every_page_title_reads_site_name_then_page(): void
+    {
+        $this->article();
+
+        $this->get('/')->assertSee('<title>Travel with Coen | Walking from the Netherlands to Hanoi</title>', false);
+        $this->get('/preparation/first-night-in-the-tent')->assertSee('<title>Travel with Coen | First night in the tent</title>', false);
+        $this->get('/nl/over')->assertSee('<title>Travel with Coen | Over het project</title>', false);
+        $this->actingAs(User::factory()->create(['role' => Role::Admin]))
+            ->get('/admin/articles')->assertSee('<title>Travel with Coen | Artikelen</title>', false);
+    }
+
     public function test_the_chosen_part_of_a_cover_photo_stays_in_view(): void
     {
         $article = $this->article(['cover_focus' => '40% 15%']);
